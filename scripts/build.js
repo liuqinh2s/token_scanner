@@ -37,12 +37,20 @@ if (scanFiles.length === 0) {
 } else {
   // latest.json = most recent scan
   const latestData = JSON.parse(fs.readFileSync(path.join(DATA_DIR, scanFiles[0]), "utf-8"));
+  // Sort tokens by created_at descending (newest first)
+  if (latestData.tokens) {
+    latestData.tokens.sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
+  }
   fs.writeFileSync(path.join(SITE_DATA_DIR, "latest.json"), JSON.stringify(latestData));
 
   // history.json + individual scan files
   const history = [];
   scanFiles.forEach((file, idx) => {
     const data = JSON.parse(fs.readFileSync(path.join(DATA_DIR, file), "utf-8"));
+    // Sort tokens by created_at descending (newest first)
+    if (data.tokens) {
+      data.tokens.sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
+    }
     history.push({
       id: idx,
       scan_time: data.scanTime,

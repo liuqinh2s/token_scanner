@@ -99,7 +99,7 @@ function renderData(data) {
 
   const tbody = document.getElementById('tokenBody');
   const noData = document.getElementById('noData');
-  const tokens = data.tokens || [];
+  const tokens = (data.tokens || []).slice().sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
 
   if (tokens.length === 0) {
     tbody.innerHTML = '';
