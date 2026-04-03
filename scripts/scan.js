@@ -221,44 +221,29 @@ async function main() {
   });
   console.log(`[SCAN] After age filter: ${preFiltered.length} tokens`);
 
-  // Step 3: Use hold from list API for initial screening, fetch detail for borderline ones
-  // Tokens with hold >= MIN_HOLDERS from list data pass directly
-  const directPass = [];
-  const needDetail = [];
-
-  for (const t of preFiltered) {
+  // Step 3: Pre-filter by list API hold, then fetch accurate holderCount from detail API
+  const candidates = preFiltered.filter(t => {
     const listHold = parseInt(t.hold || 0);
-    if (listHold >= MIN_HOLDERS) {
-      directPass.push({ ...t, _holders: listHold });
-    } else if (listHold >= MIN_HOLDERS * 0.5) {
-      // Borderline - might have updated holder count via detail API
-      needDetail.push(t);
-    }
-  }
+    return listHold >= MIN_HOLDERS * 0.5; // keep borderline ones too
+  });
+  console.log(`[SCAN] Candidates (hold>=${MIN_HOLDERS * 0.5}): ${candidates.length}`);
 
-  console.log(`[SCAN] Direct pass (hold>=${MIN_HOLDERS}): ${directPass.length}`);
-  console.log(`[SCAN] Need detail check: ${needDetail.length}`);
-
-  // Fetch detail for borderline tokens (limit to avoid rate limiting)
-  const detailLimit = Math.min(needDetail.length, 100);
-  let detailPassed = 0;
-  for (let i = 0; i < detailLimit; i++) {
-    const t = needDetail[i];
+  // Fetch accurate holder count from detail API for all candidates
+  const passed = [];
+  for (let i = 0; i < candidates.length; i++) {
+    const t = candidates[i];
     const holders = await fetchHolderCount(t.tokenAddress);
     if (holders >= MIN_HOLDERS) {
-      directPass.push({ ...t, _holders: holders });
-      detailPassed++;
+      passed.push({ ...t, _holders: holders });
     }
     if ((i + 1) % 50 === 0) {
-      console.log(`[SCAN] Detail check: ${i + 1}/${detailLimit}`);
+      console.log(`[SCAN] Detail check: ${i + 1}/${candidates.length}`);
     }
   }
-  if (detailPassed > 0) {
-    console.log(`[SCAN] Detail check passed: ${detailPassed}`);
-  }
+  console.log(`[SCAN] Passed after detail check: ${passed.length}/${candidates.length}`);
 
   // Step 4: Sort by holders descending
-  const filtered = directPass.sort((a, b) => b._holders - a._holders);
+  const filtered = passed.sort((a, b) => b._holders - a._holders);
 
   const result = {
     scanTime,
