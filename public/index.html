@@ -1,116 +1,322 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BSC Token Scanner</title>
-<style>
-* { margin:0; padding:0; box-sizing:border-box; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace; background:#0a0e17; color:#e1e8f0; min-height:100vh; }
-#app { max-width:1100px; margin:0 auto; padding:20px; }
-header { text-align:center; padding:24px 0 16px; }
-h1 { font-size:28px; color:#f0b90b; letter-spacing:1px; }
-.subtitle { color:#7a8599; font-size:13px; margin-top:4px; }
-.stats-bar { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin:16px 0; }
-.stat { background:#141924; border:1px solid #1e2a3a; border-radius:8px; padding:12px 20px; text-align:center; min-width:140px; }
-.stat .label { display:block; font-size:11px; color:#5a6a80; text-transform:uppercase; letter-spacing:.5px; }
-.stat .val { display:block; font-size:18px; font-weight:700; color:#e1e8f0; margin-top:4px; }
-.actions { display:flex; gap:10px; justify-content:center; margin:16px 0; }
-button { background:#1e2a3a; color:#e1e8f0; border:1px solid #2a3a50; border-radius:6px; padding:8px 18px; cursor:pointer; font-size:13px; transition:all .2s; }
-button:hover { background:#f0b90b; color:#0a0e17; border-color:#f0b90b; }
-table { width:100%; border-collapse:collapse; margin-top:12px; }
-th { background:#141924; color:#7a8599; font-size:11px; text-transform:uppercase; letter-spacing:.5px; padding:10px 12px; text-align:left; border-bottom:1px solid #1e2a3a; position:sticky; top:0; }
-td { padding:10px 12px; border-bottom:1px solid #111827; font-size:13px; }
-tr:hover td { background:#111827; }
-.addr-cell { display:flex; align-items:center; gap:6px; }
-.addr-text { font-family:monospace; font-size:12px; color:#8ecdf7; word-break:break-all; }
-.copy-btn { background:none; border:1px solid #2a3a50; color:#7a8599; border-radius:4px; padding:2px 8px; font-size:11px; cursor:pointer; white-space:nowrap; min-width:auto; }
-.copy-btn:hover { background:#f0b90b; color:#0a0e17; border-color:#f0b90b; }
-.no-data { text-align:center; padding:40px; color:#5a6a80; }
-.hidden { display:none !important; }
-.history-panel { background:#141924; border:1px solid #1e2a3a; border-radius:8px; padding:16px; margin:12px 0; max-height:300px; overflow-y:auto; }
-.history-panel h3 { color:#f0b90b; font-size:14px; margin-bottom:12px; }
-.hist-row { display:flex; justify-content:space-between; align-items:center; padding:8px 10px; border-bottom:1px solid #1e2a3a; font-size:12px; cursor:pointer; border-radius:4px; }
-.hist-row:hover { background:#1e2a3a; }
-.hist-row .ht { color:#7a8599; }
-.hist-row .hv { color:#f0b90b; font-weight:600; }
-.toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#f0b90b; color:#0a0e17; padding:8px 20px; border-radius:6px; font-size:13px; font-weight:600; z-index:999; transition:opacity .3s; }
-.bscscan-link { color:#5a9fd4; text-decoration:none; font-size:11px; }
-.bscscan-link:hover { text-decoration:underline; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BSC Token Scanner</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
+      background: #0a0e17;
+      color: #e1e8f0;
+      min-height: 100vh;
+    }
+
+    #app {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    header {
+      text-align: center;
+      padding: 24px 0 16px;
+    }
+
+    h1 {
+      font-size: 28px;
+      color: #f0b90b;
+      letter-spacing: 1px;
+    }
+
+    .subtitle {
+      color: #7a8599;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    .stats-bar {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 16px 0;
+    }
+
+    .stat {
+      background: #141924;
+      border: 1px solid #1e2a3a;
+      border-radius: 8px;
+      padding: 12px 20px;
+      text-align: center;
+      min-width: 140px;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 11px;
+      color: #5a6a80;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+
+    .stat .val {
+      display: block;
+      font-size: 18px;
+      font-weight: 700;
+      color: #e1e8f0;
+      margin-top: 4px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin: 16px 0;
+    }
+
+    button {
+      background: #1e2a3a;
+      color: #e1e8f0;
+      border: 1px solid #2a3a50;
+      border-radius: 6px;
+      padding: 8px 18px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all .2s;
+    }
+
+    button:hover {
+      background: #f0b90b;
+      color: #0a0e17;
+      border-color: #f0b90b;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+
+    th {
+      background: #141924;
+      color: #7a8599;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 1px solid #1e2a3a;
+      position: sticky;
+      top: 0;
+    }
+
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #111827;
+      font-size: 13px;
+    }
+
+    tr:hover td {
+      background: #111827;
+    }
+
+    .addr-cell {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .addr-text {
+      font-family: monospace;
+      font-size: 12px;
+      color: #8ecdf7;
+      word-break: break-all;
+    }
+
+    .copy-btn {
+      background: none;
+      border: 1px solid #2a3a50;
+      color: #7a8599;
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-size: 11px;
+      cursor: pointer;
+      white-space: nowrap;
+      min-width: auto;
+    }
+
+    .copy-btn:hover {
+      background: #f0b90b;
+      color: #0a0e17;
+      border-color: #f0b90b;
+    }
+
+    .no-data {
+      text-align: center;
+      padding: 40px;
+      color: #5a6a80;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .history-panel {
+      background: #141924;
+      border: 1px solid #1e2a3a;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 12px 0;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .history-panel h3 {
+      color: #f0b90b;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+
+    .hist-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      border-bottom: 1px solid #1e2a3a;
+      font-size: 12px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    .hist-row:hover {
+      background: #1e2a3a;
+    }
+
+    .hist-row .ht {
+      color: #7a8599;
+    }
+
+    .hist-row .hv {
+      color: #f0b90b;
+      font-weight: 600;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #f0b90b;
+      color: #0a0e17;
+      padding: 8px 20px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      z-index: 999;
+      transition: opacity .3s;
+    }
+
+    .bscscan-link {
+      color: #5a9fd4;
+      text-decoration: none;
+      font-size: 11px;
+    }
+
+    .bscscan-link:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
+
 <body>
-<div id="app">
-  <header>
-    <h1>BSC Token Scanner</h1>
-    <p class="subtitle">Every 15 min · Last 3 days · Holders ≥ 90</p>
-  </header>
+  <div id="app">
+    <header>
+      <h1>BSC Token Scanner</h1>
+      <p class="subtitle">Every 15 min · Last 3 days · Holders ≥ 90</p>
+    </header>
 
-  <div class="stats-bar" id="statsBar">
-    <div class="stat"><span class="label">Scan Time</span><span class="val" id="scanTime">--</span></div>
-    <div class="stat"><span class="label">Total Tokens (3d)</span><span class="val" id="totalTokens">--</span></div>
-    <div class="stat"><span class="label">Filtered (holders≥90)</span><span class="val" id="filteredTokens">--</span></div>
+    <div class="stats-bar" id="statsBar">
+      <div class="stat"><span class="label">Scan Time</span><span class="val" id="scanTime">--</span></div>
+      <div class="stat"><span class="label">Total Tokens (3d)</span><span class="val" id="totalTokens">--</span></div>
+      <div class="stat"><span class="label">Filtered (holders≥90)</span><span class="val" id="filteredTokens">--</span>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button id="btnHistory" onclick="toggleHistory()">History</button>
+    </div>
+
+    <div id="historyPanel" class="history-panel hidden">
+      <h3>Scan History</h3>
+      <div id="historyList"></div>
+    </div>
+
+    <div id="tokenTable">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Symbol</th>
+            <th>Contract Address</th>
+            <th>Holders</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody id="tokenBody"></tbody>
+      </table>
+      <p id="noData" class="no-data hidden">No tokens matching filter criteria.</p>
+    </div>
   </div>
 
-  <div class="actions">
-    <button id="btnHistory" onclick="toggleHistory()">History</button>
-  </div>
+  <div id="toast" class="toast hidden"></div>
 
-  <div id="historyPanel" class="history-panel hidden">
-    <h3>Scan History</h3>
-    <div id="historyList"></div>
-  </div>
+  <script>
+    let historyVisible = false;
+    const cache = {};
 
-  <div id="tokenTable">
-    <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Name</th>
-          <th>Symbol</th>
-          <th>Contract Address</th>
-          <th>Holders</th>
-          <th>Created</th>
-        </tr>
-      </thead>
-      <tbody id="tokenBody"></tbody>
-    </table>
-    <p id="noData" class="no-data hidden">No tokens matching filter criteria.</p>
-  </div>
-</div>
+    async function cachedFetch(url) {
+      if (cache[url]) return cache[url];
+      const res = await fetch(url);
+      const data = await res.json();
+      cache[url] = data;
+      return data;
+    }
 
-<div id="toast" class="toast hidden"></div>
+    async function loadLatest() {
+      try {
+        const data = await cachedFetch('/api/latest');
+        renderData(data);
+      } catch (e) { console.error(e); }
+    }
 
-<script>
-let historyVisible = false;
+    function renderData(data) {
+      document.getElementById('scanTime').textContent = data.scanTime || '--';
+      document.getElementById('totalTokens').textContent = data.totalTokens != null ? data.totalTokens.toLocaleString() : '--';
+      document.getElementById('filteredTokens').textContent = data.filteredTokens != null ? data.filteredTokens.toLocaleString() : '--';
 
-async function loadLatest() {
-  try {
-    const res = await fetch('/api/latest');
-    const data = await res.json();
-    renderData(data);
-  } catch(e) { console.error(e); }
-}
+      const tbody = document.getElementById('tokenBody');
+      const noData = document.getElementById('noData');
+      const tokens = (data.tokens || []).slice().sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
 
-function renderData(data) {
-  document.getElementById('scanTime').textContent = data.scanTime || '--';
-  document.getElementById('totalTokens').textContent = data.totalTokens != null ? data.totalTokens.toLocaleString() : '--';
-  document.getElementById('filteredTokens').textContent = data.filteredTokens != null ? data.filteredTokens.toLocaleString() : '--';
-
-  const tbody = document.getElementById('tokenBody');
-  const noData = document.getElementById('noData');
-  const tokens = (data.tokens || []).slice().sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
-
-  if (tokens.length === 0) {
-    tbody.innerHTML = '';
-    noData.classList.remove('hidden');
-    return;
-  }
-  noData.classList.add('hidden');
-  tbody.innerHTML = tokens.map((t, i) => {
-    const addr = t.address || '';
-    const created = t.created_at ? new Date(t.created_at > 1e12 ? t.created_at : t.created_at * 1000).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false }) : '--';
-    return `<tr>
+      if (tokens.length === 0) {
+        tbody.innerHTML = '';
+        noData.classList.remove('hidden');
+        return;
+      }
+      noData.classList.add('hidden');
+      tbody.innerHTML = tokens.map((t, i) => {
+        const addr = t.address || '';
+        const created = t.created_at ? new Date(t.created_at > 1e12 ? t.created_at : t.created_at * 1000).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false }) : '--';
+        return `<tr>
       <td>${i + 1}</td>
       <td>${esc(t.name || '--')}</td>
       <td>${esc(t.symbol || '--')}</td>
@@ -124,69 +330,68 @@ function renderData(data) {
       <td>${t.holders || 0}</td>
       <td>${created}</td>
     </tr>`;
-  }).join('');
-}
-
-function esc(s) {
-  const d = document.createElement('div');
-  d.textContent = s;
-  return d.innerHTML;
-}
-
-function copyAddr(addr) {
-  navigator.clipboard.writeText(addr).then(() => showToast('Copied!')).catch(() => {
-    // fallback
-    const ta = document.createElement('textarea');
-    ta.value = addr;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    showToast('Copied!');
-  });
-}
-
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.remove('hidden');
-  setTimeout(() => t.classList.add('hidden'), 1500);
-}
-
-async function toggleHistory() {
-  const panel = document.getElementById('historyPanel');
-  historyVisible = !historyVisible;
-  if (historyVisible) {
-    panel.classList.remove('hidden');
-    const res = await fetch('/api/history');
-    const rows = await res.json();
-    const list = document.getElementById('historyList');
-    if (rows.length === 0) {
-      list.innerHTML = '<p style="color:#5a6a80;font-size:12px;">No history yet.</p>';
-      return;
+      }).join('');
     }
-    list.innerHTML = rows.map(r => `
+
+    function esc(s) {
+      const d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    function copyAddr(addr) {
+      navigator.clipboard.writeText(addr).then(() => showToast('Copied!')).catch(() => {
+        // fallback
+        const ta = document.createElement('textarea');
+        ta.value = addr;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast('Copied!');
+      });
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.remove('hidden');
+      setTimeout(() => t.classList.add('hidden'), 1500);
+    }
+
+    async function toggleHistory() {
+      const panel = document.getElementById('historyPanel');
+      historyVisible = !historyVisible;
+      if (historyVisible) {
+        panel.classList.remove('hidden');
+        const rows = await cachedFetch('/api/history');
+        const list = document.getElementById('historyList');
+        if (rows.length === 0) {
+          list.innerHTML = '<p style="color:#5a6a80;font-size:12px;">No history yet.</p>';
+          return;
+        }
+        list.innerHTML = rows.map(r => `
       <div class="hist-row" onclick="loadScan(${r.id})">
         <span class="ht">${r.scan_time}</span>
         <span>Total: ${r.total_tokens} | Filtered: <span class="hv">${r.filtered_tokens}</span></span>
       </div>
     `).join('');
-  } else {
-    panel.classList.add('hidden');
-  }
-}
+      } else {
+        panel.classList.add('hidden');
+      }
+    }
 
-async function loadScan(id) {
-  try {
-    const res = await fetch('/api/scan/' + id);
-    const data = await res.json();
-    renderData(data);
-    showToast('Loaded scan #' + id);
-  } catch(e) { showToast('Error loading scan'); }
-}
+    async function loadScan(id) {
+      try {
+        const data = await cachedFetch('/api/scan/' + id);
+        renderData(data);
+        showToast('Loaded scan #' + id);
+      } catch (e) { showToast('Error loading scan'); }
+    }
 
-// Init
-loadLatest();
-</script>
+    // Init
+    loadLatest();
+  </script>
 </body>
+
 </html>
