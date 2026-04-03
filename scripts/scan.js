@@ -287,6 +287,24 @@ async function main() {
   fs.writeFileSync(scanFile, JSON.stringify(result, null, 2));
   console.log(`[SCAN] Wrote ${scanFile}`);
 
+  // Step 6: Clean up data files older than 7 days
+  const MAX_DATA_AGE_DAYS = 7;
+  const cutoffMs = Date.now() - MAX_DATA_AGE_DAYS * 24 * 3600 * 1000;
+  const dataFiles = fs.readdirSync(DATA_DIR).filter(f => f.endsWith(".json"));
+  let cleaned = 0;
+  for (const f of dataFiles) {
+    // Parse date from filename like "2026-04-03T09-34-09.json"
+    const match = f.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2})-(\d{2})-(\d{2})\.json$/);
+    if (!match) continue;
+    const [, y, mo, d, h, mi, s] = match;
+    const fileDate = new Date(`${y}-${mo}-${d}T${h}:${mi}:${s}Z`);
+    if (fileDate.getTime() < cutoffMs) {
+      fs.unlinkSync(path.join(DATA_DIR, f));
+      cleaned++;
+    }
+  }
+  if (cleaned > 0) console.log(`[SCAN] Cleaned ${cleaned} data files older than ${MAX_DATA_AGE_DAYS} days`);
+
   const elapsed = ((Date.now() - scanStart) / 1000).toFixed(1);
   console.log(`[SCAN] Done in ${elapsed}s. Total: ${result.totalTokens}, Filtered: ${result.filteredTokens}`);
 }
