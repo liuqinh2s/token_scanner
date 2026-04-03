@@ -233,6 +233,89 @@
     .bscscan-link:hover {
       text-decoration: underline;
     }
+
+    /* Mobile card layout */
+    .card-list {
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      #tokenTable table {
+        display: none;
+      }
+
+      .card-list {
+        display: block;
+      }
+
+      .token-card {
+        background: #141924;
+        border: 1px solid #1e2a3a;
+        border-radius: 10px;
+        padding: 14px;
+        margin-bottom: 10px;
+      }
+
+      .card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+
+      .card-name {
+        font-size: 15px;
+        font-weight: 600;
+        color: #e1e8f0;
+      }
+
+      .card-symbol {
+        color: #7a8599;
+        font-size: 12px;
+        margin-left: 6px;
+      }
+
+      .card-holders {
+        font-size: 16px;
+        font-weight: 700;
+        color: #f0b90b;
+      }
+
+      .card-addr-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 8px 0;
+        background: #0d1117;
+        border-radius: 6px;
+        padding: 8px 10px;
+      }
+
+      .card-addr-text {
+        font-family: monospace;
+        font-size: 13px;
+        color: #8ecdf7;
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .card-addr-row .copy-btn,
+      .card-addr-row .bscscan-link {
+        flex-shrink: 0;
+        font-size: 12px;
+      }
+
+      .card-meta {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        color: #5a6a80;
+        margin-top: 6px;
+      }
+    }
   </style>
 </head>
 
@@ -274,6 +357,7 @@
         <tbody id="tokenBody"></tbody>
       </table>
       <p id="noData" class="no-data hidden">No tokens matching filter criteria.</p>
+      <div id="cardList" class="card-list"></div>
     </div>
   </div>
 
@@ -309,6 +393,7 @@
 
       if (tokens.length === 0) {
         tbody.innerHTML = '';
+        document.getElementById('cardList').innerHTML = '';
         noData.classList.remove('hidden');
         return;
       }
@@ -330,6 +415,29 @@
       <td>${t.holders || 0}</td>
       <td>${created}</td>
     </tr>`;
+      }).join('');
+
+      // Mobile card view
+      const cardList = document.getElementById('cardList');
+      cardList.innerHTML = tokens.map((t, i) => {
+        const addr = t.address || '';
+        const shortAddr = addr.length > 16 ? addr.slice(0, 8) + '...' + addr.slice(-6) : addr;
+        const created = t.created_at ? new Date(t.created_at > 1e12 ? t.created_at : t.created_at * 1000).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false }) : '--';
+        return `<div class="token-card">
+          <div class="card-top">
+            <span><span class="card-name">${esc(t.name || '--')}</span><span class="card-symbol">${esc(t.symbol || '--')}</span></span>
+            <span class="card-holders">${t.holders || 0} holders</span>
+          </div>
+          <div class="card-addr-row">
+            <span class="card-addr-text">${shortAddr}</span>
+            <button class="copy-btn" onclick="copyAddr('${addr}')">Copy</button>
+            <a class="bscscan-link" href="https://bscscan.com/token/${addr}" target="_blank" rel="noopener">BscScan</a>
+          </div>
+          <div class="card-meta">
+            <span>#${i + 1}</span>
+            <span>${created}</span>
+          </div>
+        </div>`;
       }).join('');
     }
 

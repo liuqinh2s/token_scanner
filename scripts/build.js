@@ -74,16 +74,16 @@ let html = fs.readFileSync(path.join(PUBLIC_DIR, "index.html"), "utf-8");
 // /api/scan (POST)  -> (removed, no manual scan on static site)
 
 html = html.replace(
-  /fetch\('\/api\/latest'\)/g,
-  "fetch('data/latest.json')"
+  /cachedFetch\('\/api\/latest'\)/g,
+  "cachedFetch('data/latest.json')"
 );
 html = html.replace(
-  /fetch\('\/api\/history'\)/g,
-  "fetch('data/history.json')"
+  /cachedFetch\('\/api\/history'\)/g,
+  "cachedFetch('data/history.json')"
 );
 html = html.replace(
-  /fetch\('\/api\/scan\/' \+ id\)/g,
-  "fetch('data/scans/' + id + '.json')"
+  /cachedFetch\('\/api\/scan\/' \+ id\)/g,
+  "cachedFetch('data/scans/' + id + '.json')"
 );
 
 fs.writeFileSync(path.join(SITE_DIR, "index.html"), html);
