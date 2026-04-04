@@ -516,6 +516,8 @@ async function fetchTokenDetail(tokenAddress) {
       socialCount: Object.keys(socialLinks).length,
       socialLinks,
       descr: d.descr || "",
+      name: d.name || "",
+      shortName: d.shortName || "",
     };
   } catch (e) { /* silent */ }
   return null;
@@ -741,13 +743,21 @@ async function stage3_kline(candidates, hotspots) {
       gtOhlcvDirect(addr, 72),
     ]);
 
-    // DS: 提取现价
+    // DS: 提取现价 + 名称
     let dsCurrentPrice = null;
+    let dsName = null, dsSymbol = null;
     if (dsPairs && dsPairs.length > 0) {
       for (const pair of dsPairs) {
         if (pair.chainId && pair.chainId !== "bsc") continue;
         const p = parseFloat(pair.priceUsd || 0);
-        if (p > 0) { dsCurrentPrice = p; break; }
+        if (p > 0) {
+          dsCurrentPrice = p;
+          if (pair.baseToken) {
+            dsName = pair.baseToken.name || null;
+            dsSymbol = pair.baseToken.symbol || null;
+          }
+          break;
+        }
       }
     }
 
@@ -760,7 +770,7 @@ async function stage3_kline(candidates, hotspots) {
       gtCurrentPrice = parseFloat(latestCandle[4]);
     }
 
-    return { candidate, dsCurrentPrice, ath, high2h, gtCurrentPrice };
+    return { candidate, dsCurrentPrice, ath, high2h, gtCurrentPrice, dsName, dsSymbol };
   }
 
   // 并发池
@@ -773,7 +783,7 @@ async function stage3_kline(candidates, hotspots) {
 
   // 筛选
   const results = [];
-  for (const { candidate, dsCurrentPrice, ath: rawAth, high2h, gtCurrentPrice } of allData) {
+  for (const { candidate, dsCurrentPrice, ath: rawAth, high2h, gtCurrentPrice, dsName, dsSymbol } of allData) {
     const { token: t, detail, ageHours } = candidate;
     const addr = t.tokenAddress;
     const name = t.name || addr.slice(0, 16);
@@ -825,7 +835,7 @@ async function stage3_kline(candidates, hotspots) {
 
     const hotNews = hotspotMatch(t, hotspots, detail.descr);
 
-    results.push({ token: t, detail, ageHours, ath, high2h, hotNews, dsCurrentPrice: currentPrice });
+    results.push({ token: t, detail, ageHours, ath, high2h, hotNews, dsCurrentPrice: currentPrice, dsName, dsSymbol });
     const finalPrice = currentPrice || 0;
     console.log(`[SCAN] Stage3: ✓ ${name} — ATH ${ath.toExponential(3)}, 2h高 ${(high2h || 0).toExponential(3)}, 现/高 ${ath > 0 ? (finalPrice / ath * 100).toFixed(1) : '?'}%${hotNews.isHot ? ' 🔥' + hotNews.matched.join(',') : ''}`);
   }
@@ -876,10 +886,19 @@ async function main() {
     filterCriteria: "社交≥1 + 持币(>1h:≥60,≤1h:≥30) + 总量10亿 + 价(≤1h:≤0.000004,>1h:≤0.00002) + 最高价≤0.00004(>2h前2h≤0.00002) + 价在最高价10%~80%(币龄<1h跳过)",
     tokens: filtered.map(item => {
       const currentPrice = item.dsCurrentPrice || item.detail.price;
+      // Name/symbol fallback: search API → detail API → DexScreener
+      // four.meme sometimes masks names with "****"
+      const isMasked = s => !s || /^\*+$/.test(s);
+      const rawName = item.token.name || "";
+      const rawSymbol = item.token.shortName || item.token.symbol || "";
+      const detailName = item.detail.name || "";
+      const detailSymbol = item.detail.shortName || "";
+      const name = isMasked(rawName) ? (isMasked(detailName) ? (item.dsName || rawName) : detailName) : rawName;
+      const symbol = isMasked(rawSymbol) ? (isMasked(detailSymbol) ? (item.dsSymbol || rawSymbol) : detailSymbol) : rawSymbol;
       return {
       address: (item.token.tokenAddress || "").toLowerCase(),
-      name: item.token.name || "",
-      symbol: item.token.shortName || item.token.symbol || "",
+      name,
+      symbol,
       holders: item.detail.holders,
       created_at: parseInt(item.token.createDate || 0),
       total_supply: item.detail.totalSupply,
