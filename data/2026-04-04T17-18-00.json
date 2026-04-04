@@ -1,0 +1,55 @@
+{
+  "scanTime": "2026-4-4 17:15:11",
+  "totalTokens": 3160,
+  "filteredTokens": 2,
+  "filterCriteria": "社交≥1 + 持币(>1h:≥60,≤1h:≥30) + 总量10亿 + 价(≤1h:≤0.000004,>1h:≤0.00002) + 最高价≤0.00004(>2h前2h≤0.00002) + 价在最高价22%~80%(币龄<1h跳过)",
+  "tokens": [
+    {
+      "address": "0xd2f552d4d94f94a5d9c9c7352663eace3933ffff",
+      "name": "Dex Terminal",
+      "symbol": "DEX",
+      "holders": 149,
+      "created_at": 1775044633000,
+      "total_supply": 1000000000,
+      "price": 0.00001262,
+      "max_price": 0.0000299840744830679,
+      "high_2h": 0.000015850640843558,
+      "price_ratio": 0.4209,
+      "age_hours": 69.3,
+      "social_count": 3,
+      "social_links": {
+        "twitter": "https://x.com/projectdexy",
+        "telegram": "https://t.me/dexterminalofficial",
+        "website": "https://dexterminal.net"
+      },
+      "hot_news": false,
+      "hot_score": 0,
+      "hot_keywords": [],
+      "day1_vol": 2159.440338641138,
+      "progress": 0.6471593758
+    },
+    {
+      "address": "0xe2578d60cf62a9eacdf401533993ff753b204444",
+      "name": "知足常乐",
+      "symbol": "莫氏精神",
+      "holders": 110,
+      "created_at": 1775212187000,
+      "total_supply": 1000000000,
+      "price": 0.000009151,
+      "max_price": 0.0000144027521301828,
+      "high_2h": 0.000012051306545589,
+      "price_ratio": 0.6354,
+      "age_hours": 22.76,
+      "social_count": 2,
+      "social_links": {
+        "twitter": "https://x.com/i/communities/2029885736216908279",
+        "website": "https://x.com/Servicetrenches/status/2040013777350041968?s=20"
+      },
+      "hot_news": false,
+      "hot_score": 0,
+      "hot_keywords": [],
+      "day1_vol": 92052.12,
+      "progress": 0.5258148945
+    }
+  ]
+}
