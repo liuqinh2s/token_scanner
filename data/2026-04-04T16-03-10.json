@@ -1,0 +1,31 @@
+{
+  "scanTime": "2026-4-4 16:00:20",
+  "totalTokens": 3163,
+  "filteredTokens": 1,
+  "filterCriteria": "社交≥1 + 持币(>1h:≥60,≤1h:≥30) + 总量10亿 + 价(≤1h:≤0.000004,>1h:≤0.00002) + 最高价≤0.00004(>2h前2h≤0.00002) + 价在最高价22%~80%(币龄<1h跳过)",
+  "tokens": [
+    {
+      "address": "0xea6e0b7629a1bb5cc31a153ef2203ab1b1894444",
+      "name": "同事.skill",
+      "symbol": "同事.skill",
+      "holders": 151,
+      "created_at": 1775143638000,
+      "total_supply": 1000000000,
+      "price": 0.00001555,
+      "max_price": 0.0000281840989190261,
+      "high_2h": 0.00000680376143937065,
+      "price_ratio": 0.5517,
+      "age_hours": 40.56,
+      "social_count": 2,
+      "social_links": {
+        "twitter": "https://x.com/okmetom/status/2039726329567031599",
+        "website": "https://github.com/titanwings/colleague-skill"
+      },
+      "hot_news": false,
+      "hot_score": 0,
+      "hot_keywords": [],
+      "day1_vol": 122458.70591012372,
+      "progress": 0.7164240601
+    }
+  ]
+}
