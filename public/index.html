@@ -505,9 +505,10 @@
     let historyVisible = false;
     const cache = {};
 
-    async function cachedFetch(url) {
-      if (cache[url]) return cache[url];
-      const res = await fetch(url);
+    async function cachedFetch(url, bustCache) {
+      if (!bustCache && cache[url]) return cache[url];
+      const fetchUrl = bustCache ? url + (url.includes('?') ? '&' : '?') + '_t=' + Date.now() : url;
+      const res = await fetch(fetchUrl);
       const data = await res.json();
       cache[url] = data;
       return data;
@@ -515,7 +516,7 @@
 
     async function loadLatest() {
       try {
-        const data = await cachedFetch('/api/latest');
+        const data = await cachedFetch('/api/latest', true);
         renderData(data);
       } catch (e) { console.error(e); }
     }
@@ -715,9 +716,8 @@
     }
 
     async function goLatest() {
-      delete cache['/api/latest'];
       try {
-        const data = await cachedFetch('/api/latest');
+        const data = await cachedFetch('/api/latest', true);
         renderData(data);
         showToast('已回到最新数据');
       } catch (e) { showToast('加载失败'); }
