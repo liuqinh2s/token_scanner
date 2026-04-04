@@ -74,8 +74,8 @@ let html = fs.readFileSync(path.join(PUBLIC_DIR, "index.html"), "utf-8");
 // /api/scan (POST)  -> (removed, no manual scan on static site)
 
 html = html.replace(
-  /cachedFetch\('\/api\/latest'\)/g,
-  "cachedFetch('data/latest.json')"
+  /cachedFetch\('\/api\/latest'/g,
+  "cachedFetch('data/latest.json'"
 );
 html = html.replace(
   /cachedFetch\('\/api\/history'\)/g,
