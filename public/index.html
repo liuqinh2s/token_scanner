@@ -20,7 +20,7 @@
     }
 
     #app {
-      max-width: 1100px;
+      max-width: 1200px;
       margin: 0 auto;
       padding: 20px;
     }
@@ -40,6 +40,16 @@
       color: #7a8599;
       font-size: 13px;
       margin-top: 4px;
+    }
+
+    .filter-desc {
+      color: #5a6a80;
+      font-size: 11px;
+      margin-top: 6px;
+      line-height: 1.6;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     .stats-bar {
@@ -111,7 +121,7 @@
       font-size: 11px;
       text-transform: uppercase;
       letter-spacing: .5px;
-      padding: 10px 12px;
+      padding: 10px 8px;
       text-align: left;
       border-bottom: 1px solid #1e2a3a;
       position: sticky;
@@ -119,7 +129,7 @@
     }
 
     td {
-      padding: 10px 12px;
+      padding: 10px 8px;
       border-bottom: 1px solid #111827;
       font-size: 13px;
     }
@@ -234,6 +244,79 @@
       text-decoration: underline;
     }
 
+    .fourmeme-link {
+      color: #f0b90b;
+      text-decoration: none;
+      font-size: 11px;
+    }
+
+    .fourmeme-link:hover {
+      text-decoration: underline;
+    }
+
+    .dexscreener-link {
+      color: #4caf50;
+      text-decoration: none;
+      font-size: 11px;
+    }
+
+    .dexscreener-link:hover {
+      text-decoration: underline;
+    }
+
+    .tag-hot {
+      display: inline-block;
+      background: #ff4d4f;
+      color: #fff;
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 3px;
+      margin-left: 4px;
+      font-weight: 600;
+    }
+
+    .tag-social {
+      display: inline-block;
+      font-size: 10px;
+      padding: 1px 5px;
+      border-radius: 3px;
+      margin: 1px 2px;
+    }
+
+    .tag-social a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .tag-social a:hover {
+      text-decoration: underline;
+    }
+
+    .tag-twitter {
+      background: #1d9bf0;
+      color: #fff;
+    }
+
+    .tag-telegram {
+      background: #229ed9;
+      color: #fff;
+    }
+
+    .tag-website {
+      background: #4caf50;
+      color: #fff;
+    }
+
+    .price-info {
+      font-size: 11px;
+      color: #7a8599;
+    }
+
+    .price-ratio {
+      font-size: 10px;
+      color: #f0b90b;
+    }
+
     /* Mobile card layout */
     .card-list {
       display: none;
@@ -303,7 +386,9 @@
       }
 
       .card-addr-row .copy-btn,
-      .card-addr-row .bscscan-link {
+      .card-addr-row .bscscan-link,
+      .card-addr-row .fourmeme-link,
+      .card-addr-row .dexscreener-link {
         flex-shrink: 0;
         font-size: 12px;
       }
@@ -315,6 +400,18 @@
         color: #5a6a80;
         margin-top: 6px;
       }
+
+      .card-social {
+        margin-top: 6px;
+      }
+
+      .card-price-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        color: #7a8599;
+        margin-top: 4px;
+      }
     }
   </style>
 </head>
@@ -323,22 +420,27 @@
   <div id="app">
     <header>
       <h1>BSC Token Scanner</h1>
-      <p class="subtitle">Every 15 min · Last 3 days · Holders ≥ 90</p>
+      <p class="subtitle">每15分钟扫描 · 最近3天 · 多条件智能筛选</p>
+      <p class="filter-desc">
+        筛选条件：社交媒体≥1 · 持币地址(币龄&gt;1h:≥60, ≤1h:≥30) · 总量10亿 · 当前价(≤1h:≤0.000004, &gt;1h:≤0.00002) · 历史最高价≤0.00004 ·
+        币龄&gt;2h时前2h最高价≤0.00002 ·
+        当前价在最高价10%~80%(币龄&lt;1h时跳过)<br>
+        价格数据来源: DexScreener (主) + GeckoTerminal K线 (备) · 🔥 标记 = 匹配实时热点关键词（微博/Google/Twitter，加分项）
+      </p>
     </header>
 
     <div class="stats-bar" id="statsBar">
-      <div class="stat"><span class="label">Scan Time</span><span class="val" id="scanTime">--</span></div>
-      <div class="stat"><span class="label">Total Tokens (3d)</span><span class="val" id="totalTokens">--</span></div>
-      <div class="stat"><span class="label">Filtered (holders≥90)</span><span class="val" id="filteredTokens">--</span>
-      </div>
+      <div class="stat"><span class="label">扫描时间</span><span class="val" id="scanTime">--</span></div>
+      <div class="stat"><span class="label">扫描总数 (3天)</span><span class="val" id="totalTokens">--</span></div>
+      <div class="stat"><span class="label">筛选通过</span><span class="val" id="filteredTokens">--</span></div>
     </div>
 
     <div class="actions">
-      <button id="btnHistory" onclick="toggleHistory()">History</button>
+      <button id="btnHistory" onclick="toggleHistory()">历史记录</button>
     </div>
 
     <div id="historyPanel" class="history-panel hidden">
-      <h3>Scan History</h3>
+      <h3>扫描历史</h3>
       <div id="historyList"></div>
     </div>
 
@@ -347,16 +449,18 @@
         <thead>
           <tr>
             <th>#</th>
-            <th>Name</th>
-            <th>Symbol</th>
-            <th>Contract Address</th>
-            <th>Holders</th>
-            <th>Created</th>
+            <th>名称</th>
+            <th>代号</th>
+            <th>合约地址</th>
+            <th>持币</th>
+            <th>价格/最高/2h高</th>
+            <th>社交</th>
+            <th>币龄</th>
           </tr>
         </thead>
         <tbody id="tokenBody"></tbody>
       </table>
-      <p id="noData" class="no-data hidden">No tokens matching filter criteria.</p>
+      <p id="noData" class="no-data hidden">暂无符合筛选条件的代币。</p>
       <div id="cardList" class="card-list"></div>
     </div>
   </div>
@@ -382,6 +486,33 @@
       } catch (e) { console.error(e); }
     }
 
+    function fmtPrice(p) {
+      if (!p || p === 0) return '--';
+      if (p < 0.000001) {
+        // 计算需要的小数位数，保证至少显示3位有效数字
+        const digits = Math.max(8, Math.ceil(-Math.log10(p)) + 3);
+        return p.toFixed(digits);
+      }
+      if (p < 0.01) return p.toFixed(8);
+      return p.toFixed(6);
+    }
+
+    function fmtAge(hours) {
+      if (hours == null) return '--';
+      if (hours < 1) return Math.round(hours * 60) + '分钟';
+      if (hours < 24) return hours.toFixed(1) + '小时';
+      return (hours / 24).toFixed(1) + '天';
+    }
+
+    function buildSocialTags(socialLinks) {
+      if (!socialLinks) return '';
+      let html = '';
+      if (socialLinks.twitter) html += `<span class="tag-social tag-twitter"><a href="${esc(socialLinks.twitter)}" target="_blank" rel="noopener">𝕏</a></span>`;
+      if (socialLinks.telegram) html += `<span class="tag-social tag-telegram"><a href="${esc(socialLinks.telegram)}" target="_blank" rel="noopener">TG</a></span>`;
+      if (socialLinks.website) html += `<span class="tag-social tag-website"><a href="${esc(socialLinks.website)}" target="_blank" rel="noopener">Web</a></span>`;
+      return html;
+    }
+
     function renderData(data) {
       document.getElementById('scanTime').textContent = data.scanTime || '--';
       document.getElementById('totalTokens').textContent = data.totalTokens != null ? data.totalTokens.toLocaleString() : '--';
@@ -398,22 +529,34 @@
         return;
       }
       noData.classList.add('hidden');
+
       tbody.innerHTML = tokens.map((t, i) => {
         const addr = t.address || '';
-        const created = t.created_at ? new Date(t.created_at > 1e12 ? t.created_at : t.created_at * 1000).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false }) : '--';
+        const hotTag = t.hot_news ? `<span class="tag-hot" title="${esc((t.hot_keywords || []).join(', '))}">🔥热点</span>` : '';
+        const socialTags = buildSocialTags(t.social_links);
+        const priceRatio = t.price_ratio != null ? (t.price_ratio * 100).toFixed(1) + '%' : '--';
         return `<tr>
       <td>${i + 1}</td>
-      <td>${esc(t.name || '--')}</td>
+      <td>${esc(t.name || '--')}${hotTag}</td>
       <td>${esc(t.symbol || '--')}</td>
       <td>
         <div class="addr-cell">
           <span class="addr-text">${addr}</span>
           <button class="copy-btn" onclick="copyAddr('${addr}')">Copy</button>
           <a class="bscscan-link" href="https://bscscan.com/token/${addr}" target="_blank" rel="noopener">BscScan</a>
+          <a class="fourmeme-link" href="https://four.meme/token/${addr}" target="_blank" rel="noopener">4meme</a>
+          <a class="dexscreener-link" href="https://dexscreener.com/bsc/${addr}" target="_blank" rel="noopener">DexS</a>
         </div>
       </td>
       <td>${t.holders || 0}</td>
-      <td>${created}</td>
+      <td>
+        <div class="price-info">现:${fmtPrice(t.price)}</div>
+        <div class="price-info" style="color:#5a6a80">高:${fmtPrice(t.max_price)}</div>
+        <div class="price-info" style="color:#5a6a80">2h:${fmtPrice(t.high_2h)}</div>
+        <div class="price-ratio">现/高:${priceRatio}</div>
+      </td>
+      <td>${socialTags || '--'}</td>
+      <td>${fmtAge(t.age_hours)}</td>
     </tr>`;
       }).join('');
 
@@ -422,20 +565,30 @@
       cardList.innerHTML = tokens.map((t, i) => {
         const addr = t.address || '';
         const shortAddr = addr.length > 16 ? addr.slice(0, 8) + '...' + addr.slice(-6) : addr;
-        const created = t.created_at ? new Date(t.created_at > 1e12 ? t.created_at : t.created_at * 1000).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false }) : '--';
+        const hotTag = t.hot_news ? `<span class="tag-hot" title="${esc((t.hot_keywords || []).join(', '))}">🔥热点</span>` : '';
+        const socialTags = buildSocialTags(t.social_links);
+        const priceRatio = t.price_ratio != null ? (t.price_ratio * 100).toFixed(1) + '%' : '--';
         return `<div class="token-card">
           <div class="card-top">
-            <span><span class="card-name">${esc(t.name || '--')}</span><span class="card-symbol">${esc(t.symbol || '--')}</span></span>
-            <span class="card-holders">${t.holders || 0} holders</span>
+            <span><span class="card-name">${esc(t.name || '--')}</span><span class="card-symbol">${esc(t.symbol || '--')}</span>${hotTag}</span>
+            <span class="card-holders">${t.holders || 0} 持币</span>
           </div>
           <div class="card-addr-row">
             <span class="card-addr-text">${shortAddr}</span>
             <button class="copy-btn" onclick="copyAddr('${addr}')">Copy</button>
             <a class="bscscan-link" href="https://bscscan.com/token/${addr}" target="_blank" rel="noopener">BscScan</a>
+            <a class="fourmeme-link" href="https://four.meme/token/${addr}" target="_blank" rel="noopener">4meme</a>
+            <a class="dexscreener-link" href="https://dexscreener.com/bsc/${addr}" target="_blank" rel="noopener">DexS</a>
           </div>
+          <div class="card-price-row">
+            <span>现:${fmtPrice(t.price)}</span>
+            <span>高:${fmtPrice(t.max_price)}</span>
+            <span>2h:${fmtPrice(t.high_2h)}</span>
+            <span>现/高:${priceRatio}</span>
+          </div>
+          <div class="card-social">${socialTags}</div>
           <div class="card-meta">
-            <span>#${i + 1}</span>
-            <span>${created}</span>
+            <span>#${i + 1} · 币龄 ${fmtAge(t.age_hours)}</span>
           </div>
         </div>`;
       }).join('');
@@ -448,15 +601,14 @@
     }
 
     function copyAddr(addr) {
-      navigator.clipboard.writeText(addr).then(() => showToast('Copied!')).catch(() => {
-        // fallback
+      navigator.clipboard.writeText(addr).then(() => showToast('已复制!')).catch(() => {
         const ta = document.createElement('textarea');
         ta.value = addr;
         document.body.appendChild(ta);
         ta.select();
         document.execCommand('copy');
         document.body.removeChild(ta);
-        showToast('Copied!');
+        showToast('已复制!');
       });
     }
 
@@ -475,13 +627,13 @@
         const rows = await cachedFetch('/api/history');
         const list = document.getElementById('historyList');
         if (rows.length === 0) {
-          list.innerHTML = '<p style="color:#5a6a80;font-size:12px;">No history yet.</p>';
+          list.innerHTML = '<p style="color:#5a6a80;font-size:12px;">暂无历史记录。</p>';
           return;
         }
         list.innerHTML = rows.map(r => `
       <div class="hist-row" onclick="loadScan(${r.id})">
         <span class="ht">${r.scan_time}</span>
-        <span>Total: ${r.total_tokens} | Filtered: <span class="hv">${r.filtered_tokens}</span></span>
+        <span>总数: ${r.total_tokens} | 筛选: <span class="hv">${r.filtered_tokens}</span></span>
       </div>
     `).join('');
       } else {
@@ -493,8 +645,8 @@
       try {
         const data = await cachedFetch('/api/scan/' + id);
         renderData(data);
-        showToast('Loaded scan #' + id);
-      } catch (e) { showToast('Error loading scan'); }
+        showToast('已加载扫描 #' + id);
+      } catch (e) { showToast('加载失败'); }
     }
 
     // Init
