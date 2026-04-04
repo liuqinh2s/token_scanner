@@ -275,6 +275,36 @@
       font-weight: 600;
     }
 
+    .tag-hot-link {
+      display: inline-block;
+      background: #ff4d4f;
+      color: #fff;
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 3px;
+      margin-left: 3px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .tag-hot-link:hover {
+      background: #ff7875;
+      text-decoration: none;
+    }
+
+    .tag-hot-link.src-weibo {
+      background: #ff4d4f;
+    }
+
+    .tag-hot-link.src-twitter {
+      background: #1d9bf0;
+    }
+
+    .tag-hot-link.src-google {
+      background: #ea4335;
+    }
+
     .tag-social {
       display: inline-block;
       font-size: 10px;
@@ -507,6 +537,37 @@
       return (hours / 24).toFixed(1) + '天';
     }
 
+    function parseHotKeyword(kw) {
+      // Format: "关键词(source)" e.g. "张雪(weibo)", "Trump(twitter)", "AI(google/US)"
+      const m = kw.match(/^(.+)\(([^)]+)\)$/);
+      if (!m) return { word: kw, source: '', url: '' };
+      const word = m[1], source = m[2];
+      const srcBase = source.split('/')[0];
+      const geo = source.split('/')[1] || '';
+      let url = '';
+      if (srcBase === 'weibo') {
+        url = 'https://s.weibo.com/weibo?q=' + encodeURIComponent(word);
+      } else if (srcBase === 'twitter') {
+        url = 'https://x.com/search?q=' + encodeURIComponent(word);
+      } else if (srcBase === 'google') {
+        url = 'https://trends.google.com/trending?geo=' + (geo || 'US') + '&q=' + encodeURIComponent(word);
+      }
+      return { word, source: srcBase, url };
+    }
+
+    function buildHotTags(hotKeywords) {
+      if (!hotKeywords || hotKeywords.length === 0) return '';
+      return hotKeywords.map(kw => {
+        const { word, source, url } = parseHotKeyword(kw);
+        const srcClass = source ? ' src-' + source : '';
+        const icon = source === 'weibo' ? '🔥' : source === 'twitter' ? '𝕏' : source === 'google' ? 'G' : '🔥';
+        if (url) {
+          return `<a class="tag-hot-link${srcClass}" href="${esc(url)}" target="_blank" rel="noopener" title="${esc(kw)}">${icon} ${esc(word)}</a>`;
+        }
+        return `<span class="tag-hot" title="${esc(kw)}">${icon} ${esc(word)}</span>`;
+      }).join('');
+    }
+
     function buildSocialTags(socialLinks) {
       if (!socialLinks) return '';
       let html = '';
@@ -535,12 +596,12 @@
 
       tbody.innerHTML = tokens.map((t, i) => {
         const addr = t.address || '';
-        const hotTag = t.hot_news ? `<span class="tag-hot" title="${esc((t.hot_keywords || []).join(', '))}">🔥热点</span>` : '';
+        const hotTags = t.hot_news ? buildHotTags(t.hot_keywords) : '';
         const socialTags = buildSocialTags(t.social_links);
         const priceRatio = t.price_ratio != null ? (t.price_ratio * 100).toFixed(1) + '%' : '--';
         return `<tr>
       <td>${i + 1}</td>
-      <td>${esc(t.name || '--')}${hotTag}</td>
+      <td>${esc(t.name || '--')}${hotTags}</td>
       <td>${esc(t.symbol || '--')}</td>
       <td>
         <div class="addr-cell">
@@ -568,12 +629,12 @@
       cardList.innerHTML = tokens.map((t, i) => {
         const addr = t.address || '';
         const shortAddr = addr.length > 16 ? addr.slice(0, 8) + '...' + addr.slice(-6) : addr;
-        const hotTag = t.hot_news ? `<span class="tag-hot" title="${esc((t.hot_keywords || []).join(', '))}">🔥热点</span>` : '';
+        const hotTags = t.hot_news ? buildHotTags(t.hot_keywords) : '';
         const socialTags = buildSocialTags(t.social_links);
         const priceRatio = t.price_ratio != null ? (t.price_ratio * 100).toFixed(1) + '%' : '--';
         return `<div class="token-card">
           <div class="card-top">
-            <span><span class="card-name">${esc(t.name || '--')}</span><span class="card-symbol">${esc(t.symbol || '--')}</span>${hotTag}</span>
+            <span><span class="card-name">${esc(t.name || '--')}</span><span class="card-symbol">${esc(t.symbol || '--')}</span>${hotTags}</span>
             <span class="card-holders">${t.holders || 0} 持币</span>
           </div>
           <div class="card-addr-row">
