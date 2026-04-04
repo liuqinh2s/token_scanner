@@ -1,0 +1,99 @@
+{
+  "scanTime": "2026-4-4 18:15:13",
+  "totalTokens": 3161,
+  "filteredTokens": 4,
+  "filterCriteria": "社交≥1 + 持币(>1h:≥60,≤1h:≥30) + 总量10亿 + 价(≤1h:≤0.000004,>1h:≤0.00002) + 最高价≤0.00004(>2h前2h≤0.00002) + 价在最高价30%~90%(币龄<1h跳过)",
+  "tokens": [
+    {
+      "address": "0xea6e0b7629a1bb5cc31a153ef2203ab1b1894444",
+      "name": "同事.skill",
+      "symbol": "同事.skill",
+      "holders": 158,
+      "created_at": 1775143638000,
+      "total_supply": 1000000000,
+      "price": 0.00001466,
+      "max_price": 0.0000281840989190261,
+      "high_2h": 0.00000680376143937065,
+      "price_ratio": 0.5202,
+      "age_hours": 42.8,
+      "social_count": 2,
+      "social_links": {
+        "twitter": "https://x.com/okmetom/status/2039726329567031599",
+        "website": "https://github.com/titanwings/colleague-skill"
+      },
+      "hot_news": false,
+      "hot_score": 0,
+      "hot_keywords": [],
+      "day1_vol": 75474.0931609933,
+      "progress": 0.6973301611
+    },
+    {
+      "address": "0x0c05c0a8da22fd38c3b473cb2dd72b4274b54444",
+      "name": "币安名字的初衷",
+      "symbol": "安心",
+      "holders": 141,
+      "created_at": 1775293661000,
+      "total_supply": 1000000000,
+      "price": 0.0000107,
+      "max_price": 0.000018491978805206,
+      "high_2h": 0.000018491978805206,
+      "price_ratio": 0.5786,
+      "age_hours": 1.13,
+      "social_count": 2,
+      "social_links": {
+        "twitter": "https://x.com/heyi1f/status/2040355586324430867?s=20",
+        "website": "https://x.com/Supers6061/status/2040331033502212578?s=20"
+      },
+      "hot_news": false,
+      "hot_score": 0,
+      "hot_keywords": [],
+      "day1_vol": 65357.48,
+      "progress": 0.5873412167
+    },
+    {
+      "address": "0x383c3c5dd4a5682eaed406ec16948e8760eb4444",
+      "name": "这段视频在网上很火",
+      "symbol": "二摆舞",
+      "holders": 120,
+      "created_at": 1775273150000,
+      "total_supply": 1000000000,
+      "price": 0.000008616,
+      "max_price": 0.0000185484624318454,
+      "high_2h": 0.0000185484624318454,
+      "price_ratio": 0.4645,
+      "age_hours": 6.83,
+      "social_count": 1,
+      "social_links": {
+        "twitter": "https://x.com/i/status/2040268837896237216"
+      },
+      "hot_news": false,
+      "hot_score": 0,
+      "hot_keywords": [],
+      "day1_vol": 103458.19,
+      "progress": 0.5008767673
+    },
+    {
+      "address": "0xe2578d60cf62a9eacdf401533993ff753b204444",
+      "name": "知足常乐",
+      "symbol": "莫氏精神",
+      "holders": 96,
+      "created_at": 1775212187000,
+      "total_supply": 1000000000,
+      "price": 0.000008001,
+      "max_price": 0.0000144027521301828,
+      "high_2h": 0.000012051306545589,
+      "price_ratio": 0.5555,
+      "age_hours": 23.76,
+      "social_count": 2,
+      "social_links": {
+        "twitter": "https://x.com/i/communities/2029885736216908279",
+        "website": "https://x.com/Servicetrenches/status/2040013777350041968?s=20"
+      },
+      "hot_news": false,
+      "hot_score": 0,
+      "hot_keywords": [],
+      "day1_vol": 97906.43,
+      "progress": 0.4690603583
+    }
+  ]
+}
