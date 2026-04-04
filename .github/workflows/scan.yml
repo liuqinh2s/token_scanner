@@ -33,6 +33,7 @@ jobs:
           git add -f data/ site/data/
           git add -u data/ site/data/
           git diff --cached --quiet || git commit -m "🔍 Scan $(date -u +%Y-%m-%d\ %H:%M) UTC"
+          git pull --rebase origin main
           git push
 
       - name: Upload Pages artifact
