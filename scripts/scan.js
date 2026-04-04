@@ -41,7 +41,7 @@ const MAX_CURRENT_PRICE_OLD = 0.00002;    // 币龄 > 1h 当前价格上限 (USD
 const MAX_CURRENT_PRICE_YOUNG = 0.000004; // 币龄 ≤ 1h 当前价格上限 (USD)
 const MAX_HIGH_PRICE = 0.00004;           // 历史最高价上限 (USD)
 const MAX_EARLY_HIGH_PRICE = 0.00002;     // 前2小时最高价上限 (USD, 币龄>2h时检查)
-const PRICE_RATIO_LOW = 0.1;              // 当前价 ≥ 最高价 * 10%
+const PRICE_RATIO_LOW = 0.22;             // 当前价 ≥ 最高价 * 22%
 const PRICE_RATIO_HIGH = 0.8;             // 当前价 ≤ 最高价 * 80%
 const HOLDERS_THRESHOLD_OLD = 60;         // 币龄 > 1h 时持币地址数阈值
 const HOLDERS_THRESHOLD_YOUNG = 30;       // 币龄 ≤ 1h 时持币地址数阈值
@@ -828,7 +828,7 @@ async function stage3_kline(candidates, hotspots) {
     if (ageHours >= 1 && ath > 0 && currentPrice) {
       const ratio = currentPrice / ath;
       if (ratio < PRICE_RATIO_LOW || ratio > PRICE_RATIO_HIGH) {
-        console.log(`[SCAN] Stage3: ${name} (${addr}) — 现/高 ${(ratio * 100).toFixed(1)}% 不在 10%~80%, 跳过`);
+        console.log(`[SCAN] Stage3: ${name} (${addr}) — 现/高 ${(ratio * 100).toFixed(1)}% 不在 22%~80%, 跳过`);
         continue;
       }
     }
@@ -883,7 +883,7 @@ async function main() {
     scanTime,
     totalTokens: apiTokens.length,
     filteredTokens: filtered.length,
-    filterCriteria: "社交≥1 + 持币(>1h:≥60,≤1h:≥30) + 总量10亿 + 价(≤1h:≤0.000004,>1h:≤0.00002) + 最高价≤0.00004(>2h前2h≤0.00002) + 价在最高价10%~80%(币龄<1h跳过)",
+    filterCriteria: "社交≥1 + 持币(>1h:≥60,≤1h:≥30) + 总量10亿 + 价(≤1h:≤0.000004,>1h:≤0.00002) + 最高价≤0.00004(>2h前2h≤0.00002) + 价在最高价22%~80%(币龄<1h跳过)",
     tokens: filtered.map(item => {
       const currentPrice = item.dsCurrentPrice || item.detail.price;
       // Name/symbol fallback: search API → detail API → DexScreener
