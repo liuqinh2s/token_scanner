@@ -22,6 +22,8 @@ jobs:
 
       - name: Run scan
         run: node scripts/scan.js
+        env:
+          BSCSCAN_API_KEY: ${{ secrets.BSCSCAN_API_KEY }}
 
       - name: Build site
         run: node scripts/build.js

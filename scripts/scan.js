@@ -14,22 +14,24 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 
-// === Proxy Config ===
-// 读取项目根目录 proxy.json，本地调试时启用代理（已在 .gitignore 中排除）
-const PROXY_CONFIG_PATH = path.join(__dirname, "..", "proxy.json");
-let proxyConfig = null;
+// === Local Config ===
+// 读取项目根目录 config.local.json（已在 .gitignore 中排除）
+const LOCAL_CONFIG_PATH = path.join(__dirname, "..", "config.local.json");
+let localConfig = {};
 try {
-  if (fs.existsSync(PROXY_CONFIG_PATH)) {
-    proxyConfig = JSON.parse(fs.readFileSync(PROXY_CONFIG_PATH, "utf-8"));
-    if (proxyConfig.enabled) {
-      console.log(`[PROXY] 已启用代理: ${proxyConfig.host}:${proxyConfig.port}`);
-    } else {
-      proxyConfig = null;
-    }
+  if (fs.existsSync(LOCAL_CONFIG_PATH)) {
+    localConfig = JSON.parse(fs.readFileSync(LOCAL_CONFIG_PATH, "utf-8"));
+    console.log("[CONFIG] 已加载 config.local.json");
   }
 } catch (e) {
-  console.warn(`[PROXY] 读取 proxy.json 失败: ${e.message}`);
-  proxyConfig = null;
+  console.warn(`[CONFIG] 读取 config.local.json 失败: ${e.message}`);
+}
+
+// Proxy
+let proxyConfig = null;
+if (localConfig.proxy && localConfig.proxy.enabled) {
+  proxyConfig = localConfig.proxy;
+  console.log(`[PROXY] 已启用代理: ${proxyConfig.host}:${proxyConfig.port}`);
 }
 
 // === Constants ===
@@ -41,8 +43,8 @@ const MAX_CURRENT_PRICE_OLD = 0.00002;    // 币龄 > 1h 当前价格上限 (USD
 const MAX_CURRENT_PRICE_YOUNG = 0.000004; // 币龄 ≤ 1h 当前价格上限 (USD)
 const MAX_HIGH_PRICE = 0.00004;           // 历史最高价上限 (USD)
 const MAX_EARLY_HIGH_PRICE = 0.00002;     // 前2小时最高价上限 (USD, 币龄>2h时检查)
-const PRICE_RATIO_LOW = 0.22;             // 当前价 ≥ 最高价 * 22%
-const PRICE_RATIO_HIGH = 0.8;             // 当前价 ≤ 最高价 * 80%
+const PRICE_RATIO_LOW = 0.3;              // 当前价 ≥ 最高价 * 30%
+const PRICE_RATIO_HIGH = 0.9;             // 当前价 ≤ 最高价 * 90%
 const HOLDERS_THRESHOLD_OLD = 60;         // 币龄 > 1h 时持币地址数阈值
 const HOLDERS_THRESHOLD_YOUNG = 30;       // 币龄 ≤ 1h 时持币地址数阈值
 const MIN_SOCIAL_COUNT = 1;               // 最少关联社交媒体数
@@ -51,6 +53,9 @@ const MIN_SOCIAL_COUNT = 1;               // 最少关联社交媒体数
 const FM_SEARCH = "https://four.meme/meme-api/v1/public/token/search";
 const FM_DETAIL = "https://four.meme/meme-api/v1/private/token/get/v2";
 const GT_BASE   = "https://api.geckoterminal.com/api/v2";
+const BSCSCAN_API = "https://api.bscscan.com/api";
+// BSCScan API Key: 优先环境变量 (CI), 其次本地配置文件
+const BSCSCAN_API_KEY = process.env.BSCSCAN_API_KEY || localConfig.bscscanApiKey || "";
 
 const FM_HEADERS = {
   "Content-Type": "application/json",
@@ -411,6 +416,7 @@ class RateLimiter {
 }
 const fmLimiter = new RateLimiter(5);   // four.meme ~5 req/s (网络延迟是瓶颈, 非速率)
 const gtLimiter = new RateLimiter(1);   // GeckoTerminal ~30 req/min, 直接用 tokenAddr 省掉 getPool
+const bscLimiter = new RateLimiter(4);  // BSCScan 免费 5 req/s, 留点余量用 4
 let gtRateDelay = 2000; // 动态退避, 初始 2s
 
 // ===================================================================
@@ -520,6 +526,24 @@ async function fetchTokenDetail(tokenAddress) {
       shortName: d.shortName || "",
     };
   } catch (e) { /* silent */ }
+  return null;
+}
+
+// ===================================================================
+//  BSCScan API — 链上真实持仓地址数
+// ===================================================================
+async function fetchOnChainHolders(tokenAddress) {
+  if (!BSCSCAN_API_KEY) return null;
+  await bscLimiter.acquire();
+  try {
+    const res = await fetchJSON(
+      `${BSCSCAN_API}?module=token&action=tokenholdercount&contractaddress=${tokenAddress}&apikey=${BSCSCAN_API_KEY}`,
+      { timeout: 8000 }
+    );
+    if (res.data && res.data.status === "1" && res.data.result) {
+      return parseInt(res.data.result, 10);
+    }
+  } catch (e) { /* silent fallback */ }
   return null;
 }
 
@@ -691,8 +715,17 @@ async function stage2_detail(candidates, nowMs) {
   const CONCURRENCY = 5; // 并发数, rate limiter 仍控制实际速率
 
   async function processOne(t) {
-    const detail = await fetchTokenDetail(t.tokenAddress);
+    // four.meme detail 和 BSCScan 链上持仓并行请求
+    const [detail, onChainHolders] = await Promise.all([
+      fetchTokenDetail(t.tokenAddress),
+      fetchOnChainHolders(t.tokenAddress),
+    ]);
     if (!detail) return null;
+
+    // 链上持仓覆盖 four.meme 数据 (更准确)
+    if (onChainHolders !== null && onChainHolders > 0) {
+      detail.holders = onChainHolders;
+    }
 
     const createDate = parseInt(t.createDate || 0);
     const ageHours = (nowMs - createDate) / (3600 * 1000);
@@ -828,7 +861,7 @@ async function stage3_kline(candidates, hotspots) {
     if (ageHours >= 1 && ath > 0 && currentPrice) {
       const ratio = currentPrice / ath;
       if (ratio < PRICE_RATIO_LOW || ratio > PRICE_RATIO_HIGH) {
-        console.log(`[SCAN] Stage3: ${name} (${addr}) — 现/高 ${(ratio * 100).toFixed(1)}% 不在 22%~80%, 跳过`);
+        console.log(`[SCAN] Stage3: ${name} (${addr}) — 现/高 ${(ratio * 100).toFixed(1)}% 不在 30%~90%, 跳过`);
         continue;
       }
     }
@@ -883,7 +916,7 @@ async function main() {
     scanTime,
     totalTokens: apiTokens.length,
     filteredTokens: filtered.length,
-    filterCriteria: "社交≥1 + 持币(>1h:≥60,≤1h:≥30) + 总量10亿 + 价(≤1h:≤0.000004,>1h:≤0.00002) + 最高价≤0.00004(>2h前2h≤0.00002) + 价在最高价22%~80%(币龄<1h跳过)",
+    filterCriteria: "社交≥1 + 持币(>1h:≥60,≤1h:≥30) + 总量10亿 + 价(≤1h:≤0.000004,>1h:≤0.00002) + 最高价≤0.00004(>2h前2h≤0.00002) + 价在最高价30%~90%(币龄<1h跳过)",
     tokens: filtered.map(item => {
       const currentPrice = item.dsCurrentPrice || item.detail.price;
       // Name/symbol fallback: search API → detail API → DexScreener
