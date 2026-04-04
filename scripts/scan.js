@@ -795,6 +795,21 @@ async function stage3_kline(candidates, hotspots) {
       continue;
     }
 
+    // 币龄 ≤ 1h 时, ATH 上限更严格 (≤ 0.000004)
+    if (ageHours <= 1 && ath > MAX_CURRENT_PRICE_YOUNG) {
+      console.log(`[SCAN] Stage3: ${name} (${addr}) — 币龄≤1h, ATH ${ath.toExponential(3)} > ${MAX_CURRENT_PRICE_YOUNG}, 跳过`);
+      continue;
+    }
+
+    // 用 USD 现价二次校验当前价 (stage2 用的是 BNB 价格, 不准)
+    if (currentPrice) {
+      const maxCurPrice = ageHours > 1 ? MAX_CURRENT_PRICE_OLD : MAX_CURRENT_PRICE_YOUNG;
+      if (currentPrice > maxCurPrice) {
+        console.log(`[SCAN] Stage3: ${name} (${addr}) — USD现价 ${currentPrice.toExponential(3)} > ${maxCurPrice}, 跳过`);
+        continue;
+      }
+    }
+
     if (ageHours > 2 && high2h !== null && high2h > MAX_EARLY_HIGH_PRICE) {
       console.log(`[SCAN] Stage3: ${name} (${addr}) — 前2h最高 ${high2h.toExponential(3)} > ${MAX_EARLY_HIGH_PRICE}, 跳过`);
       continue;
