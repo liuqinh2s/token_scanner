@@ -470,6 +470,7 @@
 
     <div class="actions">
       <button id="btnHistory" onclick="toggleHistory()">历史记录</button>
+      <button id="btnLatest" onclick="goLatest()">回到当前</button>
     </div>
 
     <div id="historyPanel" class="history-panel hidden">
@@ -710,6 +711,15 @@
         const data = await cachedFetch('/api/scan/' + id);
         renderData(data);
         showToast('已加载扫描 #' + id);
+      } catch (e) { showToast('加载失败'); }
+    }
+
+    async function goLatest() {
+      delete cache['/api/latest'];
+      try {
+        const data = await cachedFetch('/api/latest');
+        renderData(data);
+        showToast('已回到最新数据');
       } catch (e) { showToast('加载失败'); }
     }
 

@@ -761,26 +761,18 @@ async function stage2_detail(candidates, nowMs) {
   return results;
 }
 
-/** Stage 3: K线筛 — DexScreener (现价) + GeckoTerminal (K线), DS+GT 并行请求 */
+/** Stage 3: K线筛 — 两阶段: DS快筛(现价) → GT精筛(K线, 仅对DS通过的候选) */
 async function stage3_kline(candidates, hotspots) {
-  const CONCURRENCY = 5;
+  // ---- Phase A: 批量 DS 拿现价 + 名称, 快速淘汰价格明显超标的 ----
+  const DS_CONCURRENCY = 5;
+  const dsDataMap = new Map(); // addr → { dsCurrentPrice, dsName, dsSymbol, dsPairs }
 
-  // 对每个候选: DS 拿现价 + GT 直接用 tokenAddress 拿 K线, 两者并行
-  async function fetchAllData(candidate) {
+  async function fetchDS(candidate) {
     const addr = candidate.token.tokenAddress;
-    const createTsSec = parseInt(candidate.token.createDate || 0) / 1000;
-
-    // DS 和 GT 并行
-    const [dsPairs, candles] = await Promise.all([
-      dsGetPairs(addr),
-      gtOhlcvDirect(addr, 72),
-    ]);
-
-    // DS: 提取现价 + 名称
-    let dsCurrentPrice = null;
-    let dsName = null, dsSymbol = null;
-    if (dsPairs && dsPairs.length > 0) {
-      for (const pair of dsPairs) {
+    const pairs = await dsGetPairs(addr);
+    let dsCurrentPrice = null, dsName = null, dsSymbol = null;
+    if (pairs && pairs.length > 0) {
+      for (const pair of pairs) {
         if (pair.chainId && pair.chainId !== "bsc") continue;
         const p = parseFloat(pair.priceUsd || 0);
         if (p > 0) {
@@ -793,8 +785,52 @@ async function stage3_kline(candidates, hotspots) {
         }
       }
     }
+    dsDataMap.set(addr, { dsCurrentPrice, dsName, dsSymbol });
+  }
 
-    // GT: 从 K线算 ATH 和 2h高
+  for (let i = 0; i < candidates.length; i += DS_CONCURRENCY) {
+    const batch = candidates.slice(i, i + DS_CONCURRENCY);
+    await Promise.all(batch.map(c => fetchDS(c)));
+  }
+  console.log(`[SCAN] Stage3-A: DS 现价获取完成 (${candidates.length} 个)`);
+
+  // DS 现价快筛: 价格明显超标的直接淘汰, 减少 GT 请求量
+  const dsFiltered = [];
+  for (const candidate of candidates) {
+    const { token: t, detail, ageHours } = candidate;
+    const addr = t.tokenAddress;
+    const name = t.name || addr.slice(0, 16);
+    const ds = dsDataMap.get(addr);
+    const dsPrice = ds ? ds.dsCurrentPrice : null;
+
+    if (dsPrice) {
+      const maxCurPrice = ageHours > 1 ? MAX_CURRENT_PRICE_OLD : MAX_CURRENT_PRICE_YOUNG;
+      if (dsPrice > maxCurPrice) {
+        console.log(`[SCAN] Stage3-A: ${name} — DS现价 ${dsPrice.toExponential(3)} > ${maxCurPrice}, 快筛淘汰`);
+        continue;
+      }
+    }
+    dsFiltered.push(candidate);
+  }
+  console.log(`[SCAN] Stage3-A: DS快筛通过 ${dsFiltered.length}/${candidates.length}, 进入GT精筛`);
+
+  // ---- Phase B: 对通过DS快筛的候选, 串行请求GT拿K线 (避免429) ----
+  const results = [];
+  for (let i = 0; i < dsFiltered.length; i++) {
+    const candidate = dsFiltered[i];
+    const { token: t, detail, ageHours } = candidate;
+    const addr = t.tokenAddress;
+    const name = t.name || addr.slice(0, 16);
+    const createTsSec = parseInt(t.createDate || 0) / 1000;
+    const ds = dsDataMap.get(addr);
+    const dsCurrentPrice = ds ? ds.dsCurrentPrice : null;
+    const dsName = ds ? ds.dsName : null;
+    const dsSymbol = ds ? ds.dsSymbol : null;
+
+    // GT K线 (串行, 每次间隔 gtRateDelay)
+    if (i > 0) await sleep(gtRateDelay);
+    const candles = await gtOhlcvDirect(addr, 72);
+
     let ath = null, high2h = null, gtCurrentPrice = null;
     if (candles && candles.length > 0) {
       high2h = calcMaxPriceFirstNHours(candles, createTsSec, 2);
@@ -803,65 +839,44 @@ async function stage3_kline(candidates, hotspots) {
       gtCurrentPrice = parseFloat(latestCandle[4]);
     }
 
-    return { candidate, dsCurrentPrice, ath, high2h, gtCurrentPrice, dsName, dsSymbol };
-  }
-
-  // 并发池
-  const allData = [];
-  for (let i = 0; i < candidates.length; i += CONCURRENCY) {
-    const batch = candidates.slice(i, i + CONCURRENCY);
-    const batchResults = await Promise.all(batch.map(c => fetchAllData(c)));
-    allData.push(...batchResults);
-  }
-
-  // 筛选
-  const results = [];
-  for (const { candidate, dsCurrentPrice, ath: rawAth, high2h, gtCurrentPrice, dsName, dsSymbol } of allData) {
-    const { token: t, detail, ageHours } = candidate;
-    const addr = t.tokenAddress;
-    const name = t.name || addr.slice(0, 16);
-
-    let ath = rawAth;
     const currentPrice = dsCurrentPrice || gtCurrentPrice;
 
     if (ath === null && high2h === null) {
-      console.log(`[SCAN] Stage3: ${name} (${addr}) — 无K线数据, 跳过`);
+      console.log(`[SCAN] Stage3-B: ${name} (${addr}) — 无K线数据, 跳过`);
       continue;
     }
 
     if (ath === null) ath = high2h;
 
-    console.log(`[SCAN] Stage3: ${name} (${addr}) — ATH ${(ath||0).toExponential(3)}, 2h高 ${(high2h||0).toExponential(3)}, 现价 ${(currentPrice||0).toExponential(3)}`);
+    console.log(`[SCAN] Stage3-B: ${name} (${addr}) — ATH ${(ath||0).toExponential(3)}, 2h高 ${(high2h||0).toExponential(3)}, 现价 ${(currentPrice||0).toExponential(3)}`);
 
     if (ath > MAX_HIGH_PRICE) {
-      console.log(`[SCAN] Stage3: ${name} (${addr}) — ATH ${ath.toExponential(3)} > ${MAX_HIGH_PRICE}, 跳过`);
+      console.log(`[SCAN] Stage3-B: ${name} — ATH ${ath.toExponential(3)} > ${MAX_HIGH_PRICE}, 跳过`);
       continue;
     }
 
-    // 币龄 ≤ 1h 时, ATH 上限更严格 (≤ 0.000004)
     if (ageHours <= 1 && ath > MAX_CURRENT_PRICE_YOUNG) {
-      console.log(`[SCAN] Stage3: ${name} (${addr}) — 币龄≤1h, ATH ${ath.toExponential(3)} > ${MAX_CURRENT_PRICE_YOUNG}, 跳过`);
+      console.log(`[SCAN] Stage3-B: ${name} — 币龄≤1h, ATH ${ath.toExponential(3)} > ${MAX_CURRENT_PRICE_YOUNG}, 跳过`);
       continue;
     }
 
-    // 用 USD 现价二次校验当前价 (stage2 用的是 BNB 价格, 不准)
     if (currentPrice) {
       const maxCurPrice = ageHours > 1 ? MAX_CURRENT_PRICE_OLD : MAX_CURRENT_PRICE_YOUNG;
       if (currentPrice > maxCurPrice) {
-        console.log(`[SCAN] Stage3: ${name} (${addr}) — USD现价 ${currentPrice.toExponential(3)} > ${maxCurPrice}, 跳过`);
+        console.log(`[SCAN] Stage3-B: ${name} — USD现价 ${currentPrice.toExponential(3)} > ${maxCurPrice}, 跳过`);
         continue;
       }
     }
 
     if (ageHours > 2 && high2h !== null && high2h > MAX_EARLY_HIGH_PRICE) {
-      console.log(`[SCAN] Stage3: ${name} (${addr}) — 前2h最高 ${high2h.toExponential(3)} > ${MAX_EARLY_HIGH_PRICE}, 跳过`);
+      console.log(`[SCAN] Stage3-B: ${name} — 前2h最高 ${high2h.toExponential(3)} > ${MAX_EARLY_HIGH_PRICE}, 跳过`);
       continue;
     }
 
     if (ageHours >= 1 && ath > 0 && currentPrice) {
       const ratio = currentPrice / ath;
       if (ratio < PRICE_RATIO_LOW || ratio > PRICE_RATIO_HIGH) {
-        console.log(`[SCAN] Stage3: ${name} (${addr}) — 现/高 ${(ratio * 100).toFixed(1)}% 不在 30%~90%, 跳过`);
+        console.log(`[SCAN] Stage3-B: ${name} — 现/高 ${(ratio * 100).toFixed(1)}% 不在 30%~90%, 跳过`);
         continue;
       }
     }
@@ -870,7 +885,7 @@ async function stage3_kline(candidates, hotspots) {
 
     results.push({ token: t, detail, ageHours, ath, high2h, hotNews, dsCurrentPrice: currentPrice, dsName, dsSymbol });
     const finalPrice = currentPrice || 0;
-    console.log(`[SCAN] Stage3: ✓ ${name} — ATH ${ath.toExponential(3)}, 2h高 ${(high2h || 0).toExponential(3)}, 现/高 ${ath > 0 ? (finalPrice / ath * 100).toFixed(1) : '?'}%${hotNews.isHot ? ' 🔥' + hotNews.matched.join(',') : ''}`);
+    console.log(`[SCAN] Stage3-B: ✓ ${name} — ATH ${ath.toExponential(3)}, 2h高 ${(high2h || 0).toExponential(3)}, 现/高 ${ath > 0 ? (finalPrice / ath * 100).toFixed(1) : '?'}%${hotNews.isHot ? ' 🔥' + hotNews.matched.join(',') : ''}`);
   }
   return results;
 }
