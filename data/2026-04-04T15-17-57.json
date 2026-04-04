@@ -1,0 +1,53 @@
+{
+  "scanTime": "2026-4-4 15:15:13",
+  "totalTokens": 3165,
+  "filteredTokens": 2,
+  "filterCriteria": "社交≥1 + 持币(>1h:≥60,≤1h:≥30) + 总量10亿 + 价(≤1h:≤0.000004,>1h:≤0.00002) + 最高价≤0.00004(>2h前2h≤0.00002) + 价在最高价22%~80%(币龄<1h跳过)",
+  "tokens": [
+    {
+      "address": "0xd2e8303f99a70b90c8ebc0578ca8397118f84444",
+      "name": "Burnie Senders",
+      "symbol": "BURNIE",
+      "holders": 87,
+      "created_at": 1775254191000,
+      "total_supply": 1000000000,
+      "price": 0.000005757,
+      "max_price": 0.0000164363546000473,
+      "high_2h": 0.0000164363546000473,
+      "price_ratio": 0.3503,
+      "age_hours": 9.09,
+      "social_count": 1,
+      "social_links": {
+        "twitter": "https://x.com/toly/status/2039902945425379551?s=20"
+      },
+      "hot_news": false,
+      "hot_score": 0,
+      "hot_keywords": [],
+      "day1_vol": 62983.56,
+      "progress": 0.3120330352
+    },
+    {
+      "address": "0xa8c6ac4bdfea0a06dce7dc3dc9be08d904744444",
+      "name": "FIFA World Cup",
+      "symbol": "FIFA",
+      "holders": 81,
+      "created_at": 1775147653000,
+      "total_supply": 1000000000,
+      "price": 0.000006177,
+      "max_price": 0.0000233561819920123,
+      "high_2h": 0.0000074271641141418,
+      "price_ratio": 0.2645,
+      "age_hours": 38.69,
+      "social_count": 2,
+      "social_links": {
+        "twitter": "https://x.com/fifaworldcup?s=21",
+        "website": "https://www.fifa.com/"
+      },
+      "hot_news": false,
+      "hot_score": 0,
+      "hot_keywords": [],
+      "day1_vol": 23485.878567299023,
+      "progress": 0.3473331327
+    }
+  ]
+}
