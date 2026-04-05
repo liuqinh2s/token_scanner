@@ -1,0 +1,77 @@
+{
+  "scanTime": "2026-4-5 23:00:21",
+  "totalTokens": 2857,
+  "filteredTokens": 3,
+  "filterCriteria": "社交≥1 + 持币(>1h:≥60,≤1h:≥30) + 总量10亿 + 价(≤1h:≤0.000004,>1h:≤0.00002) + 最高价≤0.00004(>1h前2h≤0.00002) + 价在最高价30%~90%(币龄<1h跳过)",
+  "tokens": [
+    {
+      "address": "0xea6e0b7629a1bb5cc31a153ef2203ab1b1894444",
+      "name": "同事.skill",
+      "symbol": "同事.skill",
+      "holders": 166,
+      "created_at": 1775143638000,
+      "total_supply": 1000000000,
+      "price": 0.00001671,
+      "max_price": 0.0000281840989190261,
+      "high_2h": 0.00000680376143937065,
+      "price_ratio": 0.5929,
+      "age_hours": 71.55,
+      "social_count": 2,
+      "social_links": {
+        "twitter": "https://x.com/okmetom/status/2039726329567031599",
+        "website": "https://github.com/titanwings/colleague-skill"
+      },
+      "hot_news": false,
+      "hot_score": 0,
+      "hot_keywords": [],
+      "day1_vol": 9617.424245240813,
+      "progress": 0.7384313381
+    },
+    {
+      "address": "0xf42534d08edeb0b32133f7924a723fa803ce4444",
+      "name": "币安口号",
+      "symbol": "Users First",
+      "holders": 67,
+      "created_at": 1775184943000,
+      "total_supply": 1000000000,
+      "price": 0.00001402,
+      "max_price": 0.0000213769731745213,
+      "high_2h": 0.00000936895226301655,
+      "price_ratio": 0.6558,
+      "age_hours": 60.08,
+      "social_count": 2,
+      "social_links": {
+        "twitter": "https://x.com/lulu_binance/status/2039898817836052564",
+        "website": "https://x.com/binance/status/2001716012262265209"
+      },
+      "hot_news": false,
+      "hot_score": 0,
+      "hot_keywords": [],
+      "day1_vol": 3188.2142440162324,
+      "progress": 0.6829915197
+    },
+    {
+      "address": "0x0c05c0a8da22fd38c3b473cb2dd72b4274b54444",
+      "name": "币安名字的初衷",
+      "symbol": "安心",
+      "holders": 67,
+      "created_at": 1775293661000,
+      "total_supply": 1000000000,
+      "price": 0.000006172,
+      "max_price": 0.000018491978805206,
+      "high_2h": 0.000018491978805206,
+      "price_ratio": 0.3338,
+      "age_hours": 29.88,
+      "social_count": 2,
+      "social_links": {
+        "twitter": "https://x.com/heyi1f/status/2040355586324430867?s=20",
+        "website": "https://x.com/Supers6061/status/2040331033502212578?s=20"
+      },
+      "hot_news": false,
+      "hot_score": 0,
+      "hot_keywords": [],
+      "day1_vol": 6552.431191405725,
+      "progress": 0.3477501678
+    }
+  ]
+}
