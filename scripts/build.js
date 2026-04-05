@@ -82,8 +82,8 @@ html = html.replace(
   "cachedFetch('data/history.json')"
 );
 html = html.replace(
-  /cachedFetch\('\/api\/scan\/' \+ id\)/g,
-  "cachedFetch('data/scans/' + id + '.json')"
+  /cachedFetch\('\/api\/scan\/'\s*\+\s*([^)]+)\)/g,
+  "cachedFetch('data/scans/' + $1 + '.json')"
 );
 
 fs.writeFileSync(path.join(SITE_DIR, "index.html"), html);
