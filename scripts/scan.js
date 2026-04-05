@@ -42,7 +42,7 @@ const TOTAL_SUPPLY = 1_000_000_000;       // 10亿
 const MAX_CURRENT_PRICE_OLD = 0.00002;    // 币龄 > 1h 当前价格上限 (USD)
 const MAX_CURRENT_PRICE_YOUNG = 0.000004; // 币龄 ≤ 1h 当前价格上限 (USD)
 const MAX_HIGH_PRICE = 0.00004;           // 历史最高价上限 (USD)
-const MAX_EARLY_HIGH_PRICE = 0.00002;     // 前2小时最高价上限 (USD, 币龄>2h时检查)
+const MAX_EARLY_HIGH_PRICE = 0.00002;     // 前2小时最高价上限 (USD, 币龄>1h时检查)
 const PRICE_RATIO_LOW = 0.3;              // 当前价 ≥ 最高价 * 30%
 const PRICE_RATIO_HIGH = 0.9;             // 当前价 ≤ 最高价 * 90%
 const HOLDERS_THRESHOLD_OLD = 60;         // 币龄 > 1h 时持币地址数阈值
@@ -868,7 +868,7 @@ async function stage3_kline(candidates, hotspots) {
       }
     }
 
-    if (ageHours > 2 && high2h !== null && high2h > MAX_EARLY_HIGH_PRICE) {
+    if (ageHours > 1 && high2h !== null && high2h > MAX_EARLY_HIGH_PRICE) {
       console.log(`[SCAN] Stage3-B: ${name} — 前2h最高 ${high2h.toExponential(3)} > ${MAX_EARLY_HIGH_PRICE}, 跳过`);
       continue;
     }
@@ -920,7 +920,7 @@ async function main() {
   console.log(`[SCAN] Stage2 通过: ${s2.length}/${s1.length}`);
 
   // Stage 3: K线筛
-  console.log(`[SCAN] Stage3 K线筛条件: ATH≤$${MAX_HIGH_PRICE}, 前2h最高(币龄>2h时)≤$${MAX_EARLY_HIGH_PRICE}, 当前价/ATH在${PRICE_RATIO_LOW * 100}%~${PRICE_RATIO_HIGH * 100}%(币龄<1h跳过)`);
+  console.log(`[SCAN] Stage3 K线筛条件: ATH≤$${MAX_HIGH_PRICE}, 前2h最高(币龄>1h时)≤$${MAX_EARLY_HIGH_PRICE}, 当前价/ATH在${PRICE_RATIO_LOW * 100}%~${PRICE_RATIO_HIGH * 100}%(币龄<1h跳过)`);
   const s3 = await stage3_kline(s2, hotspots);
   console.log(`[SCAN] Stage3 通过: ${s3.length}/${s2.length}`);
 
@@ -931,7 +931,7 @@ async function main() {
     scanTime,
     totalTokens: apiTokens.length,
     filteredTokens: filtered.length,
-    filterCriteria: "社交≥1 + 持币(>1h:≥60,≤1h:≥30) + 总量10亿 + 价(≤1h:≤0.000004,>1h:≤0.00002) + 最高价≤0.00004(>2h前2h≤0.00002) + 价在最高价30%~90%(币龄<1h跳过)",
+    filterCriteria: "社交≥1 + 持币(>1h:≥60,≤1h:≥30) + 总量10亿 + 价(≤1h:≤0.000004,>1h:≤0.00002) + 最高价≤0.00004(>1h前2h≤0.00002) + 价在最高价30%~90%(币龄<1h跳过)",
     tokens: filtered.map(item => {
       const currentPrice = item.dsCurrentPrice || item.detail.price;
       // Name/symbol fallback: search API → detail API → DexScreener
