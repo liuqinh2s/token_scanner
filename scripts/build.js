@@ -60,6 +60,42 @@ if (scanFiles.length === 0) {
     fs.writeFileSync(path.join(SCANS_DIR, `${idx}.json`), JSON.stringify(data));
   });
   fs.writeFileSync(path.join(SITE_DATA_DIR, "history.json"), JSON.stringify(history));
+
+  // search-index.json - deduplicated tokens across all scans for client-side search
+  const seen = new Set();
+  const searchIndex = [];
+  scanFiles.forEach((file) => {
+    const data = JSON.parse(fs.readFileSync(path.join(DATA_DIR, file), "utf-8"));
+    for (const t of (data.tokens || [])) {
+      const addr = t.address || '';
+      if (seen.has(addr)) continue;
+      seen.add(addr);
+      searchIndex.push({
+        a: addr,
+        n: t.name || '',
+        s: t.symbol || '',
+        h: t.holders || 0,
+        c: t.created_at || 0,
+        p: t.price || 0,
+        mp: t.max_price || 0,
+        h2: t.high_2h || 0,
+        pr: t.price_ratio,
+        ah: t.age_hours,
+        sc: t.social_count || 0,
+        sl: t.social_links || {},
+        hn: t.hot_news || false,
+        hs: t.hot_score || 0,
+        hk: t.hot_keywords || [],
+        ts: t.total_supply || 0,
+        dv: t.day1_vol || 0,
+        pg: t.progress || 0,
+        st: data.scanTime,
+      });
+    }
+  });
+  searchIndex.sort((a, b) => (b.c || 0) - (a.c || 0));
+  fs.writeFileSync(path.join(SITE_DATA_DIR, "search-index.json"), JSON.stringify(searchIndex));
+  console.log(`[BUILD] Search index: ${searchIndex.length} unique tokens.`);
   console.log(`[BUILD] Generated data for ${scanFiles.length} scans.`);
 }
 
@@ -80,6 +116,10 @@ html = html.replace(
 html = html.replace(
   /cachedFetch\('\/api\/history'\)/g,
   "cachedFetch('data/history.json')"
+);
+html = html.replace(
+  /cachedFetch\('\/api\/search-index'\)/g,
+  "cachedFetch('data/search-index.json')"
 );
 html = html.replace(
   /cachedFetch\('\/api\/scan\/'\s*\+\s*([^)]+)\)/g,

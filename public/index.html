@@ -797,21 +797,40 @@
       searchMode = true;
 
       try {
-        const history = await cachedFetch('/api/history');
-        const seen = new Set();
-        const results = [];
-
-        for (const row of history) {
-          const scanData = await cachedFetch('/api/scan/' + row.id);
-          for (const t of (scanData.tokens || [])) {
-            const key = t.address || '';
-            if (seen.has(key)) continue;
-            const name = (t.name || '').toLowerCase();
-            const symbol = (t.symbol || '').toLowerCase();
-            const addr = key.toLowerCase();
-            if (name.includes(q) || symbol.includes(q) || addr.includes(q)) {
-              seen.add(key);
-              results.push({ ...t, _scanTime: scanData.scanTime });
+        // Try search-index.json first (static site), fall back to API scan-by-scan
+        let results;
+        try {
+          const index = await cachedFetch('/api/search-index');
+          results = index.filter(t => {
+            const n = (t.n || '').toLowerCase();
+            const s = (t.s || '').toLowerCase();
+            const a = (t.a || '').toLowerCase();
+            return n.includes(q) || s.includes(q) || a.includes(q);
+          }).map(t => ({
+            address: t.a, name: t.n, symbol: t.s, holders: t.h,
+            created_at: t.c, price: t.p, max_price: t.mp, high_2h: t.h2,
+            price_ratio: t.pr, age_hours: t.ah, social_count: t.sc,
+            social_links: t.sl, hot_news: t.hn, hot_score: t.hs,
+            hot_keywords: t.hk, total_supply: t.ts, day1_vol: t.dv,
+            progress: t.pg, _scanTime: t.st,
+          }));
+        } catch (_) {
+          // Fallback: fetch each scan (works with live API server)
+          const history = await cachedFetch('/api/history');
+          const seen = new Set();
+          results = [];
+          for (const row of history) {
+            const scanData = await cachedFetch('/api/scan/' + row.id);
+            for (const t of (scanData.tokens || [])) {
+              const key = t.address || '';
+              if (seen.has(key)) continue;
+              const name = (t.name || '').toLowerCase();
+              const symbol = (t.symbol || '').toLowerCase();
+              const addr = key.toLowerCase();
+              if (name.includes(q) || symbol.includes(q) || addr.includes(q)) {
+                seen.add(key);
+                results.push({ ...t, _scanTime: scanData.scanTime });
+              }
             }
           }
         }
@@ -820,7 +839,7 @@
 
         const info = document.getElementById('searchInfo');
         info.classList.remove('hidden');
-        info.innerHTML = `搜索 "<span class="highlight">${esc(q)}</span>" 找到 <span class="highlight">${results.length}</span> 个代币（去重后，跨 ${history.length} 次扫描）<span class="clear-search" onclick="clearSearch()">清除搜索</span>`;
+        info.innerHTML = `搜索 "<span class="highlight">${esc(q)}</span>" 找到 <span class="highlight">${results.length}</span> 个代币（去重）<span class="clear-search" onclick="clearSearch()">清除搜索</span>`;
 
         renderData({
           scanTime: '搜索结果',
