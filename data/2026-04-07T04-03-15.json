@@ -1,0 +1,77 @@
+{
+  "scanTime": "2026-4-7 04:00:26",
+  "totalTokens": 2859,
+  "filteredTokens": 3,
+  "filterCriteria": "社交≥1 + 持币(>1h:≥60,≤1h:≥30) + 总量10亿 + 价(≤1h:≤0.000004,>1h:≤0.00002) + 最高价≤0.00004(>1h前2h≤0.00002) + 价在最高价30%~90%(币龄<1h跳过)",
+  "tokens": [
+    {
+      "address": "0xaa4bc7ed3303f3705e86c080ce66fe2bb605ffff",
+      "name": "BTC",
+      "symbol": "水龙头",
+      "holders": 75,
+      "created_at": 1775475629000,
+      "total_supply": 1000000000,
+      "price": 0.000006508,
+      "max_price": 0.00000752140432985237,
+      "high_2h": 0.00000752140432985237,
+      "price_ratio": 0.8653,
+      "age_hours": 8.34,
+      "social_count": 2,
+      "social_links": {
+        "twitter": "https://x.com/jack/status/2040100600658960550?s=20",
+        "website": "https://btc.day/"
+      },
+      "hot_news": false,
+      "hot_score": 0,
+      "hot_keywords": [],
+      "day1_vol": 4987.42,
+      "progress": 0.3607215145
+    },
+    {
+      "address": "0x95376c412d5bd7105fa5188e1b0130404fc64444",
+      "name": "币安最新口号",
+      "symbol": "TEAM UP WITH BINANCE",
+      "holders": 65,
+      "created_at": 1775465024000,
+      "total_supply": 1000000000,
+      "price": 0.000009922,
+      "max_price": 0.0000145428540570453,
+      "high_2h": 0.0000145428540570453,
+      "price_ratio": 0.6823,
+      "age_hours": 11.28,
+      "social_count": 2,
+      "social_links": {
+        "twitter": "https://x.com/quyin535731/status/2041074332815032724?s=20",
+        "website": "https://www.binance.com/zh-CN/square/post/309545811893137"
+      },
+      "hot_news": false,
+      "hot_score": 0,
+      "hot_keywords": [],
+      "day1_vol": 93519.9,
+      "progress": 0.5474264777
+    },
+    {
+      "address": "0x0c05c0a8da22fd38c3b473cb2dd72b4274b54444",
+      "name": "币安名字的初衷",
+      "symbol": "安心",
+      "holders": 61,
+      "created_at": 1775293661000,
+      "total_supply": 1000000000,
+      "price": 0.000006599,
+      "max_price": 0.000018491978805206,
+      "high_2h": 0.000018491978805206,
+      "price_ratio": 0.3569,
+      "age_hours": 58.88,
+      "social_count": 2,
+      "social_links": {
+        "twitter": "https://x.com/heyi1f/status/2040355586324430867?s=20",
+        "website": "https://x.com/Supers6061/status/2040331033502212578?s=20"
+      },
+      "hot_news": false,
+      "hot_score": 0,
+      "hot_keywords": [],
+      "day1_vol": 6474.796445674845,
+      "progress": 0.3659494027
+    }
+  ]
+}
