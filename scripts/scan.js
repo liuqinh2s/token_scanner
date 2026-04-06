@@ -4,7 +4,7 @@
  * 三级筛选管线:
  *   Stage 1 (初筛): 币龄、当前价、持币地址数 — 仅用 search API 批量数据，0 额外请求
  *   Stage 2 (详情筛): 总量=10亿、社交媒体≥1 — four.meme detail API，每候选 1 请求
- *   Stage 3 (K线筛): 历史最高价、前2h最高价、当前价/最高价比 — GeckoTerminal OHLCV，每候选 1~2 请求
+ *   Stage 3 (K线筛): 历史最高价、前2h最高价、当前价/最高价比、现价/底价比 — GeckoTerminal OHLCV，每候选 1~2 请求
  *
  * 逐级收窄，避免不必要的 API 调用。
  */
@@ -43,7 +43,7 @@ const MAX_CURRENT_PRICE_OLD = 0.00002;    // 币龄 > 1h 当前价格上限 (USD
 const MAX_CURRENT_PRICE_YOUNG = 0.000004; // 币龄 ≤ 1h 当前价格上限 (USD)
 const MAX_HIGH_PRICE = 0.00004;           // 历史最高价上限 (USD)
 const MAX_EARLY_HIGH_PRICE = 0.00002;     // 前2小时最高价上限 (USD, 币龄>1h时检查)
-const PRICE_RATIO_LOW = 0.3;              // 当前价 ≥ 最高价 * 30%
+const PRICE_RATIO_LOW = 0.4;              // 当前价 ≥ 最高价 * 40%
 const PRICE_RATIO_HIGH = 0.9;             // 当前价 ≤ 最高价 * 90%
 const HOLDERS_THRESHOLD_OLD = 60;         // 币龄 > 1h 时持币地址数阈值
 const HOLDERS_THRESHOLD_YOUNG = 30;       // 币龄 ≤ 1h 时持币地址数阈值
@@ -680,6 +680,28 @@ function calcMaxPriceFirstNHours(candles, createTsSec, hours = 2) {
   return found ? maxHigh : null;
 }
 
+/**
+ * 计算除第一根K线外所有K线的最低价 (USD)
+ * 用于判断当前价是否在合理的底部区间
+ */
+function calcMinPriceExcludeFirst(candles, createTsSec) {
+  if (!candles || candles.length < 2) return null;
+  // 按时间排序，找到第一根K线的时间戳
+  const sorted = candles.slice().sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
+  const firstTs = parseInt(sorted[0][0]);
+  let minLow = Infinity;
+  let found = false;
+  for (const c of sorted) {
+    if (parseInt(c[0]) === firstTs) continue; // 跳过第一根
+    const low = parseFloat(c[3]); // c[3] = low
+    if (low > 0 && low < minLow) {
+      minLow = low;
+      found = true;
+    }
+  }
+  return found ? minLow : null;
+}
+
 // (hotspot matching is now handled by hotspotMatch above)
 
 // ===================================================================
@@ -876,8 +898,20 @@ async function stage3_kline(candidates, hotspots) {
     if (ageHours >= 1 && ath > 0 && currentPrice) {
       const ratio = currentPrice / ath;
       if (ratio < PRICE_RATIO_LOW || ratio > PRICE_RATIO_HIGH) {
-        console.log(`[SCAN] Stage3-B: ${name} — 现/高 ${(ratio * 100).toFixed(1)}% 不在 30%~90%, 跳过`);
+        console.log(`[SCAN] Stage3-B: ${name} — 现/高 ${(ratio * 100).toFixed(1)}% 不在 40%~90%, 跳过`);
         continue;
+      }
+    }
+
+    // 币龄>1h: 当前价需比(除第一根K线外的)历史最低价高10%~50%
+    if (ageHours > 1 && currentPrice && candles && candles.length >= 2) {
+      const minPrice = calcMinPriceExcludeFirst(candles, createTsSec);
+      if (minPrice && minPrice > 0) {
+        const aboveMinRatio = currentPrice / minPrice - 1; // 高出最低价的比例
+        if (aboveMinRatio < 0.10 || aboveMinRatio > 0.50) {
+          console.log(`[SCAN] Stage3-B: ${name} — 现价/底价比 ${(aboveMinRatio * 100).toFixed(1)}% 不在 10%~50%, 跳过 (现:${currentPrice.toExponential(3)}, 底:${minPrice.toExponential(3)})`);
+          continue;
+        }
       }
     }
 
@@ -920,7 +954,7 @@ async function main() {
   console.log(`[SCAN] Stage2 通过: ${s2.length}/${s1.length}`);
 
   // Stage 3: K线筛
-  console.log(`[SCAN] Stage3 K线筛条件: ATH≤$${MAX_HIGH_PRICE}, 前2h最高(币龄>1h时)≤$${MAX_EARLY_HIGH_PRICE}, 当前价/ATH在${PRICE_RATIO_LOW * 100}%~${PRICE_RATIO_HIGH * 100}%(币龄<1h跳过)`);
+  console.log(`[SCAN] Stage3 K线筛条件: ATH≤$${MAX_HIGH_PRICE}, 前2h最高(币龄>1h时)≤$${MAX_EARLY_HIGH_PRICE}, 当前价/ATH在${PRICE_RATIO_LOW * 100}%~${PRICE_RATIO_HIGH * 100}%(币龄<1h跳过), 现价比底价高10%~50%(币龄>1h,排除首根K线)`);
   const s3 = await stage3_kline(s2, hotspots);
   console.log(`[SCAN] Stage3 通过: ${s3.length}/${s2.length}`);
 
@@ -931,7 +965,7 @@ async function main() {
     scanTime,
     totalTokens: apiTokens.length,
     filteredTokens: filtered.length,
-    filterCriteria: "社交≥1 + 持币(>1h:≥60,≤1h:≥30) + 总量10亿 + 价(≤1h:≤0.000004,>1h:≤0.00002) + 最高价≤0.00004(>1h前2h≤0.00002) + 价在最高价30%~90%(币龄<1h跳过)",
+    filterCriteria: "社交≥1 + 持币(>1h:≥60,≤1h:≥30) + 总量10亿 + 价(≤1h:≤0.000004,>1h:≤0.00002) + 最高价≤0.00004(>1h前2h≤0.00002) + 价在最高价40%~90%(币龄<1h跳过) + 现价比底价高10%~50%(>1h,排除首根K线)",
     tokens: filtered.map(item => {
       const currentPrice = item.dsCurrentPrice || item.detail.price;
       // Name/symbol fallback: search API → detail API → DexScreener
