@@ -1,0 +1,30 @@
+{
+  "scanTime": "2026-4-6 18:45:19",
+  "totalTokens": 2853,
+  "filteredTokens": 1,
+  "filterCriteria": "社交≥1 + 持币(>1h:≥60,≤1h:≥30) + 总量10亿 + 价(≤1h:≤0.000004,>1h:≤0.00002) + 最高价≤0.00004(>1h前2h≤0.00002) + 价在最高价30%~90%(币龄<1h跳过)",
+  "tokens": [
+    {
+      "address": "0xa0a9f3522f09b0b478c2ee56c2178042d3c34444",
+      "name": "重庆女孩7年制作500多只思念熊",
+      "symbol": "思念熊",
+      "holders": 141,
+      "created_at": 1775443542000,
+      "total_supply": 1000000000,
+      "price": 0.00001325,
+      "max_price": 0.0000392695201150267,
+      "high_2h": 0.0000154585332474614,
+      "price_ratio": 0.3374,
+      "age_hours": 8,
+      "social_count": 1,
+      "social_links": {
+        "website": "https://weibo.com/3203137375/QzwgsEcMI"
+      },
+      "hot_news": false,
+      "hot_score": 0,
+      "hot_keywords": [],
+      "day1_vol": 174347.71,
+      "progress": 0.6540577838
+    }
+  ]
+}
