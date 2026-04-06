@@ -1,0 +1,53 @@
+{
+  "scanTime": "2026-4-6 17:15:16",
+  "totalTokens": 2847,
+  "filteredTokens": 2,
+  "filterCriteria": "社交≥1 + 持币(>1h:≥60,≤1h:≥30) + 总量10亿 + 价(≤1h:≤0.000004,>1h:≤0.00002) + 最高价≤0.00004(>1h前2h≤0.00002) + 价在最高价30%~90%(币龄<1h跳过)",
+  "tokens": [
+    {
+      "address": "0xa0a9f3522f09b0b478c2ee56c2178042d3c34444",
+      "name": "重庆女孩7年制作500多只思念熊",
+      "symbol": "思念熊",
+      "holders": 156,
+      "created_at": 1775443542000,
+      "total_supply": 1000000000,
+      "price": 0.00001518,
+      "max_price": 0.0000392695201150267,
+      "high_2h": 0.0000154585332474614,
+      "price_ratio": 0.3866,
+      "age_hours": 6.5,
+      "social_count": 1,
+      "social_links": {
+        "website": "https://weibo.com/3203137375/QzwgsEcMI"
+      },
+      "hot_news": false,
+      "hot_score": 0,
+      "hot_keywords": [],
+      "day1_vol": 171934.19,
+      "progress": 0.6998824888
+    },
+    {
+      "address": "0xe2578d60cf62a9eacdf401533993ff753b204444",
+      "name": "知足常乐",
+      "symbol": "莫氏精神",
+      "holders": 65,
+      "created_at": 1775212187000,
+      "total_supply": 1000000000,
+      "price": 0.000007787,
+      "max_price": 0.0000144027521301828,
+      "high_2h": 0.000012051306545589,
+      "price_ratio": 0.5407,
+      "age_hours": 70.76,
+      "social_count": 2,
+      "social_links": {
+        "twitter": "https://x.com/i/communities/2029885736216908279",
+        "website": "https://x.com/Servicetrenches/status/2040013777350041968?s=20"
+      },
+      "hot_news": false,
+      "hot_score": 0,
+      "hot_keywords": [],
+      "day1_vol": 6307.217518768185,
+      "progress": 0.4465694341
+    }
+  ]
+}
