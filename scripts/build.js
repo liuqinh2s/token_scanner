@@ -134,19 +134,18 @@ const AUTO_REFRESH_INTERVAL = 60 * 1000;
 function startAutoRefresh() {
   if (autoRefreshTimer) return;
   autoRefreshTimer = setInterval(async () => {
+    if (searchMode) return;
     try {
-      const res = await fetch('data/latest.json');
-      const data = await res.json();
+      const data = await cachedFetch('data/latest.json', true);
       if (data.scanTime && data.scanTime !== lastScanTime) {
         lastScanTime = data.scanTime;
         renderData(data);
-        showToast('Data updated');
+        showToast('数据已更新');
       }
     } catch(e) { console.error(e); }
   }, AUTO_REFRESH_INTERVAL);
   const btn = document.getElementById('btnAutoRefresh');
-  btn.textContent = 'Auto-refresh: ON';
-  btn.style.borderColor = '#f0b90b';
+  if (btn) { btn.textContent = '自动刷新: ON'; btn.style.borderColor = '#f0b90b'; }
 }
 
 function stopAutoRefresh() {
@@ -154,8 +153,7 @@ function stopAutoRefresh() {
   clearInterval(autoRefreshTimer);
   autoRefreshTimer = null;
   const btn = document.getElementById('btnAutoRefresh');
-  btn.textContent = 'Auto-refresh: OFF';
-  btn.style.borderColor = '';
+  if (btn) { btn.textContent = '自动刷新: OFF'; btn.style.borderColor = ''; }
 }
 
 function toggleAutoRefresh() {
@@ -163,10 +161,10 @@ function toggleAutoRefresh() {
 }
 `;
 
-// Add auto-refresh button next to History button
+// Add auto-refresh button in actions div (match Chinese button text)
 html = html.replace(
-  /<button id="btnHistory" onclick="toggleHistory\(\)">History<\/button>/,
-  '<button id="btnHistory" onclick="toggleHistory()">History</button>\n    <button id="btnAutoRefresh" onclick="toggleAutoRefresh()" style="border-color:#f0b90b">Auto-refresh: ON</button>'
+  /<button id="btnLatest"/,
+  '<button id="btnAutoRefresh" onclick="toggleAutoRefresh()" style="border-color:#f0b90b">自动刷新: ON</button>\n      <button id="btnLatest"'
 );
 
 // Inject auto-refresh code before renderData function
@@ -175,10 +173,10 @@ html = html.replace(
   autoRefreshCode + '\nfunction renderData(data)'
 );
 
-// Add startAutoRefresh() to init
+// Add startAutoRefresh() to init — match the actual format in the file
 html = html.replace(
-  /\/\/ Init\nloadLatest\(\);/,
-  '// Init\nloadLatest();\nstartAutoRefresh();'
+  /\/\/ Init\s*\n\s*loadLatest\(\);/,
+  '// Init\n    loadLatest();\n    startAutoRefresh();'
 );
 
 fs.writeFileSync(path.join(SITE_DIR, "index.html"), html);
