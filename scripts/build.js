@@ -106,8 +106,6 @@ let html = fs.readFileSync(path.join(PUBLIC_DIR, "index.html"), "utf-8");
 // /api/latest       -> data/latest.json
 // /api/history      -> data/history.json
 // /api/scan/N       -> data/scans/N.json
-// /api/status       -> (removed, static site has no live status)
-// /api/scan (POST)  -> (removed, no manual scan on static site)
 
 html = html.replace(
   /cachedFetch\('\/api\/latest'/g,
@@ -124,6 +122,63 @@ html = html.replace(
 html = html.replace(
   /cachedFetch\('\/api\/scan\/'\s*\+\s*([^)]+)\)/g,
   "cachedFetch('data/scans/' + $1 + '.json')"
+);
+
+// Inject auto-refresh polling for production (static site)
+const autoRefreshCode = `
+// --- Auto Refresh (polling) ---
+let lastScanTime = null;
+let autoRefreshTimer = null;
+const AUTO_REFRESH_INTERVAL = 60 * 1000;
+
+function startAutoRefresh() {
+  if (autoRefreshTimer) return;
+  autoRefreshTimer = setInterval(async () => {
+    try {
+      const res = await fetch('data/latest.json');
+      const data = await res.json();
+      if (data.scanTime && data.scanTime !== lastScanTime) {
+        lastScanTime = data.scanTime;
+        renderData(data);
+        showToast('Data updated');
+      }
+    } catch(e) { console.error(e); }
+  }, AUTO_REFRESH_INTERVAL);
+  const btn = document.getElementById('btnAutoRefresh');
+  btn.textContent = 'Auto-refresh: ON';
+  btn.style.borderColor = '#f0b90b';
+}
+
+function stopAutoRefresh() {
+  if (!autoRefreshTimer) return;
+  clearInterval(autoRefreshTimer);
+  autoRefreshTimer = null;
+  const btn = document.getElementById('btnAutoRefresh');
+  btn.textContent = 'Auto-refresh: OFF';
+  btn.style.borderColor = '';
+}
+
+function toggleAutoRefresh() {
+  autoRefreshTimer ? stopAutoRefresh() : startAutoRefresh();
+}
+`;
+
+// Add auto-refresh button next to History button
+html = html.replace(
+  /<button id="btnHistory" onclick="toggleHistory\(\)">History<\/button>/,
+  '<button id="btnHistory" onclick="toggleHistory()">History</button>\n    <button id="btnAutoRefresh" onclick="toggleAutoRefresh()" style="border-color:#f0b90b">Auto-refresh: ON</button>'
+);
+
+// Inject auto-refresh code before renderData function
+html = html.replace(
+  /function renderData\(data\)/,
+  autoRefreshCode + '\nfunction renderData(data)'
+);
+
+// Add startAutoRefresh() to init
+html = html.replace(
+  /\/\/ Init\nloadLatest\(\);/,
+  '// Init\nloadLatest();\nstartAutoRefresh();'
 );
 
 fs.writeFileSync(path.join(SITE_DIR, "index.html"), html);

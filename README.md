@@ -47,6 +47,11 @@ BSC 链上新代币扫描器，自动扫描最近 3 天内通过 [Four.meme](htt
 5. `scripts/build.js` 将扫描数据整理到 `site/data/`，生成前端所需的静态文件
 6. GitHub Pages 自动部署 `site/` 目录
 
+## 自动刷新
+
+- 本地开发：使用 `live-server` 监听 `site/data/` 目录，`scan.js` + `build.js` 生成新数据后浏览器自动整页刷新
+- 生产环境：每 60 秒轮询 `data/latest.json`，检测到新扫描结果时自动更新页面并弹出提示，可通过 "Auto-refresh" 按钮手动开关
+
 ## 项目结构
 
 ```
@@ -70,13 +75,16 @@ BSC 链上新代币扫描器，自动扫描最近 3 天内通过 [Four.meme](htt
 ## 本地开发
 
 ```bash
-# 运行扫描（结果写入 data/）
-node scripts/scan.js
-
 # 构建静态站点（输出到 site/）
-node scripts/build.js
+npm run build
 
-# 本地预览
+# 启动开发服务器（live-server 监听 site/data/ 变化，自动刷新浏览器）
+npm run dev
+
+# 另一个终端运行扫描（结果写入 data/，之后再 build 即可触发刷新）
+npm run scan && npm run build
+
+# 本地预览生产版本（不带 live-reload）
 npx serve site
 ```
 
