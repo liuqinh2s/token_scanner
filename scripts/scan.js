@@ -913,7 +913,7 @@ async function stage3_kline(candidates, hotspots) {
       continue;
     }
 
-    if (ageHours >= 1 && ath > 0 && currentPrice) {
+    if (ath > 0 && currentPrice) {
       const ratio = currentPrice / ath;
       if (ratio < PRICE_RATIO_LOW || ratio > PRICE_RATIO_HIGH) {
         console.log(`[SCAN] Stage3-B: ${name} — 现/高 ${(ratio * 100).toFixed(1)}% 不在 40%~90%, 跳过`);
@@ -921,8 +921,8 @@ async function stage3_kline(candidates, hotspots) {
       }
     }
 
-    // 币龄>1h: 当前价需比(除第一根K线外的)历史最低价高10%~100%
-    if (ageHours > 1 && currentPrice && candles && candles.length >= 2) {
+    // 当前价需比(除第一根K线外的)历史最低价高10%~100%
+    if (currentPrice && candles && candles.length >= 2) {
       const minPrice = calcMinPriceExcludeFirst(candles, createTsSec);
       if (minPrice && minPrice > 0) {
         const aboveMinRatio = currentPrice / minPrice - 1; // 高出最低价的比例
