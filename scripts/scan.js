@@ -903,13 +903,13 @@ async function stage3_kline(candidates, hotspots) {
       }
     }
 
-    // 币龄>1h: 当前价需比(除第一根K线外的)历史最低价高10%~50%
+    // 币龄>1h: 当前价需比(除第一根K线外的)历史最低价高10%~100%
     if (ageHours > 1 && currentPrice && candles && candles.length >= 2) {
       const minPrice = calcMinPriceExcludeFirst(candles, createTsSec);
       if (minPrice && minPrice > 0) {
         const aboveMinRatio = currentPrice / minPrice - 1; // 高出最低价的比例
-        if (aboveMinRatio < 0.10 || aboveMinRatio > 0.50) {
-          console.log(`[SCAN] Stage3-B: ${name} — 现价/底价比 ${(aboveMinRatio * 100).toFixed(1)}% 不在 10%~50%, 跳过 (现:${currentPrice.toExponential(3)}, 底:${minPrice.toExponential(3)})`);
+        if (aboveMinRatio < 0.10 || aboveMinRatio > 1.00) {
+          console.log(`[SCAN] Stage3-B: ${name} — 现价/底价比 ${(aboveMinRatio * 100).toFixed(1)}% 不在 10%~100%, 跳过 (现:${currentPrice.toExponential(3)}, 底:${minPrice.toExponential(3)})`);
           continue;
         }
       }
@@ -954,7 +954,7 @@ async function main() {
   console.log(`[SCAN] Stage2 通过: ${s2.length}/${s1.length}`);
 
   // Stage 3: K线筛
-  console.log(`[SCAN] Stage3 K线筛条件: ATH≤$${MAX_HIGH_PRICE}, 前2h最高(币龄>1h时)≤$${MAX_EARLY_HIGH_PRICE}, 当前价/ATH在${PRICE_RATIO_LOW * 100}%~${PRICE_RATIO_HIGH * 100}%(币龄<1h跳过), 现价比底价高10%~50%(币龄>1h,排除首根K线)`);
+  console.log(`[SCAN] Stage3 K线筛条件: ATH≤$${MAX_HIGH_PRICE}, 前2h最高(币龄>1h时)≤$${MAX_EARLY_HIGH_PRICE}, 当前价/ATH在${PRICE_RATIO_LOW * 100}%~${PRICE_RATIO_HIGH * 100}%(币龄<1h跳过), 现价比底价高10%~100%(币龄>1h,排除首根K线)`);
   const s3 = await stage3_kline(s2, hotspots);
   console.log(`[SCAN] Stage3 通过: ${s3.length}/${s2.length}`);
 
@@ -965,7 +965,7 @@ async function main() {
     scanTime,
     totalTokens: apiTokens.length,
     filteredTokens: filtered.length,
-    filterCriteria: "社交≥1 + 持币(>1h:≥60,≤1h:≥30) + 总量10亿 + 价(≤1h:≤0.000004,>1h:≤0.00002) + 最高价≤0.00004(>1h前2h≤0.00002) + 价在最高价40%~90%(币龄<1h跳过) + 现价比底价高10%~50%(>1h,排除首根K线)",
+    filterCriteria: "社交≥1 + 持币(>1h:≥60,≤1h:≥30) + 总量10亿 + 价(≤1h:≤0.000004,>1h:≤0.00002) + 最高价≤0.00004(>1h前2h≤0.00002) + 价在最高价40%~90%(币龄<1h跳过) + 现价比底价高10%~100%(>1h,排除首根K线)",
     tokens: filtered.map(item => {
       const currentPrice = item.dsCurrentPrice || item.detail.price;
       // Name/symbol fallback: search API → detail API → DexScreener
