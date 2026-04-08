@@ -708,6 +708,24 @@ function calcMinPriceExcludeFirst(candles, createTsSec) {
   return found ? minLow : null;
 }
 
+/**
+ * 计算所有K线的最低价（不排除任何K线）
+ * 用于币龄≤1h的底价检查（无需排除发行价，因为本身就在第一个小时内）
+ */
+function calcMinPriceAll(candles) {
+  if (!candles || candles.length < 1) return null;
+  let minLow = Infinity;
+  let found = false;
+  for (const c of candles) {
+    const low = parseFloat(c[3]); // c[3] = low
+    if (low > 0 && low < minLow) {
+      minLow = low;
+      found = true;
+    }
+  }
+  return found ? minLow : null;
+}
+
 // (hotspot matching is now handled by hotspotMatch above)
 
 // ===================================================================
@@ -921,9 +939,12 @@ async function stage3_kline(candidates, hotspots) {
       }
     }
 
-    // 当前价需比(除第一根K线外的)历史最低价高10%~100%
-    if (currentPrice && candles && candles.length >= 2) {
-      const minPrice = calcMinPriceExcludeFirst(candles, createTsSec);
+    // 底价检查: 当前价需比历史最低价高10%~100%
+    // 币龄>1h: 排除第一根K线(排除发行价), 币龄≤1h: 用所有K线
+    if (currentPrice && candles && candles.length >= 1) {
+      const minPrice = ageHours > 1
+        ? calcMinPriceExcludeFirst(candles, createTsSec)
+        : calcMinPriceAll(candles);
       if (minPrice && minPrice > 0) {
         const aboveMinRatio = currentPrice / minPrice - 1; // 高出最低价的比例
         if (aboveMinRatio < 0.10 || aboveMinRatio > 1.00) {
