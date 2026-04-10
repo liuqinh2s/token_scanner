@@ -12,16 +12,16 @@
         "twitter": "https://x.com/goxpv32196782/status/2042705468548939873?s=46"
       },
       "descr": "币安官方 最新在Facebook的广告  提到自由人生 让我们一起发送他",
-      "price": 0.000008476,
+      "price": 0.000008458,
       "peakPrice": 0.00001543,
-      "holders": 76,
+      "holders": 74,
       "peakHolders": 91,
       "liquidity": 0,
       "peakLiquidity": 0,
       "progress": 0,
       "day1Vol": 0,
-      "consecDrops": 1,
-      "lastPrice": 0.000008476
+      "consecDrops": 2,
+      "lastPrice": 0.000008458
     },
     {
       "address": "0x15c7380e6587350934ab7500c0f5c0c441444444",
@@ -66,7 +66,7 @@
       "peakLiquidity": 0,
       "progress": 0,
       "day1Vol": 0,
-      "consecDrops": 2,
+      "consecDrops": 0,
       "lastPrice": 0.00000383
     },
     {
@@ -89,7 +89,7 @@
       "peakLiquidity": 0,
       "progress": 0,
       "day1Vol": 0,
-      "consecDrops": 1,
+      "consecDrops": 0,
       "lastPrice": 0.000003497
     },
     {
@@ -112,7 +112,7 @@
       "peakLiquidity": 0,
       "progress": 0,
       "day1Vol": 0,
-      "consecDrops": 1,
+      "consecDrops": 0,
       "lastPrice": 0.000003476
     },
     {
@@ -127,16 +127,16 @@
         "twitter": "https://x.com/neso/status/2042743918102507684?s=46"
       },
       "descr": "XChat",
-      "price": 0.000004328,
+      "price": 0.000003542,
       "peakPrice": 0.000004328,
-      "holders": 8,
+      "holders": 5,
       "peakHolders": 8,
       "liquidity": 0,
       "peakLiquidity": 0,
       "progress": 0,
       "day1Vol": 0,
-      "consecDrops": 0,
-      "lastPrice": 0.000004328
+      "consecDrops": 1,
+      "lastPrice": 0.000003542
     },
     {
       "address": "0xec8c6795ecaa1c6e71b846602dd2d4fadd9a4444",
@@ -151,16 +151,39 @@
         "website": "https://x.com/BinanceMovie"
       },
       "descr": "将《幣安人生》影像化改编中......\n\n解读币安真实故事背后的幸运、压力与用户优先文化",
-      "price": 0.00001022,
-      "peakPrice": 0.00001022,
-      "holders": 31,
-      "peakHolders": 31,
+      "price": 0.00001891,
+      "peakPrice": 0.00001891,
+      "holders": 177,
+      "peakHolders": 177,
       "liquidity": 0,
       "peakLiquidity": 0,
       "progress": 0,
       "day1Vol": 0,
       "consecDrops": 0,
-      "lastPrice": 0.00001022
+      "lastPrice": 0.00001891
+    },
+    {
+      "address": "0x10904d2cd60a3a02c6a6aca5c654e83f4aec4444",
+      "name": "跳舞狗",
+      "symbol": "跳舞狗",
+      "createdAt": 1775864007000,
+      "addedAt": 1775864715926,
+      "totalSupply": 1000000000,
+      "socialCount": 1,
+      "socialLinks": {
+        "twitter": "https://x.com/goxpv32196782/status/2042747789600526413?s=46"
+      },
+      "descr": "央视网发布的跳舞狗魔性表情",
+      "price": 0.00000365,
+      "peakPrice": 0.00000365,
+      "holders": 3,
+      "peakHolders": 3,
+      "liquidity": 0,
+      "peakLiquidity": 0,
+      "progress": 0,
+      "day1Vol": 0,
+      "consecDrops": 0,
+      "lastPrice": 0.00000365
     }
   ],
   "eliminated": [
@@ -7165,6 +7188,6 @@
       "createdAt": 1775863071000
     }
   ],
-  "lastBlock": 91807767,
-  "lastScanTime": 1775863821703
+  "lastBlock": 91809752,
+  "lastScanTime": 1775864715926
 }
