@@ -1,16 +1,23 @@
 /**
- * BSC Token Scanner - Scan Script (for GitHub Actions)
+ * BSC Token Scanner v2 — 链上发现 + 队列淘汰制
  *
- * 三级筛选管线:
- *   Stage 1 (初筛): 币龄、当前价、持币地址数 — 仅用 search API 批量数据，0 额外请求
- *   Stage 2 (详情筛): 总量=10亿、社交媒体≥1 — four.meme detail API，每候选 1 请求
- *   Stage 3 (K线筛): 历史最高价、前2h最高价、当前价/最高价比、现价/底价比 — GeckoTerminal OHLCV，每候选 1~2 请求
+ * 设计:
+ *   1. 链上发现: RPC eth_getLogs 查 four.meme TokenCreated 事件 (近15分钟)
+ *   2. 入场筛: four.meme detail API — 无社交/总量≠10亿 直接淘汰
+ *   3. 淘汰检查: 对队列中代币定期检查, 永久淘汰弃盘币
+ *   4. 精筛: 对存活代币执行 K线/价格/持币数 等条件筛选
  *
- * 放宽条件: 币龄<4h且币价>0.00001时:
- *   - 前2h最高价上限从0.00002放宽至0.000023
- *   - 币龄≤1h当前价上限从0.000004放宽至0.0000045
+ * 淘汰条件 (永久剔除):
+ *   - 价格从峰值跌 90%+
+ *   - 持币地址从 30+ 跌破 10
+ *   - 无社交媒体
+ *   - 流动性从 >$1k 跌破 $100
+ *   - 连续 3 个周期价格持续下跌
+ *   - 15 分钟内无任何买入事件
+ *   - 进度 < 1% 且币龄 > 4h
+ *   - 币龄 > 72h
  *
- * 逐级收窄，避免不必要的 API 调用。
+ * 状态持久化: data/queue.json
  */
 
 const https = require("https");
@@ -19,7 +26,6 @@ const fs = require("fs");
 const path = require("path");
 
 // === Local Config ===
-// 读取项目根目录 config.local.json（已在 .gitignore 中排除）
 const LOCAL_CONFIG_PATH = path.join(__dirname, "..", "config.local.json");
 let localConfig = {};
 try {
@@ -31,7 +37,6 @@ try {
   console.warn(`[CONFIG] 读取 config.local.json 失败: ${e.message}`);
 }
 
-// Proxy
 let proxyConfig = null;
 if (localConfig.proxy && localConfig.proxy.enabled) {
   proxyConfig = localConfig.proxy;
@@ -40,28 +45,40 @@ if (localConfig.proxy && localConfig.proxy.enabled) {
 
 // === Constants ===
 const MAX_AGE_HOURS = 72;
+const SCAN_INTERVAL_MIN = 15;
+const TOTAL_SUPPLY = 1_000_000_000;
+const MIN_SOCIAL_COUNT = 1;
 
-// Filter thresholds
-const TOTAL_SUPPLY = 1_000_000_000;       // 10亿
-const MAX_CURRENT_PRICE_OLD = 0.00002;    // 币龄 > 1h 当前价格上限 (USD)
-const MAX_CURRENT_PRICE_YOUNG = 0.000004; // 币龄 ≤ 1h 当前价格上限 (USD) (币龄<4h且价>0.00001时放宽至0.0000045)
-const MAX_HIGH_PRICE = 0.00004;           // 历史最高价上限 (USD)
-const MAX_EARLY_HIGH_PRICE = 0.00002;     // 前2小时最高价上限 (USD, 币龄>1h时检查) (币龄<4h且价>0.00001时放宽至0.000023)
-const MAX_EARLY_HIGH_PRICE_RELAXED = 0.000023; // 前2小时最高价放宽上限 (币龄<4h且价>0.00001)
-const MAX_CURRENT_PRICE_YOUNG_RELAXED = 0.0000045; // 币龄≤1h当前价放宽上限 (币龄<4h且价>0.00001)
-const PRICE_RATIO_LOW = 0.4;              // 当前价 ≥ 最高价 * 40%
-const PRICE_RATIO_HIGH = 0.9;             // 当前价 ≤ 最高价 * 90%
-const HOLDERS_THRESHOLD_OLD = 60;         // 币龄 > 1h 时持币地址数阈值
-const HOLDERS_THRESHOLD_YOUNG = 30;       // 币龄 ≤ 1h 时持币地址数阈值
-const MIN_SOCIAL_COUNT = 1;               // 最少关联社交媒体数
+// 精筛阈值 (与 v1 一致)
+const MAX_CURRENT_PRICE_OLD = 0.00002;
+const MAX_CURRENT_PRICE_YOUNG = 0.000004;
+const MAX_HIGH_PRICE = 0.00004;
+const MAX_EARLY_HIGH_PRICE = 0.00002;
+const MAX_EARLY_HIGH_PRICE_RELAXED = 0.000023;
+const MAX_CURRENT_PRICE_YOUNG_RELAXED = 0.0000045;
+const PRICE_RATIO_LOW = 0.4;
+const PRICE_RATIO_HIGH = 0.9;
+const HOLDERS_THRESHOLD_OLD = 60;
+const HOLDERS_THRESHOLD_YOUNG = 30;
+
+// 淘汰阈值
+const ELIM_PRICE_DROP_PCT = 0.90;       // 价格从峰值跌 90%
+const ELIM_HOLDERS_FLOOR = 10;          // 持币数跌破 10
+const ELIM_HOLDERS_PEAK_MIN = 30;       // 持币数曾达到 30 才触发跌破淘汰
+const ELIM_LIQ_FLOOR = 100;             // 流动性跌破 $100
+const ELIM_LIQ_PEAK_MIN = 1000;         // 流动性曾达到 $1000 才触发跌破淘汰
+const ELIM_CONSEC_DROP_CYCLES = 3;      // 连续下跌周期数
+const ELIM_PROGRESS_MIN = 0.01;         // 进度 < 1%
+const ELIM_PROGRESS_AGE_HOURS = 4;      // 进度淘汰的币龄门槛
 
 // API endpoints
-const FM_SEARCH = "https://four.meme/meme-api/v1/public/token/search";
 const FM_DETAIL = "https://four.meme/meme-api/v1/private/token/get/v2";
-const GT_BASE   = "https://api.geckoterminal.com/api/v2";
-const BSCSCAN_API = "https://api.bscscan.com/api";
-// BSCScan API Key: 优先环境变量 (CI), 其次本地配置文件
-const BSCSCAN_API_KEY = process.env.BSCSCAN_API_KEY || localConfig.bscscanApiKey || "";
+const DS_BASE = "https://api.dexscreener.com";
+const GT_BASE = "https://api.geckoterminal.com/api/v2";
+const BSC_RPC = "https://bsc-rpc.publicnode.com/";
+
+const FOUR_MEME_CONTRACT = "0x5c952063c7fc8610ffdb798152d69f0b9550762b";
+const TOKEN_CREATE_TOPIC = "0x396d5e902b675b032348d3d2e9517ee8f0c4a926603fbc075d3d282ff00cad20";
 
 const FM_HEADERS = {
   "Content-Type": "application/json",
@@ -70,15 +87,13 @@ const FM_HEADERS = {
   Origin: "https://four.meme",
   Referer: "https://four.meme/",
 };
-const GT_HEADERS = {
-  Accept: "application/json",
-  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-};
+const DS_HEADERS = { Accept: "application/json", "User-Agent": "Mozilla/5.0" };
+const GT_HEADERS = { Accept: "application/json", "User-Agent": "Mozilla/5.0" };
 
 const DATA_DIR = path.join(__dirname, "..", "data");
+const QUEUE_FILE = path.join(DATA_DIR, "queue.json");
 
 // === Timestamped Logging ===
-// 给所有日志加上北京时间戳，方便分析性能瓶颈
 function _ts() {
   return new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(11, 23).replace("T", " ");
 }
@@ -89,255 +104,15 @@ console.log = (...args) => _origLog(`[${_ts()}]`, ...args);
 console.warn = (...args) => _origWarn(`[${_ts()}]`, ...args);
 console.error = (...args) => _origErr(`[${_ts()}]`, ...args);
 
-// ===================================================================
-//  热点数据层
-//  从微博热搜 / Google Trends / Twitter(X) 抓取实时热点关键词,
-//  与代币名称/描述做交叉匹配 (加分项, 匹配的代币额外标注)
-// ===================================================================
-const HOTSPOT_CACHE_TTL = 900_000; // 15 分钟缓存
-let hotspotCache = { ts: 0, keywords: [] };
-
-/** 文本归一化: 小写 + 去特殊符号 */
-function normalize(text) {
-  return text.toLowerCase().trim().replace(/[_\-./·・\s]+/g, " ");
-}
-
-/** 微博实时热搜 Top50 */
-async function fetchWeiboHot() {
-  try {
-    const res = await fetchJSON("https://weibo.com/ajax/side/hotSearch", {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        Referer: "https://weibo.com/",
-        "X-Requested-With": "XMLHttpRequest",
-        Accept: "application/json",
-      },
-      timeout: 10000,
-    });
-    if (!res.data || !res.data.data) return [];
-    const items = res.data.data.realtime || [];
-    const results = [];
-    for (let i = 0; i < items.length; i++) {
-      const word = (items[i].word || "").trim();
-      if (word && word.length >= 2) {
-        results.push({ word, rank: i, source: "weibo" });
-      }
-    }
-    console.log(`[HOTSPOT] 微博热搜: ${results.length} 个关键词`);
-    return results;
-  } catch (e) {
-    console.warn(`[HOTSPOT] 微博热搜获取失败: ${e.message}`);
-    return [];
-  }
-}
-
-/** Google Trends 每日热门搜索 (RSS, 多地区) */
-async function fetchGoogleTrends(geos = ["US", "CN"]) {
-  const results = [];
-  const seen = new Set();
-  for (const geo of geos) {
-    try {
-      const res = await fetchJSON(`https://trends.google.com/trending/rss?geo=${geo}`, {
-        headers: { "User-Agent": "Mozilla/5.0", Accept: "application/xml" },
-        timeout: 10000,
-      });
-      // RSS 返回的是 XML, fetchJSON 会解析失败, 需要用原始文本
-      // 改用简单正则提取 <title> 标签
-    } catch (e) { /* handled below */ }
-
-    // 直接用 http(s) 获取原始 XML
-    try {
-      const xml = await new Promise((resolve, reject) => {
-        const mod = https;
-        const urlObj = new URL(`https://trends.google.com/trending/rss?geo=${geo}`);
-        const reqOpts = {
-          hostname: urlObj.hostname,
-          path: urlObj.pathname + urlObj.search,
-          headers: { "User-Agent": "Mozilla/5.0" },
-          timeout: 10000,
-        };
-        if (proxyConfig) {
-          // 走代理隧道
-          const connectReq = http.request({
-            host: proxyConfig.host, port: proxyConfig.port,
-            method: "CONNECT", path: `${urlObj.hostname}:443`, timeout: 10000,
-          });
-          connectReq.on("connect", (res, socket) => {
-            if (res.statusCode !== 200) return reject(new Error("proxy connect failed"));
-            const req = mod.request({ ...reqOpts, socket, agent: false }, (r) => {
-              let d = ""; r.on("data", c => d += c); r.on("end", () => resolve(d));
-            });
-            req.on("error", reject);
-            req.on("timeout", () => { req.destroy(); reject(new Error("timeout")); });
-            req.end();
-          });
-          connectReq.on("error", reject);
-          connectReq.end();
-        } else {
-          const req = mod.request(reqOpts, (r) => {
-            let d = ""; r.on("data", c => d += c); r.on("end", () => resolve(d));
-          });
-          req.on("error", reject);
-          req.on("timeout", () => { req.destroy(); reject(new Error("timeout")); });
-          req.end();
-        }
-      });
-      // 从 XML 中提取 <item><title>...</title></item>
-      const titleMatches = xml.match(/<item>[\s\S]*?<title>([^<]+)<\/title>/g) || [];
-      for (let i = 0; i < titleMatches.length; i++) {
-        const m = titleMatches[i].match(/<title>([^<]+)<\/title>/);
-        if (!m) continue;
-        const word = m[1].trim();
-        if (word && word.length >= 2 && !seen.has(word.toLowerCase())) {
-          seen.add(word.toLowerCase());
-          results.push({ word, rank: i, source: `google/${geo}` });
-        }
-      }
-    } catch (e) {
-      console.warn(`[HOTSPOT] Google Trends [${geo}] 获取失败: ${e.message}`);
-    }
-    await sleep(300);
-  }
-  console.log(`[HOTSPOT] Google Trends: ${results.length} 个关键词`);
-  return results;
-}
-
-/** Twitter/X 热门话题 (via getdaytrends.com) */
-async function fetchTwitterTrending() {
-  try {
-    const html = await new Promise((resolve, reject) => {
-      const urlObj = new URL("https://getdaytrends.com/united-states/");
-      const reqOpts = {
-        hostname: urlObj.hostname,
-        path: urlObj.pathname,
-        headers: { "User-Agent": "Mozilla/5.0", Accept: "text/html" },
-        timeout: 10000,
-      };
-      if (proxyConfig) {
-        const connectReq = http.request({
-          host: proxyConfig.host, port: proxyConfig.port,
-          method: "CONNECT", path: `${urlObj.hostname}:443`, timeout: 10000,
-        });
-        connectReq.on("connect", (res, socket) => {
-          if (res.statusCode !== 200) return reject(new Error("proxy connect failed"));
-          const req = https.request({ ...reqOpts, socket, agent: false }, (r) => {
-            let d = ""; r.on("data", c => d += c); r.on("end", () => resolve(d));
-          });
-          req.on("error", reject);
-          req.on("timeout", () => { req.destroy(); reject(new Error("timeout")); });
-          req.end();
-        });
-        connectReq.on("error", reject);
-        connectReq.end();
-      } else {
-        const req = https.request(reqOpts, (r) => {
-          let d = ""; r.on("data", c => d += c); r.on("end", () => resolve(d));
-        });
-        req.on("error", reject);
-        req.on("timeout", () => { req.destroy(); reject(new Error("timeout")); });
-        req.end();
-      }
-    });
-    const matches = html.match(/href="\/united-states\/trend\/[^"]*">([^<]+)<\/a>/g) || [];
-    const results = [];
-    const seen = new Set();
-    for (let i = 0; i < matches.length; i++) {
-      const m = matches[i].match(/>([^<]+)<\/a>/);
-      if (!m) continue;
-      let word = m[1].trim().replace(/^#/, "");
-      if (word && word.length >= 2 && !seen.has(word.toLowerCase())) {
-        seen.add(word.toLowerCase());
-        results.push({ word, rank: i, source: "twitter" });
-      }
-    }
-    console.log(`[HOTSPOT] Twitter Trending: ${results.length} 个关键词`);
-    return results;
-  } catch (e) {
-    console.warn(`[HOTSPOT] Twitter Trending 获取失败: ${e.message}`);
-    return [];
-  }
-}
-
-/** 汇总所有热点关键词 (带缓存) */
-async function fetchAllHotspots() {
-  const now = Date.now();
-  if (now - hotspotCache.ts < HOTSPOT_CACHE_TTL && hotspotCache.keywords.length > 0) {
-    console.log(`[HOTSPOT] 使用缓存: ${hotspotCache.keywords.length} 个关键词`);
-    return hotspotCache.keywords;
-  }
-  const all = [];
-  all.push(...await fetchWeiboHot());
-  all.push(...await fetchGoogleTrends(["US", "CN"]));
-  all.push(...await fetchTwitterTrending());
-  console.log(`[HOTSPOT] 热点汇总: ${all.length} 个关键词`);
-  hotspotCache = { ts: now, keywords: all };
-  return all;
-}
-
-/**
- * 代币与热点关键词匹配
- * 匹配逻辑:
- *   - 短关键词 (≤3字符) 要求精确匹配 name 或 shortName
- *   - 长关键词: 子串包含匹配
- *   - 反向匹配: 代币名包含在热点词中 (如代币 "张雪" 匹配热点 "张雪机车")
- *   - 按热点排名和来源加权评分
- */
-function hotspotMatch(token, hotspots, descr = "") {
-  const name = normalize(token.name || "");
-  const short = normalize(token.shortName || "");
-  const desc = normalize(descr);
-
-  let score = 0;
-  const matched = [];
-  const seenWords = new Set();
-
-  for (const h of hotspots) {
-    const wordLower = normalize(h.word);
-    if (seenWords.has(wordLower)) continue;
-
-    // 短关键词 (≤3字符) 要求精确匹配 name 或 shortName
-    if (wordLower.length <= 3) {
-      if (wordLower !== name && wordLower !== short) continue;
-    } else {
-      let found = false;
-      // 正向: 热点词 ⊂ 代币字段
-      if (name.includes(wordLower) || short.includes(wordLower)) {
-        found = true;
-      } else if (desc && desc.includes(wordLower)) {
-        found = true;
-      }
-      // 反向: 代币名 ⊂ 热点词 (如代币 "张雪" 匹配热点 "张雪机车")
-      if (!found && name.length >= 2) {
-        if (wordLower.includes(name) || wordLower.includes(short)) {
-          found = true;
-        }
-      }
-      if (!found) continue;
-    }
-
-    seenWords.add(wordLower);
-    // 排名权重: rank=0 → 1.0, rank=49 → 0.5
-    const rankWeight = Math.max(0.5, 1.0 - h.rank * 0.01);
-    // 来源权重: 微博略高 (中文 meme 币与中文热点相关性更强)
-    const srcBase = h.source.split("/")[0];
-    const sourceWeight = { weibo: 1.2, twitter: 1.0 }[srcBase] || 0.9;
-    score += rankWeight * sourceWeight;
-    matched.push(`${h.word}(${h.source})`);
-  }
-  return { score, matched, isHot: matched.length > 0 };
-}
-
-// === HTTPS Agents ===
+// === HTTP Helpers ===
 const fmAgent = new https.Agent({ keepAlive: true, maxSockets: 15 });
 const gtAgent = new https.Agent({ keepAlive: true, maxSockets: 5 });
 
-// === HTTP Helper (with optional proxy support) ===
 function fetchJSON(url, options = {}) {
   return new Promise((resolve, reject) => {
     const urlObj = new URL(url);
     const isHttps = url.startsWith("https");
     const requestTimeout = options.timeout || 30000;
-
     function doRequest(socket) {
       const mod = isHttps ? https : http;
       const reqOpts = {
@@ -348,12 +123,8 @@ function fetchJSON(url, options = {}) {
         headers: options.headers || {},
         timeout: requestTimeout,
       };
-      if (socket) {
-        reqOpts.socket = socket;
-        reqOpts.agent = false; // 使用已建立的 tunnel socket，不走 agent
-      } else if (options.agent) {
-        reqOpts.agent = options.agent;
-      }
+      if (socket) { reqOpts.socket = socket; reqOpts.agent = false; }
+      else if (options.agent) { reqOpts.agent = options.agent; }
       const req = mod.request(reqOpts, (res) => {
         let data = "";
         res.on("data", (c) => (data += c));
@@ -367,22 +138,15 @@ function fetchJSON(url, options = {}) {
       if (options.body) req.write(options.body);
       req.end();
     }
-
-    // 如果启用了代理，通过 HTTP CONNECT 建立隧道
     if (proxyConfig && isHttps) {
       const connectReq = http.request({
-        host: proxyConfig.host,
-        port: proxyConfig.port,
-        method: "CONNECT",
-        path: `${urlObj.hostname}:${urlObj.port || 443}`,
+        host: proxyConfig.host, port: proxyConfig.port,
+        method: "CONNECT", path: `${urlObj.hostname}:${urlObj.port || 443}`,
         timeout: requestTimeout,
       });
       connectReq.on("connect", (res, socket) => {
-        if (res.statusCode === 200) {
-          doRequest(socket);
-        } else {
-          reject(new Error(`Proxy CONNECT failed: ${res.statusCode}`));
-        }
+        if (res.statusCode === 200) doRequest(socket);
+        else reject(new Error(`Proxy CONNECT failed: ${res.statusCode}`));
       });
       connectReq.on("error", reject);
       connectReq.on("timeout", () => { connectReq.destroy(); reject(new Error("proxy timeout")); });
@@ -393,15 +157,46 @@ function fetchJSON(url, options = {}) {
   });
 }
 
+function rpcCall(method, params) {
+  return new Promise((resolve, reject) => {
+    const body = JSON.stringify({ jsonrpc: "2.0", method, params, id: 1 });
+    const urlObj = new URL(BSC_RPC);
+    function doReq(socket) {
+      const req = https.request({
+        hostname: urlObj.hostname, path: urlObj.pathname,
+        method: "POST", headers: { "Content-Type": "application/json" },
+        timeout: 30000,
+        ...(socket ? { socket, agent: false } : {}),
+      }, (r) => {
+        let d = ""; r.on("data", c => d += c);
+        r.on("end", () => { try { resolve(JSON.parse(d)); } catch { reject(new Error(d)); } });
+      });
+      req.on("error", reject);
+      req.on("timeout", () => { req.destroy(); reject(new Error("timeout")); });
+      req.write(body);
+      req.end();
+    }
+    if (proxyConfig) {
+      const connectReq = http.request({
+        host: proxyConfig.host, port: proxyConfig.port,
+        method: "CONNECT", path: `${urlObj.hostname}:443`, timeout: 30000,
+      });
+      connectReq.on("connect", (res, socket) => {
+        if (res.statusCode === 200) doReq(socket);
+        else reject(new Error("proxy connect failed"));
+      });
+      connectReq.on("error", reject);
+      connectReq.end();
+    } else {
+      doReq(null);
+    }
+  });
+}
+
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-// === Rate Limiter ===
 class RateLimiter {
-  constructor(rps) {
-    this.interval = Math.ceil(1000 / rps);
-    this.queue = [];
-    this.timer = null;
-  }
+  constructor(rps) { this.interval = Math.ceil(1000 / rps); this.queue = []; this.timer = null; }
   acquire() {
     return new Promise(resolve => {
       this.queue.push(resolve);
@@ -410,117 +205,177 @@ class RateLimiter {
   }
   _start() {
     this.timer = setInterval(() => {
-      if (this.queue.length === 0) {
-        clearInterval(this.timer);
-        this.timer = null;
-        return;
-      }
+      if (this.queue.length === 0) { clearInterval(this.timer); this.timer = null; return; }
       this.queue.shift()();
     }, this.interval);
     if (this.queue.length > 0) this.queue.shift()();
   }
 }
-const fmLimiter = new RateLimiter(5);   // four.meme ~5 req/s (网络延迟是瓶颈, 非速率)
-const gtLimiter = new RateLimiter(1);   // GeckoTerminal ~30 req/min, 直接用 tokenAddr 省掉 getPool
-const bscLimiter = new RateLimiter(4);  // BSCScan 免费 5 req/s, 留点余量用 4
-let gtRateDelay = 2000; // 动态退避, 初始 2s
+const fmLimiter = new RateLimiter(5);
+const gtLimiter = new RateLimiter(1);
+let gtRateDelay = 2000;
 
 // ===================================================================
-//  four.meme Search API
+//  队列状态管理
 // ===================================================================
-async function fmSearchTokens() {
-  const maxAgeMs = MAX_AGE_HOURS * 3600 * 1000;
-  const nowMs = Date.now();
-  const seen = new Map();
-  const pageSize = 100;
-  const maxPages = 10;
+/**
+ * 队列中每个代币的结构:
+ * {
+ *   address: string,
+ *   name: string,
+ *   symbol: string,
+ *   createdAt: number (ms),
+ *   addedAt: number (ms),
+ *   totalSupply: number,
+ *   socialCount: number,
+ *   socialLinks: {},
+ *   descr: string,
+ *   // 动态数据 (每周期更新)
+ *   price: number,
+ *   peakPrice: number,
+ *   holders: number,
+ *   peakHolders: number,
+ *   liquidity: number,       // USD
+ *   peakLiquidity: number,
+ *   progress: number,
+ *   consecDrops: number,     // 连续价格下跌周期数
+ *   lastPrice: number,       // 上周期价格
+ *   eliminatedAt: number,    // 淘汰时间 (0=存活)
+ *   elimReason: string,
+ * }
+ */
 
-  async function fetchPages(query, label) {
-    for (let page = 1; page <= maxPages; page++) {
-      const payload = { pageIndex: page, pageSize, ...query };
-      try {
-        await fmLimiter.acquire();
-        const res = await fetchJSON(FM_SEARCH, {
-          method: "POST",
-          headers: FM_HEADERS,
-          body: JSON.stringify(payload),
-          agent: fmAgent,
-        });
-        if (!res.data || res.data.code !== 0) break;
-        const items = res.data.data || [];
-        if (items.length === 0) break;
-
-        for (const t of items) {
-          const addr = (t.tokenAddress || "").toLowerCase();
-          if (addr && !seen.has(addr)) seen.set(addr, t);
-        }
-
-        if (query.type === "NEW") {
-          const oldestTs = Math.min(...items.map(i => parseInt(i.createDate || 0)));
-          if (oldestTs > 0 && (nowMs - oldestTs) > maxAgeMs) break;
-        }
-        if (items.length < pageSize) break;
-      } catch (e) {
-        console.error(`[SCAN] fm_search [${label}] p${page}: ${e.message}`);
-        break;
-      }
-      await sleep(300);
+function loadQueue() {
+  try {
+    if (fs.existsSync(QUEUE_FILE)) {
+      const data = JSON.parse(fs.readFileSync(QUEUE_FILE, "utf-8"));
+      console.log(`[QUEUE] 加载队列: ${data.tokens.length} 个代币, lastBlock: ${data.lastBlock}`);
+      return data;
     }
+  } catch (e) {
+    console.warn(`[QUEUE] 加载失败: ${e.message}`);
   }
+  return { tokens: [], eliminated: [], lastBlock: 0, lastScanTime: 0 };
+}
 
-  // 不同查询之间并发 (同一 fetchPages 内分页仍串行)
-  // JS 单线程, seen Map 并发安全
-  const allQueries = [];
-
-  const symbols = ["BNB", "USD1", "USDT", "CAKE"];
-  for (const sym of symbols) {
-    allQueries.push({ query: { type: "NEW", listType: "NOR", sort: "DESC", status: "PUBLISH", symbol: sym }, label: `NEW/DESC/PUB/${sym}` });
+function saveQueue(queue) {
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+  // 只保留最近 1000 条淘汰记录
+  if (queue.eliminated.length > 1000) {
+    queue.eliminated = queue.eliminated.slice(-1000);
   }
-  for (const sym of symbols) {
-    allQueries.push({ query: { type: "NEW", listType: "NOR", sort: "ASC", status: "PUBLISH", symbol: sym }, label: `NEW/ASC/PUB/${sym}` });
-  }
-  for (const sym of symbols) {
-    allQueries.push({ query: { type: "NEW", listType: "NOR_DEX", sort: "DESC", status: "TRADE", symbol: sym }, label: `NEW/DESC/TRADE/${sym}` });
-  }
-  for (const sym of symbols) {
-    allQueries.push({ query: { type: "NEW", listType: "NOR_DEX", sort: "ASC", status: "TRADE", symbol: sym }, label: `NEW/ASC/TRADE/${sym}` });
-  }
-  for (const [sortType, listType] of [["HOT", "ADV"], ["VOL", "NOR"], ["PROGRESS", "NOR"]]) {
-    for (const [status, lt] of [["PUBLISH", listType], ["TRADE", "NOR_DEX"]]) {
-      allQueries.push({ query: { type: sortType, listType: lt, status }, label: `${sortType}/${status}` });
-    }
-  }
-
-  // 并发池: 同时跑 SEARCH_CONCURRENCY 组查询
-  const SEARCH_CONCURRENCY = 4;
-  for (let i = 0; i < allQueries.length; i += SEARCH_CONCURRENCY) {
-    const batch = allQueries.slice(i, i + SEARCH_CONCURRENCY);
-    await Promise.all(batch.map(({ query, label }) => fetchPages(query, label)));
-  }
-
-  console.log(`[SCAN] fm_search: fetched ${seen.size} tokens (deduplicated)`);
-  return [...seen.values()];
+  fs.writeFileSync(QUEUE_FILE, JSON.stringify(queue, null, 2));
 }
 
 // ===================================================================
-//  four.meme Detail API
+//  Step 1: 链上发现 — RPC eth_getLogs 查 TokenCreated 事件
+// ===================================================================
+async function discoverOnChain(fromBlock) {
+  const blockRes = await rpcCall("eth_blockNumber", []);
+  const latestBlock = parseInt(blockRes.result, 16);
+
+  if (fromBlock <= 0) {
+    // 首次运行: 只扫最近 15 分钟 (~2000 blocks)
+    fromBlock = latestBlock - 2000;
+  }
+
+  // 安全上限: 不超过 10000 blocks (防止首次运行或长时间中断后扫太多)
+  if (latestBlock - fromBlock > 10000) {
+    console.warn(`[CHAIN] 区块跨度过大 (${latestBlock - fromBlock}), 截断到最近 10000 blocks`);
+    fromBlock = latestBlock - 10000;
+  }
+
+  console.log(`[CHAIN] 扫描区块 ${fromBlock} ~ ${latestBlock} (${latestBlock - fromBlock} blocks)`);
+
+  const tokens = [];
+  const CHUNK = 10000;
+  let current = fromBlock;
+
+  while (current <= latestBlock) {
+    const end = Math.min(current + CHUNK - 1, latestBlock);
+    try {
+      const res = await rpcCall("eth_getLogs", [{
+        address: FOUR_MEME_CONTRACT,
+        fromBlock: "0x" + current.toString(16),
+        toBlock: "0x" + end.toString(16),
+        topics: [TOKEN_CREATE_TOPIC],
+      }]);
+
+      if (res.error) {
+        // 历史裁剪: 跳过
+        if (res.error.message && res.error.message.includes("pruned")) {
+          current = end + 50000;
+          continue;
+        }
+        console.warn(`[CHAIN] RPC error: ${res.error.message || JSON.stringify(res.error)}`);
+        current = end + 1;
+        continue;
+      }
+
+      for (const log of (res.result || [])) {
+        const data = log.data.slice(2);
+        const tokenAddr = ("0x" + data.slice(88, 128)).toLowerCase();
+        // 只保留 four.meme 代币 (后缀 4444 或 ffff)
+        if (!tokenAddr.endsWith("4444") && !tokenAddr.endsWith("ffff")) continue;
+
+        const creatorAddr = ("0x" + data.slice(24, 64)).toLowerCase();
+        const createTs = parseInt(data.slice(384, 448), 16); // word[6]
+
+        // 解码名称 (word[9]) 和符号 (word[11] 或 word[12])
+        let name = "", symbol = "";
+        try {
+          const nameLen = parseInt(data.slice(512, 576), 16); // word[8]
+          if (nameLen > 0 && nameLen < 200) {
+            name = Buffer.from(data.slice(576, 576 + nameLen * 2), "hex").toString("utf8");
+          }
+          // symbol 位置取决于 name 长度 (动态编码)
+          const nameWords = Math.ceil(nameLen / 32) || 1;
+          const symLenOffset = (9 + nameWords) * 64; // word after name data
+          if (symLenOffset + 64 <= data.length) {
+            const symLen = parseInt(data.slice(symLenOffset, symLenOffset + 64), 16);
+            if (symLen > 0 && symLen < 100) {
+              symbol = Buffer.from(data.slice(symLenOffset + 64, symLenOffset + 64 + symLen * 2), "hex").toString("utf8");
+            }
+          }
+        } catch (e) { /* 解码失败, 后续从 detail API 获取 */ }
+
+        tokens.push({
+          address: tokenAddr,
+          creator: creatorAddr,
+          createdAt: createTs * 1000,
+          name,
+          symbol,
+          block: parseInt(log.blockNumber, 16),
+        });
+      }
+    } catch (e) {
+      console.warn(`[CHAIN] 请求失败: ${e.message}`);
+      await sleep(1000);
+    }
+    current = end + 1;
+    await sleep(100);
+  }
+
+  console.log(`[CHAIN] 发现 ${tokens.length} 个新代币`);
+  return { tokens, latestBlock };
+}
+
+// ===================================================================
+//  Step 2: 入场筛 — four.meme detail API
 // ===================================================================
 async function fetchTokenDetail(tokenAddress) {
   await fmLimiter.acquire();
   try {
     const res = await fetchJSON(`${FM_DETAIL}?address=${tokenAddress}`, {
-      headers: FM_HEADERS,
-      agent: fmAgent,
+      headers: FM_HEADERS, agent: fmAgent,
     });
     if (!res.data || !res.data.data) return null;
     const d = res.data.data;
     const tp = d.tokenPrice || {};
-
     const socialLinks = {};
     if (d.twitterUrl) socialLinks.twitter = d.twitterUrl;
     if (d.telegramUrl) socialLinks.telegram = d.telegramUrl;
     if (d.webUrl) socialLinks.website = d.webUrl;
-
     return {
       holders: parseInt(tp.holderCount || 0, 10),
       price: parseFloat(tp.price || 0),
@@ -530,106 +385,223 @@ async function fetchTokenDetail(tokenAddress) {
       descr: d.descr || "",
       name: d.name || "",
       shortName: d.shortName || "",
+      progress: parseFloat(d.progress || 0),
+      day1Vol: parseFloat(tp.day1Vol || d.day1Vol || 0),
+      liquidity: parseFloat(tp.liquidity || 0),
     };
   } catch (e) { /* silent */ }
   return null;
 }
 
-// ===================================================================
-//  BSCScan API — 链上真实持仓地址数
-// ===================================================================
-async function fetchOnChainHolders(tokenAddress) {
-  if (!BSCSCAN_API_KEY) return null;
-  await bscLimiter.acquire();
-  try {
-    const res = await fetchJSON(
-      `${BSCSCAN_API}?module=token&action=tokenholdercount&contractaddress=${tokenAddress}&apikey=${BSCSCAN_API_KEY}`,
-      { timeout: 8000 }
-    );
-    if (res.data && res.data.status === "1" && res.data.result) {
-      return parseInt(res.data.result, 10);
+async function admissionFilter(newTokens, existingAddrs) {
+  const admitted = [];
+  const CONCURRENCY = 5;
+
+  // 过滤已在队列或已淘汰的
+  const fresh = newTokens.filter(t => !existingAddrs.has(t.address));
+  if (fresh.length === 0) return admitted;
+
+  console.log(`[入场] 对 ${fresh.length} 个新代币调 detail API...`);
+
+  for (let i = 0; i < fresh.length; i += CONCURRENCY) {
+    const batch = fresh.slice(i, i + CONCURRENCY);
+    const results = await Promise.all(batch.map(async (t) => {
+      const detail = await fetchTokenDetail(t.address);
+      if (!detail) return null;
+      // 入场条件: 社交 ≥ 1, 总供应量 = 10亿
+      if (detail.socialCount < MIN_SOCIAL_COUNT) return null;
+      if (detail.totalSupply !== TOTAL_SUPPLY) return null;
+      return { token: t, detail };
+    }));
+
+    for (const r of results) {
+      if (r) admitted.push(r);
     }
-  } catch (e) { /* silent fallback */ }
-  return null;
+  }
+
+  console.log(`[入场] 通过: ${admitted.length}/${fresh.length} (淘汰 ${fresh.length - admitted.length}: 无社交/总量不符)`);
+  return admitted;
 }
 
 // ===================================================================
-//  DexScreener API (主要) — 300 req/min, 比 GeckoTerminal 快 10 倍
+//  Step 3: 淘汰检查 — DexScreener + four.meme detail
 // ===================================================================
-const DS_BASE = "https://api.dexscreener.com";
-const DS_HEADERS = { Accept: "application/json", "User-Agent": "Mozilla/5.0" };
 
-/** 通过 DexScreener 获取代币的交易对信息 */
-async function dsGetPairs(tokenAddress) {
-  try {
-    const res = await fetchJSON(`${DS_BASE}/tokens/v1/bsc/${tokenAddress}`, {
-      headers: DS_HEADERS,
-      timeout: 10000,
-    });
-    if (res.status === 429) {
-      await sleep(2000);
-      const retry = await fetchJSON(`${DS_BASE}/tokens/v1/bsc/${tokenAddress}`, {
-        headers: DS_HEADERS,
-        timeout: 10000,
+/** DexScreener 批量查价格+流动性 (最多 30 个地址/请求) */
+async function dsBatchPrices(addresses) {
+  const result = new Map(); // addr -> { price, liquidity }
+  const BATCH = 30;
+
+  for (let i = 0; i < addresses.length; i += BATCH) {
+    const batch = addresses.slice(i, i + BATCH);
+    try {
+      const res = await fetchJSON(`${DS_BASE}/tokens/v1/bsc/${batch.join(",")}`, {
+        headers: DS_HEADERS, timeout: 15000,
       });
-      return Array.isArray(retry.data) ? retry.data : (retry.data?.pairs || []);
-    }
-    const result = Array.isArray(res.data) ? res.data : (res.data?.pairs || res.data?.data || []);
-    if (result.length === 0) console.log(`[DS] ${tokenAddress.slice(0, 16)}: 无交易对 (Bonding Curve?)`);
-    return result;
-  } catch (e) {
-    console.error(`[DS] dsGetPairs [${tokenAddress.slice(0, 16)}]: ${e.message}`);
-    return null;
-  }
-}
-
-/**
- * 从 DexScreener pair 数据提取价格信息。
- * 返回 { ath, high2h, currentPrice } 或 null
- * DexScreener 没有直接的 OHLCV, 用 priceChange 反推历史高点。
- */
-function dsExtractPrices(pairs) {
-  if (!pairs || pairs.length === 0) return null;
-  for (const pair of pairs) {
-    if (pair.chainId && pair.chainId !== "bsc") continue;
-    const priceUsd = parseFloat(pair.priceUsd || 0);
-    if (!priceUsd) continue;
-
-    let maxPrice = priceUsd;
-    const pc = pair.priceChange || {};
-
-    // 用各时间段变化率反推历史高点
-    for (const key of ["m5", "h1", "h6", "h24"]) {
-      if (pc[key] != null) {
-        const pct = parseFloat(pc[key]);
-        if (pct < 0) {
-          // 价格下跌了, 之前更高
-          maxPrice = Math.max(maxPrice, priceUsd / (1 + pct / 100));
-        }
+      if (res.status === 429) {
+        await sleep(2000);
+        continue;
       }
+      const pairs = Array.isArray(res.data) ? res.data : (res.data?.pairs || []);
+      for (const p of pairs) {
+        if (!p.baseToken) continue;
+        const addr = p.baseToken.address.toLowerCase();
+        if (result.has(addr)) continue;
+        result.set(addr, {
+          price: parseFloat(p.priceUsd || 0),
+          liquidity: parseFloat(p.liquidity?.usd || 0),
+          volume24h: parseFloat(p.volume?.h24 || 0),
+          name: p.baseToken.name || "",
+          symbol: p.baseToken.symbol || "",
+        });
+      }
+    } catch (e) {
+      console.warn(`[DS] 批量查价失败: ${e.message}`);
+    }
+    if (i + BATCH < addresses.length) await sleep(300);
+  }
+  return result;
+}
+
+/** 淘汰检查: 返回 { survivors: [], eliminated: [] } */
+async function eliminationCheck(queue, nowMs) {
+  const survivors = [];
+  const eliminated = [];
+
+  if (queue.length === 0) return { survivors, eliminated };
+
+  // 1. 币龄淘汰 (无需 API)
+  const maxAgeMs = MAX_AGE_HOURS * 3600 * 1000;
+  const ageFiltered = [];
+  for (const t of queue) {
+    if (nowMs - t.createdAt > maxAgeMs) {
+      eliminated.push({ ...t, eliminatedAt: nowMs, elimReason: `币龄>${MAX_AGE_HOURS}h` });
+    } else {
+      ageFiltered.push(t);
+    }
+  }
+  if (eliminated.length > 0) {
+    console.log(`[淘汰] 币龄超限: ${eliminated.length} 个`);
+  }
+
+  if (ageFiltered.length === 0) return { survivors, eliminated };
+
+  // 2. DexScreener 批量查价格+流动性
+  const addrs = ageFiltered.map(t => t.address);
+  const dsData = await dsBatchPrices(addrs);
+
+  // 3. four.meme detail 查持币数+进度 (并发)
+  console.log(`[淘汰] 查询 ${ageFiltered.length} 个代币详情...`);
+  const CONCURRENCY = 5;
+  const detailMap = new Map();
+  for (let i = 0; i < ageFiltered.length; i += CONCURRENCY) {
+    const batch = ageFiltered.slice(i, i + CONCURRENCY);
+    const results = await Promise.all(batch.map(async (t) => {
+      const d = await fetchTokenDetail(t.address);
+      return { address: t.address, detail: d };
+    }));
+    for (const r of results) {
+      if (r.detail) detailMap.set(r.address, r.detail);
+    }
+  }
+
+  // 4. 逐个检查淘汰条件
+  for (const t of ageFiltered) {
+    const ds = dsData.get(t.address);
+    const detail = detailMap.get(t.address);
+    const ageHours = (nowMs - t.createdAt) / 3600000;
+
+    // 更新动态数据
+    const currentPrice = ds?.price || detail?.price || t.price || 0;
+    const currentHolders = detail?.holders || t.holders || 0;
+    const currentLiq = ds?.liquidity || t.liquidity || 0;
+    const currentProgress = detail?.progress || t.progress || 0;
+
+    t.price = currentPrice;
+    t.holders = currentHolders;
+    t.liquidity = currentLiq;
+    t.progress = currentProgress;
+    if (detail) {
+      t.socialCount = detail.socialCount;
+      t.socialLinks = detail.socialLinks;
+      t.day1Vol = detail.day1Vol || t.day1Vol || 0;
+    }
+    if (ds) {
+      t.name = ds.name || t.name;
+      t.symbol = ds.symbol || t.symbol;
     }
 
-    return { ath: maxPrice, high2h: maxPrice, currentPrice: priceUsd };
+    // 更新峰值
+    t.peakPrice = Math.max(t.peakPrice || 0, currentPrice);
+    t.peakHolders = Math.max(t.peakHolders || 0, currentHolders);
+    t.peakLiquidity = Math.max(t.peakLiquidity || 0, currentLiq);
+
+    // 连续下跌计数
+    if (t.lastPrice > 0 && currentPrice < t.lastPrice) {
+      t.consecDrops = (t.consecDrops || 0) + 1;
+    } else {
+      t.consecDrops = 0;
+    }
+    t.lastPrice = currentPrice;
+
+    // --- 淘汰条件 ---
+    let elimReason = null;
+
+    // 1. 价格从峰值跌 90%+
+    if (t.peakPrice > 0 && currentPrice > 0 && currentPrice < t.peakPrice * (1 - ELIM_PRICE_DROP_PCT)) {
+      elimReason = `价格跌${((1 - currentPrice / t.peakPrice) * 100).toFixed(0)}% (峰:${t.peakPrice.toExponential(2)} 现:${currentPrice.toExponential(2)})`;
+    }
+    // 2. 持币数从 30+ 跌破 10
+    if (!elimReason && t.peakHolders >= ELIM_HOLDERS_PEAK_MIN && currentHolders < ELIM_HOLDERS_FLOOR) {
+      elimReason = `持币数 ${t.peakHolders}→${currentHolders}`;
+    }
+    // 3. 无社交媒体 (可能创建时有, 后来删了)
+    if (!elimReason && detail && detail.socialCount < MIN_SOCIAL_COUNT) {
+      elimReason = "无社交媒体";
+    }
+    // 4. 流动性从 >$1k 跌破 $100
+    if (!elimReason && t.peakLiquidity >= ELIM_LIQ_PEAK_MIN && currentLiq < ELIM_LIQ_FLOOR) {
+      elimReason = `流动性 $${t.peakLiquidity.toFixed(0)}→$${currentLiq.toFixed(0)}`;
+    }
+    // 5. 连续 3 周期价格下跌
+    if (!elimReason && t.consecDrops >= ELIM_CONSEC_DROP_CYCLES) {
+      elimReason = `连续${t.consecDrops}周期下跌`;
+    }
+    // 6. 进度 < 1% 且币龄 > 4h
+    if (!elimReason && ageHours > ELIM_PROGRESS_AGE_HOURS && currentProgress < ELIM_PROGRESS_MIN) {
+      elimReason = `进度${(currentProgress * 100).toFixed(2)}% 币龄${ageHours.toFixed(1)}h`;
+    }
+
+    if (elimReason) {
+      eliminated.push({ ...t, eliminatedAt: nowMs, elimReason });
+    } else {
+      survivors.push(t);
+    }
   }
-  return null;
+
+  const elimCount = eliminated.length - (queue.length - ageFiltered.length); // 不含币龄淘汰
+  if (elimCount > 0) {
+    console.log(`[淘汰] 条件淘汰: ${elimCount} 个`);
+    for (const e of eliminated.slice(-elimCount)) {
+      console.log(`  ✗ ${e.name || e.address.slice(0, 16)} — ${e.elimReason}`);
+    }
+  }
+
+  return { survivors, eliminated };
 }
 
 // ===================================================================
-//  GeckoTerminal API (备选) — K线 OHLCV, ~30 req/min
+//  Step 4: 精筛 — K线 + 价格比 (与 v1 Stage3 一致)
 // ===================================================================
+
 async function gtRequest(url, maxRetries = 3) {
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       await gtLimiter.acquire();
-      const res = await fetchJSON(url, {
-        headers: GT_HEADERS,
-        agent: gtAgent,
-        timeout: 15000,
-      });
+      const res = await fetchJSON(url, { headers: GT_HEADERS, agent: gtAgent, timeout: 15000 });
       if (res.status === 429) {
         const wait = 5000 * (attempt + 1);
         gtRateDelay = Math.min(5000, gtRateDelay + 1000);
-        console.warn(`[GT] 429 rate limited, waiting ${wait}ms (${attempt + 1}/${maxRetries})`);
         await sleep(wait);
         continue;
       }
@@ -637,48 +609,30 @@ async function gtRequest(url, maxRetries = 3) {
       return res.data;
     } catch (e) {
       if (attempt < maxRetries - 1) await sleep(3000);
-      else console.error(`[GT] request failed: ${e.message}`);
     }
   }
   return null;
 }
 
-async function gtGetPool(tokenAddress) {
-  const data = await gtRequest(`${GT_BASE}/networks/bsc/tokens/${tokenAddress}`);
-  if (!data) return null;
-  const pools = ((data.data || {}).relationships || {}).top_pools || {};
-  const poolList = pools.data || [];
-  return poolList.length > 0 ? poolList[0].id.replace("bsc_", "") : null;
-}
-
-async function gtOhlcvHourly(poolAddress, limit = 72) {
-  const url = `${GT_BASE}/networks/bsc/pools/${poolAddress}/ohlcv/hour?aggregate=1&limit=${limit}`;
+async function gtOhlcvDirect(tokenAddress, limit = 72) {
+  const url = `${GT_BASE}/networks/bsc/pools/${tokenAddress}/ohlcv/hour?aggregate=1&limit=${limit}`;
   const data = await gtRequest(url);
   if (!data) return [];
   return ((data.data || {}).attributes || {}).ohlcv_list || [];
 }
 
-/** 直接用 tokenAddress 当 poolAddress 拿 K线, 省掉 gtGetPool 请求 */
-async function gtOhlcvDirect(tokenAddress, limit = 72) {
-  return gtOhlcvHourly(tokenAddress, limit);
-}
-
-/** 从 OHLCV K线计算历史最高价 (USD) */
 function calcAllTimeHigh(candles) {
   if (!candles || candles.length === 0) return null;
   return Math.max(...candles.map(c => parseFloat(c[2])));
 }
 
-/** 从 OHLCV K线计算发币后前 N 小时内的最高价 (USD) */
 function calcMaxPriceFirstNHours(candles, createTsSec, hours = 2) {
   if (!candles || candles.length === 0) return null;
   const cutoff = createTsSec + hours * 3600;
-  let maxHigh = 0;
-  let found = false;
+  let maxHigh = 0, found = false;
   for (const c of candles) {
     const ts = parseInt(c[0]);
-    if (ts > cutoff) continue;
-    if (ts < createTsSec - 3600) continue;
+    if (ts > cutoff || ts < createTsSec - 3600) continue;
     const high = parseFloat(c[2]);
     if (high > maxHigh) maxHigh = high;
     found = true;
@@ -686,281 +640,148 @@ function calcMaxPriceFirstNHours(candles, createTsSec, hours = 2) {
   return found ? maxHigh : null;
 }
 
-/**
- * 计算除第一根K线外所有K线的最低价 (USD)
- * 用于判断当前价是否在合理的底部区间
- */
 function calcMinPriceExcludeFirst(candles, createTsSec) {
   if (!candles || candles.length < 2) return null;
-  // 按时间排序，找到第一根K线的时间戳
   const sorted = candles.slice().sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
   const firstTs = parseInt(sorted[0][0]);
-  let minLow = Infinity;
-  let found = false;
+  let minLow = Infinity, found = false;
   for (const c of sorted) {
-    if (parseInt(c[0]) === firstTs) continue; // 跳过第一根
-    const low = parseFloat(c[3]); // c[3] = low
-    if (low > 0 && low < minLow) {
-      minLow = low;
-      found = true;
-    }
+    if (parseInt(c[0]) === firstTs) continue;
+    const low = parseFloat(c[3]);
+    if (low > 0 && low < minLow) { minLow = low; found = true; }
   }
   return found ? minLow : null;
 }
 
-/**
- * 计算所有K线的最低价（不排除任何K线）
- * 用于币龄≤1h的底价检查（无需排除发行价，因为本身就在第一个小时内）
- */
 function calcMinPriceAll(candles) {
   if (!candles || candles.length < 1) return null;
-  let minLow = Infinity;
-  let found = false;
+  let minLow = Infinity, found = false;
   for (const c of candles) {
-    const low = parseFloat(c[3]); // c[3] = low
-    if (low > 0 && low < minLow) {
-      minLow = low;
-      found = true;
-    }
+    const low = parseFloat(c[3]);
+    if (low > 0 && low < minLow) { minLow = low; found = true; }
   }
   return found ? minLow : null;
 }
 
-// (hotspot matching is now handled by hotspotMatch above)
-
-// ===================================================================
-//  三级筛选管线
-// ===================================================================
-
-/** Stage 1: 初筛 — 仅用 search API 批量数据, 0 额外请求 */
-function stage1_prefilter(tokens, nowMs) {
-  const maxAgeMs = MAX_AGE_HOURS * 3600 * 1000;
-  return tokens.filter(t => {
-    const createDate = parseInt(t.createDate || 0);
-    if (createDate <= 0) return false;
-    const ageMs = nowMs - createDate;
-    if (ageMs <= 0 || ageMs > maxAgeMs) return false;
-
-    // 当前价初筛 (宽松阈值, 保留边界候选)
-    const price = parseFloat(t.price || 0);
-    if (price > MAX_CURRENT_PRICE_OLD) return false;
-
-    // 持币地址数初筛 (宽松阈值, 保留边界候选)
-    const hold = parseInt(t.hold || 0);
-    const ageHours = ageMs / (3600 * 1000);
-    const minHold = ageHours > 1 ? HOLDERS_THRESHOLD_OLD * 0.5 : HOLDERS_THRESHOLD_YOUNG * 0.5;
-    if (hold < minHold) return false;
-
-    return true;
-  });
-}
-
-/** Stage 2: 详情筛 — four.meme detail API, 每候选 1 请求 */
-async function stage2_detail(candidates, nowMs) {
+/** 精筛: 对存活代币执行 K线条件筛选 */
+async function qualityFilter(candidates, nowMs) {
   const results = [];
-  const CONCURRENCY = 5; // 并发数, rate limiter 仍控制实际速率
 
-  async function processOne(t) {
-    // four.meme detail 和 BSCScan 链上持仓并行请求
-    const [detail, onChainHolders] = await Promise.all([
-      fetchTokenDetail(t.tokenAddress),
-      fetchOnChainHolders(t.tokenAddress),
-    ]);
-    if (!detail) return null;
+  for (let i = 0; i < candidates.length; i++) {
+    const t = candidates[i];
+    const ageHours = (nowMs - t.createdAt) / 3600000;
+    const createTsSec = t.createdAt / 1000;
+    const currentPrice = t.price || 0;
 
-    // 链上持仓覆盖 four.meme 数据 (更准确)
-    if (onChainHolders !== null && onChainHolders > 0) {
-      detail.holders = onChainHolders;
-    }
-
-    const createDate = parseInt(t.createDate || 0);
-    const ageHours = (nowMs - createDate) / (3600 * 1000);
-
-    // 社交媒体 ≥ 1
-    if (detail.socialCount < MIN_SOCIAL_COUNT) return null;
-
-    // 持币地址数 (按币龄区分阈值)
-    if (ageHours > 1 && detail.holders < HOLDERS_THRESHOLD_OLD) return null;
-    if (ageHours <= 1 && detail.holders < HOLDERS_THRESHOLD_YOUNG) return null;
-
-    // 总量 = 10亿
-    if (detail.totalSupply !== TOTAL_SUPPLY) return null;
-
-    // 当前价: 币龄≤1h → ≤0.000004, 币龄>1h → ≤0.00002
-    // 放宽条件: 币龄<4h且价>0.00001时, 币龄≤1h上限放宽至0.0000045
-    const isRelaxed = ageHours < 4 && detail.price > 0.00001;
+    // 价格初筛
+    const isRelaxed = ageHours < 4 && currentPrice > 0.00001;
     const youngLimit = isRelaxed ? MAX_CURRENT_PRICE_YOUNG_RELAXED : MAX_CURRENT_PRICE_YOUNG;
     const maxPrice = ageHours > 1 ? MAX_CURRENT_PRICE_OLD : youngLimit;
-    if (detail.price > maxPrice) return null;
+    if (currentPrice > maxPrice) continue;
 
-    return { token: t, detail, ageHours };
-  }
+    // 持币数
+    if (ageHours > 1 && t.holders < HOLDERS_THRESHOLD_OLD) continue;
+    if (ageHours <= 1 && t.holders < HOLDERS_THRESHOLD_YOUNG) continue;
 
-  // 并发池: 同时发起 CONCURRENCY 个请求, rate limiter 控制节奏
-  for (let i = 0; i < candidates.length; i += CONCURRENCY) {
-    const batch = candidates.slice(i, i + CONCURRENCY);
-    const batchResults = await Promise.all(batch.map(t => processOne(t)));
-    for (const r of batchResults) {
-      if (r) results.push(r);
-    }
-    if (i + CONCURRENCY < candidates.length) {
-      console.log(`[SCAN] Stage2: ${Math.min(i + CONCURRENCY, candidates.length)}/${candidates.length}, passed: ${results.length}`);
-    }
-  }
-  return results;
-}
-
-/** Stage 3: K线筛 — 两阶段: DS快筛(现价) → GT精筛(K线, 仅对DS通过的候选) */
-async function stage3_kline(candidates, hotspots) {
-  // ---- Phase A: 批量 DS 拿现价 + 名称, 快速淘汰价格明显超标的 ----
-  const DS_CONCURRENCY = 5;
-  const dsDataMap = new Map(); // addr → { dsCurrentPrice, dsName, dsSymbol, dsPairs }
-
-  async function fetchDS(candidate) {
-    const addr = candidate.token.tokenAddress;
-    const pairs = await dsGetPairs(addr);
-    let dsCurrentPrice = null, dsName = null, dsSymbol = null;
-    if (pairs && pairs.length > 0) {
-      for (const pair of pairs) {
-        if (pair.chainId && pair.chainId !== "bsc") continue;
-        const p = parseFloat(pair.priceUsd || 0);
-        if (p > 0) {
-          dsCurrentPrice = p;
-          if (pair.baseToken) {
-            dsName = pair.baseToken.name || null;
-            dsSymbol = pair.baseToken.symbol || null;
-          }
-          break;
-        }
-      }
-    }
-    dsDataMap.set(addr, { dsCurrentPrice, dsName, dsSymbol });
-  }
-
-  for (let i = 0; i < candidates.length; i += DS_CONCURRENCY) {
-    const batch = candidates.slice(i, i + DS_CONCURRENCY);
-    await Promise.all(batch.map(c => fetchDS(c)));
-  }
-  console.log(`[SCAN] Stage3-A: DS 现价获取完成 (${candidates.length} 个)`);
-
-  // DS 现价快筛: 价格明显超标的直接淘汰, 减少 GT 请求量
-  const dsFiltered = [];
-  for (const candidate of candidates) {
-    const { token: t, detail, ageHours } = candidate;
-    const addr = t.tokenAddress;
-    const name = t.name || addr.slice(0, 16);
-    const ds = dsDataMap.get(addr);
-    const dsPrice = ds ? ds.dsCurrentPrice : null;
-
-    if (dsPrice) {
-      // 放宽条件: 币龄<4h且价>0.00001时, 币龄≤1h上限放宽至0.0000045
-      const isRelaxed = ageHours < 4 && dsPrice > 0.00001;
-      const youngLimit = isRelaxed ? MAX_CURRENT_PRICE_YOUNG_RELAXED : MAX_CURRENT_PRICE_YOUNG;
-      const maxCurPrice = ageHours > 1 ? MAX_CURRENT_PRICE_OLD : youngLimit;
-      if (dsPrice > maxCurPrice) {
-        console.log(`[SCAN] Stage3-A: ${name} — DS现价 ${dsPrice.toExponential(3)} > ${maxCurPrice}, 快筛淘汰`);
-        continue;
-      }
-    }
-    dsFiltered.push(candidate);
-  }
-  console.log(`[SCAN] Stage3-A: DS快筛通过 ${dsFiltered.length}/${candidates.length}, 进入GT精筛`);
-
-  // ---- Phase B: 对通过DS快筛的候选, 串行请求GT拿K线 (避免429) ----
-  const results = [];
-  for (let i = 0; i < dsFiltered.length; i++) {
-    const candidate = dsFiltered[i];
-    const { token: t, detail, ageHours } = candidate;
-    const addr = t.tokenAddress;
-    const name = t.name || addr.slice(0, 16);
-    const createTsSec = parseInt(t.createDate || 0) / 1000;
-    const ds = dsDataMap.get(addr);
-    const dsCurrentPrice = ds ? ds.dsCurrentPrice : null;
-    const dsName = ds ? ds.dsName : null;
-    const dsSymbol = ds ? ds.dsSymbol : null;
-
-    // GT K线 (串行, 每次间隔 gtRateDelay)
+    // K线 (GeckoTerminal)
     if (i > 0) await sleep(gtRateDelay);
-    const candles = await gtOhlcvDirect(addr, 72);
+    const candles = await gtOhlcvDirect(t.address, 72);
 
-    let ath = null, high2h = null, gtCurrentPrice = null;
+    let ath = null, high2h = null;
     if (candles && candles.length > 0) {
       high2h = calcMaxPriceFirstNHours(candles, createTsSec, 2);
       ath = calcAllTimeHigh(candles);
-      const latestCandle = candles.reduce((a, b) => (parseInt(a[0]) > parseInt(b[0]) ? a : b));
-      gtCurrentPrice = parseFloat(latestCandle[4]);
     }
 
-    const currentPrice = dsCurrentPrice || gtCurrentPrice;
-
-    if (ath === null && high2h === null) {
-      console.log(`[SCAN] Stage3-B: ${name} (${addr}) — 无K线数据, 跳过`);
-      continue;
-    }
-
+    if (ath === null && high2h === null) continue;
     if (ath === null) ath = high2h;
 
-    console.log(`[SCAN] Stage3-B: ${name} (${addr}) — ATH ${(ath||0).toExponential(3)}, 2h高 ${(high2h||0).toExponential(3)}, 现价 ${(currentPrice||0).toExponential(3)}`);
+    if (ath > MAX_HIGH_PRICE) continue;
+    if (ageHours <= 1 && ath > MAX_CURRENT_PRICE_YOUNG) continue;
 
-    if (ath > MAX_HIGH_PRICE) {
-      console.log(`[SCAN] Stage3-B: ${name} — ATH ${ath.toExponential(3)} > ${MAX_HIGH_PRICE}, 跳过`);
-      continue;
-    }
+    // 前2h最高价
+    const earlyHighLimit = isRelaxed ? MAX_EARLY_HIGH_PRICE_RELAXED : MAX_EARLY_HIGH_PRICE;
+    if (ageHours > 1 && high2h !== null && high2h > earlyHighLimit) continue;
 
-    if (ageHours <= 1 && ath > MAX_CURRENT_PRICE_YOUNG) {
-      console.log(`[SCAN] Stage3-B: ${name} — 币龄≤1h, ATH ${ath.toExponential(3)} > ${MAX_CURRENT_PRICE_YOUNG}, 跳过`);
-      continue;
-    }
-
-    if (currentPrice) {
-      // 放宽条件: 币龄<4h且价>0.00001时, 币龄≤1h上限放宽至0.0000045
-      const isRelaxed = ageHours < 4 && currentPrice > 0.00001;
-      const youngLimit = isRelaxed ? MAX_CURRENT_PRICE_YOUNG_RELAXED : MAX_CURRENT_PRICE_YOUNG;
-      const maxCurPrice = ageHours > 1 ? MAX_CURRENT_PRICE_OLD : youngLimit;
-      if (currentPrice > maxCurPrice) {
-        console.log(`[SCAN] Stage3-B: ${name} — USD现价 ${currentPrice.toExponential(3)} > ${maxCurPrice}, 跳过`);
-        continue;
-      }
-    }
-
-    // 放宽条件: 币龄<4h且价>0.00001时, 前2h最高价上限放宽至0.000023
-    const isRelaxedEarly = ageHours < 4 && (currentPrice || 0) > 0.00001;
-    const earlyHighLimit = isRelaxedEarly ? MAX_EARLY_HIGH_PRICE_RELAXED : MAX_EARLY_HIGH_PRICE;
-    if (ageHours > 1 && high2h !== null && high2h > earlyHighLimit) {
-      console.log(`[SCAN] Stage3-B: ${name} — 前2h最高 ${high2h.toExponential(3)} > ${earlyHighLimit}, 跳过`);
-      continue;
-    }
-
+    // 现价/最高价比
     if (ath > 0 && currentPrice) {
       const ratio = currentPrice / ath;
-      if (ratio < PRICE_RATIO_LOW || ratio > PRICE_RATIO_HIGH) {
-        console.log(`[SCAN] Stage3-B: ${name} — 现/高 ${(ratio * 100).toFixed(1)}% 不在 40%~90%, 跳过`);
-        continue;
-      }
+      if (ratio < PRICE_RATIO_LOW || ratio > PRICE_RATIO_HIGH) continue;
     }
 
-    // 底价检查: 当前价需比历史最低价高10%~100%
-    // 币龄>1h: 排除第一根K线(排除发行价), 币龄≤1h: 用所有K线
+    // 底价检查
     if (currentPrice && candles && candles.length >= 1) {
       const minPrice = ageHours > 1
         ? calcMinPriceExcludeFirst(candles, createTsSec)
         : calcMinPriceAll(candles);
       if (minPrice && minPrice > 0) {
-        const aboveMinRatio = currentPrice / minPrice - 1; // 高出最低价的比例
-        if (aboveMinRatio < 0.10 || aboveMinRatio > 1.00) {
-          console.log(`[SCAN] Stage3-B: ${name} — 现价/底价比 ${(aboveMinRatio * 100).toFixed(1)}% 不在 10%~100%, 跳过 (现:${currentPrice.toExponential(3)}, 底:${minPrice.toExponential(3)})`);
-          continue;
-        }
+        const aboveMinRatio = currentPrice / minPrice - 1;
+        if (aboveMinRatio < 0.10 || aboveMinRatio > 1.00) continue;
       }
     }
 
-    const hotNews = hotspotMatch(t, hotspots, detail.descr);
-
-    results.push({ token: t, detail, ageHours, ath, high2h, hotNews, dsCurrentPrice: currentPrice, dsName, dsSymbol });
-    const finalPrice = currentPrice || 0;
-    console.log(`[SCAN] Stage3-B: ✓ ${name} — ATH ${ath.toExponential(3)}, 2h高 ${(high2h || 0).toExponential(3)}, 现/高 ${ath > 0 ? (finalPrice / ath * 100).toFixed(1) : '?'}%${hotNews.isHot ? ' 🔥' + hotNews.matched.join(',') : ''}`);
+    results.push({ ...t, ath, high2h });
+    console.log(`[精筛] ✓ ${t.name || t.address.slice(0, 16)} — ATH ${ath.toExponential(3)}, 现价 ${currentPrice.toExponential(3)}, 持币 ${t.holders}`);
   }
+
   return results;
+}
+
+// ===================================================================
+//  热点匹配 (保留 v1 逻辑)
+// ===================================================================
+const HOTSPOT_CACHE_TTL = 900_000;
+let hotspotCache = { ts: 0, keywords: [] };
+
+function normalize(text) {
+  return text.toLowerCase().trim().replace(/[_\-./·・\s]+/g, " ");
+}
+
+async function fetchWeiboHot() {
+  try {
+    const res = await fetchJSON("https://weibo.com/ajax/side/hotSearch", {
+      headers: { "User-Agent": "Mozilla/5.0", Referer: "https://weibo.com/", "X-Requested-With": "XMLHttpRequest", Accept: "application/json" },
+      timeout: 10000,
+    });
+    if (!res.data || !res.data.data) return [];
+    const items = res.data.data.realtime || [];
+    return items.filter(i => (i.word || "").trim().length >= 2).map((i, idx) => ({ word: i.word.trim(), rank: idx, source: "weibo" }));
+  } catch (e) { return []; }
+}
+
+async function fetchAllHotspots() {
+  const now = Date.now();
+  if (now - hotspotCache.ts < HOTSPOT_CACHE_TTL && hotspotCache.keywords.length > 0) return hotspotCache.keywords;
+  const all = await fetchWeiboHot();
+  // 简化: 只用微博热搜, 省掉 Google Trends 和 Twitter (节省时间)
+  console.log(`[HOTSPOT] 热点: ${all.length} 个关键词`);
+  hotspotCache = { ts: now, keywords: all };
+  return all;
+}
+
+function hotspotMatch(token, hotspots, descr = "") {
+  const name = normalize(token.name || "");
+  const short = normalize(token.symbol || "");
+  const desc = normalize(descr);
+  let score = 0;
+  const matched = [];
+  const seenWords = new Set();
+  for (const h of hotspots) {
+    const wordLower = normalize(h.word);
+    if (seenWords.has(wordLower)) continue;
+    if (wordLower.length <= 3) {
+      if (wordLower !== name && wordLower !== short) continue;
+    } else {
+      let found = name.includes(wordLower) || short.includes(wordLower) || (desc && desc.includes(wordLower));
+      if (!found && name.length >= 2) found = wordLower.includes(name) || wordLower.includes(short);
+      if (!found) continue;
+    }
+    seenWords.add(wordLower);
+    const rankWeight = Math.max(0.5, 1.0 - h.rank * 0.01);
+    score += rankWeight * 1.2;
+    matched.push(`${h.word}(${h.source})`);
+  }
+  return { score, matched, isHot: matched.length > 0 };
 }
 
 // ===================================================================
@@ -969,102 +790,172 @@ async function stage3_kline(candidates, hotspots) {
 async function main() {
   const scanStart = Date.now();
   const scanTime = new Date().toLocaleString("zh-CN", { timeZone: "Asia/Shanghai", hour12: false }).replace(/\//g, "-");
-  console.log(`\n========== SCAN START: ${scanTime} ==========`);
-
-  // Step 1: Fetch tokens from four.meme search API
-  console.log("[SCAN] Fetching tokens from four.meme API...");
-  const apiTokens = await fmSearchTokens();
-  console.log(`[SCAN] Found ${apiTokens.length} tokens from API`);
+  console.log(`\n========== SCAN v2 START: ${scanTime} ==========`);
 
   const nowMs = Date.now();
 
-  // Stage 1: 初筛
-  console.log(`[SCAN] Stage1 初筛条件: 币龄≤${MAX_AGE_HOURS}h, 当前价≤$${MAX_CURRENT_PRICE_OLD}, 持币≥(>1h:${HOLDERS_THRESHOLD_OLD * 0.5}, ≤1h:${HOLDERS_THRESHOLD_YOUNG * 0.5})`);
-  const s1 = stage1_prefilter(apiTokens, nowMs);
-  console.log(`[SCAN] Stage1 初筛: ${s1.length}/${apiTokens.length}`);
+  // 加载队列
+  const queueState = loadQueue();
+  const existingAddrs = new Set([
+    ...queueState.tokens.map(t => t.address),
+    ...queueState.eliminated.map(t => t.address),
+  ]);
 
-  // Stage 2 + 热点抓取并行
-  console.log(`[SCAN] Stage2 详情筛条件: 社交媒体≥${MIN_SOCIAL_COUNT}, 持币(>1h:≥${HOLDERS_THRESHOLD_OLD}, ≤1h:≥${HOLDERS_THRESHOLD_YOUNG}), 总量=${TOTAL_SUPPLY.toLocaleString()}, 当前价(>1h:≤${MAX_CURRENT_PRICE_OLD}, ≤1h:≤${MAX_CURRENT_PRICE_YOUNG}, 币龄<4h且价>0.00001时≤1h放宽至${MAX_CURRENT_PRICE_YOUNG_RELAXED})`);
-  console.log("[SCAN] 同时抓取热点关键词...");
-  const [s2, hotspots] = await Promise.all([
-    stage2_detail(s1, nowMs),
+  // Step 1: 链上发现
+  console.log("\n--- Step 1: 链上发现 ---");
+  const { tokens: newOnChain, latestBlock } = await discoverOnChain(queueState.lastBlock);
+
+  // Step 2: 入场筛
+  console.log("\n--- Step 2: 入场筛 ---");
+  const admitted = await admissionFilter(newOnChain, existingAddrs);
+
+  // 将通过入场筛的代币加入队列
+  for (const { token, detail } of admitted) {
+    queueState.tokens.push({
+      address: token.address,
+      name: detail.name || token.name || "",
+      symbol: detail.shortName || token.symbol || "",
+      createdAt: token.createdAt,
+      addedAt: nowMs,
+      totalSupply: detail.totalSupply,
+      socialCount: detail.socialCount,
+      socialLinks: detail.socialLinks,
+      descr: detail.descr,
+      price: detail.price,
+      peakPrice: detail.price,
+      holders: detail.holders,
+      peakHolders: detail.holders,
+      liquidity: detail.liquidity || 0,
+      peakLiquidity: detail.liquidity || 0,
+      progress: detail.progress || 0,
+      day1Vol: detail.day1Vol || 0,
+      consecDrops: 0,
+      lastPrice: detail.price,
+    });
+  }
+
+  console.log(`[QUEUE] 入队后: ${queueState.tokens.length} 个代币`);
+
+  // Step 3: 淘汰检查
+  console.log("\n--- Step 3: 淘汰检查 ---");
+  const { survivors, eliminated } = await eliminationCheck(queueState.tokens, nowMs);
+  queueState.tokens = survivors;
+  queueState.eliminated.push(...eliminated.map(e => ({
+    address: e.address, name: e.name, elimReason: e.elimReason,
+    eliminatedAt: e.eliminatedAt, createdAt: e.createdAt,
+  })));
+
+  console.log(`[QUEUE] 淘汰后: ${survivors.length} 个存活, ${eliminated.length} 个淘汰`);
+
+  // Step 4: 精筛 + 热点匹配
+  console.log("\n--- Step 4: 精筛 ---");
+  const [qualityResults, hotspots] = await Promise.all([
+    qualityFilter(survivors, nowMs),
     fetchAllHotspots(),
   ]);
-  console.log(`[SCAN] Stage2 通过: ${s2.length}/${s1.length}`);
 
-  // Stage 3: K线筛
-  console.log(`[SCAN] Stage3 K线筛条件: ATH≤$${MAX_HIGH_PRICE}, 前2h最高(币龄>1h时)≤$${MAX_EARLY_HIGH_PRICE}(币龄<4h且价>0.00001时放宽至$${MAX_EARLY_HIGH_PRICE_RELAXED}), 当前价/ATH在${PRICE_RATIO_LOW * 100}%~${PRICE_RATIO_HIGH * 100}%(币龄<1h跳过), 现价比底价高10%~100%(币龄>1h,排除首根K线)`);
-  const s3 = await stage3_kline(s2, hotspots);
-  console.log(`[SCAN] Stage3 通过: ${s3.length}/${s2.length}`);
+  // 热点匹配
+  for (const t of qualityResults) {
+    t.hotNews = hotspotMatch(t, hotspots, t.descr || "");
+  }
 
-  // Sort by holders descending
-  const filtered = s3.sort((a, b) => b.detail.holders - a.detail.holders);
+  // 按持币数排序
+  qualityResults.sort((a, b) => (b.holders || 0) - (a.holders || 0));
 
+  console.log(`[精筛] 通过: ${qualityResults.length}/${survivors.length}`);
+
+  // 输出结果 (兼容 build.js 格式)
   const result = {
     scanTime,
-    totalTokens: apiTokens.length,
-    filteredTokens: filtered.length,
-    filterCriteria: "社交≥1 + 持币(>1h:≥60,≤1h:≥30) + 总量10亿 + 价(≤1h:≤0.000004,>1h:≤0.00002)(币龄<4h且价>0.00001时≤1h放宽至0.0000045) + 最高价≤0.00004(>1h前2h≤0.00002,币龄<4h且价>0.00001时放宽至0.000023) + 价在最高价40%~90%(币龄<1h跳过) + 现价比底价高10%~100%(>1h,排除首根K线)",
-    tokens: filtered.map(item => {
-      const currentPrice = item.dsCurrentPrice || item.detail.price;
-      // Name/symbol fallback: search API → detail API → DexScreener
-      // four.meme sometimes masks names with "****"
-      const isMasked = s => !s || /^\*+$/.test(s);
-      const rawName = item.token.name || "";
-      const rawSymbol = item.token.shortName || item.token.symbol || "";
-      const detailName = item.detail.name || "";
-      const detailSymbol = item.detail.shortName || "";
-      const name = isMasked(rawName) ? (isMasked(detailName) ? (item.dsName || rawName) : detailName) : rawName;
-      const symbol = isMasked(rawSymbol) ? (isMasked(detailSymbol) ? (item.dsSymbol || rawSymbol) : detailSymbol) : rawSymbol;
+    totalTokens: queueState.tokens.length,
+    newDiscovered: newOnChain.length,
+    newAdmitted: admitted.length,
+    eliminatedCount: eliminated.length,
+    filteredTokens: qualityResults.length,
+    queueSize: survivors.length,
+    tokens: qualityResults.map(t => {
+      const currentPrice = t.price || 0;
       return {
-      address: (item.token.tokenAddress || "").toLowerCase(),
-      name,
-      symbol,
-      holders: item.detail.holders,
-      created_at: parseInt(item.token.createDate || 0),
-      total_supply: item.detail.totalSupply,
-      price: currentPrice,
-      max_price: item.ath,
-      high_2h: item.high2h,
-      price_ratio: item.ath > 0 ? +(currentPrice / item.ath).toFixed(4) : 0,
-      age_hours: +item.ageHours.toFixed(2),
-      social_count: item.detail.socialCount,
-      social_links: item.detail.socialLinks,
-      hot_news: item.hotNews.isHot,
-      hot_score: item.hotNews.score,
-      hot_keywords: item.hotNews.matched,
-      day1_vol: parseFloat(item.token.day1Vol || 0),
-      progress: parseFloat(item.token.progress || 0),
-    };}),
+        address: t.address,
+        name: t.name || "",
+        symbol: t.symbol || "",
+        holders: t.holders || 0,
+        created_at: t.createdAt,
+        total_supply: t.totalSupply || TOTAL_SUPPLY,
+        price: currentPrice,
+        max_price: t.ath || t.peakPrice || 0,
+        high_2h: t.high2h || 0,
+        price_ratio: t.ath > 0 ? +(currentPrice / t.ath).toFixed(4) : 0,
+        age_hours: +((nowMs - t.createdAt) / 3600000).toFixed(2),
+        social_count: t.socialCount || 0,
+        social_links: t.socialLinks || {},
+        hot_news: t.hotNews?.isHot || false,
+        hot_score: t.hotNews?.score || 0,
+        hot_keywords: t.hotNews?.matched || [],
+        day1_vol: t.day1Vol || 0,
+        progress: t.progress || 0,
+      };
+    }),
+    // 队列快照: 存活代币 + 本轮淘汰代币
+    queue: survivors.map(t => ({
+      address: t.address,
+      name: t.name || "",
+      symbol: t.symbol || "",
+      holders: t.holders || 0,
+      created_at: t.createdAt,
+      price: t.price || 0,
+      peak_price: t.peakPrice || 0,
+      peak_holders: t.peakHolders || 0,
+      liquidity: t.liquidity || 0,
+      peak_liquidity: t.peakLiquidity || 0,
+      progress: t.progress || 0,
+      social_count: t.socialCount || 0,
+      social_links: t.socialLinks || {},
+      age_hours: +((nowMs - t.createdAt) / 3600000).toFixed(2),
+      consec_drops: t.consecDrops || 0,
+    })),
+    eliminatedThisRound: eliminated.map(t => ({
+      address: t.address,
+      name: t.name || "",
+      symbol: t.symbol || "",
+      holders: t.holders || 0,
+      created_at: t.createdAt,
+      price: t.price || 0,
+      peak_price: t.peakPrice || 0,
+      reason: t.elimReason || "",
+      social_count: t.socialCount || 0,
+      age_hours: +((nowMs - (t.createdAt || 0)) / 3600000).toFixed(2),
+    })),
   };
 
-  // Write to data/
+  // 写入 data/
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
   const bjNow = new Date(Date.now() + 8 * 3600 * 1000);
   const scanId = bjNow.toISOString().replace(/[:.]/g, "-").slice(0, 19);
   const scanFile = path.join(DATA_DIR, `${scanId}.json`);
   fs.writeFileSync(scanFile, JSON.stringify(result, null, 2));
-  console.log(`[SCAN] Wrote ${scanFile}`);
 
-  // Clean up data files older than 7 days
-  const MAX_DATA_AGE_DAYS = 7;
-  const cutoffMs = Date.now() - MAX_DATA_AGE_DAYS * 24 * 3600 * 1000;
-  const dataFiles = fs.readdirSync(DATA_DIR).filter(f => f.endsWith(".json"));
+  // 更新队列状态
+  queueState.lastBlock = latestBlock;
+  queueState.lastScanTime = nowMs;
+  saveQueue(queueState);
+
+  // 清理 7 天前的数据文件
+  const cutoffMs = Date.now() - 7 * 24 * 3600 * 1000;
+  const dataFiles = fs.readdirSync(DATA_DIR).filter(f => f.endsWith(".json") && f !== "queue.json");
   let cleaned = 0;
   for (const f of dataFiles) {
     const match = f.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2})-(\d{2})-(\d{2})\.json$/);
     if (!match) continue;
     const [, y, mo, d, h, mi, s] = match;
     const fileDate = new Date(`${y}-${mo}-${d}T${h}:${mi}:${s}Z`);
-    if (fileDate.getTime() < cutoffMs) {
-      fs.unlinkSync(path.join(DATA_DIR, f));
-      cleaned++;
-    }
+    if (fileDate.getTime() < cutoffMs) { fs.unlinkSync(path.join(DATA_DIR, f)); cleaned++; }
   }
-  if (cleaned > 0) console.log(`[SCAN] Cleaned ${cleaned} old data files`);
+  if (cleaned > 0) console.log(`[SCAN] 清理 ${cleaned} 个旧文件`);
 
   const elapsed = ((Date.now() - scanStart) / 1000).toFixed(1);
-  console.log(`[SCAN] Done in ${elapsed}s. Total: ${result.totalTokens}, Filtered: ${result.filteredTokens}`);
+  console.log(`\n========== SCAN v2 DONE: ${elapsed}s ==========`);
+  console.log(`链上发现: ${newOnChain.length} | 入场: ${admitted.length} | 队列: ${survivors.length} | 淘汰: ${eliminated.length} | 精筛通过: ${qualityResults.length}`);
 }
 
 main().catch(e => {

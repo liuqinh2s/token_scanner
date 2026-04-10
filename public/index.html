@@ -275,6 +275,67 @@
       display: block;
     }
 
+    .tab-bar {
+      display: flex;
+      gap: 0;
+      justify-content: center;
+      margin: 16px 0 8px;
+    }
+
+    .tab-btn {
+      background: #141924;
+      color: #7a8599;
+      border: 1px solid #1e2a3a;
+      border-radius: 0;
+      padding: 8px 22px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all .2s;
+    }
+
+    .tab-btn:first-child {
+      border-radius: 6px 0 0 6px;
+    }
+
+    .tab-btn:last-child {
+      border-radius: 0 6px 6px 0;
+    }
+
+    .tab-btn.active {
+      background: #f0b90b;
+      color: #0a0e17;
+      border-color: #f0b90b;
+      font-weight: 600;
+    }
+
+    .tab-btn:hover:not(.active) {
+      background: #1e2a3a;
+      color: #e1e8f0;
+    }
+
+    .elim-reason {
+      display: inline-block;
+      background: #3a1a1a;
+      color: #ff6b6b;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    .queue-progress {
+      display: inline-block;
+      background: #1a2a1a;
+      height: 4px;
+      border-radius: 2px;
+      margin-top: 4px;
+    }
+
+    .queue-progress-inner {
+      height: 100%;
+      background: #f0b90b;
+      border-radius: 2px;
+    }
+
     .toast {
       position: fixed;
       bottom: 24px;
@@ -509,25 +570,31 @@
   <div id="app">
     <header>
       <h1>BSC Token Scanner</h1>
-      <p class="subtitle">每15分钟扫描 · 最近3天 · 多条件智能筛选</p>
+      <p class="subtitle">链上发现 · 队列淘汰制 · 每15分钟扫描</p>
       <p class="filter-desc">
-        筛选条件：社交媒体≥1 · 持币地址(币龄&gt;1h:≥60, ≤1h:≥30) · 总量10亿 · 当前价(≤1h:≤0.000004,
-        &gt;1h:≤0.00002)(币龄&lt;4h且价&gt;0.00001时≤1h放宽至0.0000045) · 历史最高价≤0.00004 ·
-        币龄&gt;1h时前2h最高价≤0.00002(币龄&lt;4h且价&gt;0.00001时放宽至0.000023) ·
-        当前价在最高价40%~90% · 现价比底价高10%~100%(币龄&gt;1h排除首根K线, ≤1h用全部K线)<br>
-        价格数据来源: DexScreener (主) + GeckoTerminal K线 (备) · 🔥 标记 = 匹配实时热点关键词（微博/Google/Twitter，加分项）
+        链上扫描 four.meme TokenCreated 事件发现新代币 → 入场筛(社交≥1、总量10亿) →
+        队列淘汰(价格跌90%/持币30→10/无社交/流动性1k→100/连续3周期下跌/进度&lt;1%且币龄&gt;4h/币龄&gt;72h) → 精筛(价格/K线/底价区间)<br>
+        价格数据: DexScreener + GeckoTerminal K线 · 🔥 = 匹配实时热点关键词
       </p>
     </header>
 
     <div class="stats-bar" id="statsBar">
       <div class="stat"><span class="label">扫描时间</span><span class="val" id="scanTime">--</span></div>
-      <div class="stat"><span class="label">扫描总数 (3天)</span><span class="val" id="totalTokens">--</span></div>
-      <div class="stat"><span class="label">筛选通过</span><span class="val" id="filteredTokens">--</span></div>
+      <div class="stat"><span class="label">队列存活</span><span class="val" id="queueSize">--</span></div>
+      <div class="stat"><span class="label">本轮淘汰</span><span class="val" id="elimCount">--</span></div>
+      <div class="stat"><span class="label">精筛通过</span><span class="val" id="filteredTokens">--</span></div>
     </div>
 
     <div class="actions">
       <button id="btnHistory" onclick="toggleHistory()">历史记录</button>
       <button id="btnLatest" onclick="goLatest()">回到当前</button>
+    </div>
+
+    <!-- Tab bar -->
+    <div class="tab-bar" id="tabBar">
+      <button class="tab-btn active" data-tab="filtered" onclick="switchTab('filtered')">精筛结果</button>
+      <button class="tab-btn" data-tab="queue" onclick="switchTab('queue')">队列存活</button>
+      <button class="tab-btn" data-tab="eliminated" onclick="switchTab('eliminated')">本轮淘汰</button>
     </div>
 
     <div class="search-bar">
@@ -543,6 +610,7 @@
     </div>
 
     <div id="tokenTable">
+      <!-- Filtered results table -->
       <table>
         <thead>
           <tr>
@@ -561,12 +629,58 @@
       <p id="noData" class="no-data hidden">暂无符合筛选条件的代币。</p>
       <div id="cardList" class="card-list"></div>
     </div>
+
+    <!-- Queue survivors table -->
+    <div id="queueTable" class="hidden">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>名称</th>
+            <th>代号</th>
+            <th>合约地址</th>
+            <th>持币</th>
+            <th>价格</th>
+            <th>峰值价</th>
+            <th>流动性</th>
+            <th>进度</th>
+            <th>社交</th>
+            <th>币龄</th>
+          </tr>
+        </thead>
+        <tbody id="queueBody"></tbody>
+      </table>
+      <p id="noQueue" class="no-data hidden">队列为空。</p>
+    </div>
+
+    <!-- Eliminated tokens table -->
+    <div id="elimTable" class="hidden">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>名称</th>
+            <th>代号</th>
+            <th>合约地址</th>
+            <th>持币</th>
+            <th>价格</th>
+            <th>峰值价</th>
+            <th>淘汰原因</th>
+            <th>币龄</th>
+          </tr>
+        </thead>
+        <tbody id="elimBody"></tbody>
+      </table>
+      <p id="noElim" class="no-data hidden">本轮无淘汰。</p>
+    </div>
   </div>
 
   <div id="toast" class="toast hidden"></div>
 
   <script>
     let historyVisible = false;
+    let currentTab = 'filtered';
+    let currentData = null;
     const cache = {};
 
     async function cachedFetch(url, bustCache) {
@@ -644,10 +758,18 @@
     }
 
     function renderData(data) {
+      currentData = data;
       document.getElementById('scanTime').textContent = data.scanTime || '--';
-      document.getElementById('totalTokens').textContent = data.totalTokens != null ? data.totalTokens.toLocaleString() : '--';
+      document.getElementById('queueSize').textContent = (data.queue || []).length || data.totalTokens || '--';
+      document.getElementById('elimCount').textContent = (data.eliminatedThisRound || []).length || data.eliminatedCount || '0';
       document.getElementById('filteredTokens').textContent = data.filteredTokens != null ? data.filteredTokens.toLocaleString() : '--';
 
+      renderFiltered(data);
+      renderQueue(data);
+      renderEliminated(data);
+    }
+
+    function renderFiltered(data) {
       const tbody = document.getElementById('tokenBody');
       const noData = document.getElementById('noData');
       const tokens = (data.tokens || []).slice().sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
@@ -724,6 +846,83 @@
       }).join('');
     }
 
+    function renderQueue(data) {
+      const tbody = document.getElementById('queueBody');
+      const noQueue = document.getElementById('noQueue');
+      const items = (data.queue || []).slice().sort((a, b) => (b.holders || 0) - (a.holders || 0));
+
+      if (items.length === 0) {
+        tbody.innerHTML = '';
+        noQueue.classList.remove('hidden');
+        return;
+      }
+      noQueue.classList.add('hidden');
+
+      tbody.innerHTML = items.map((t, i) => {
+        const addr = t.address || '';
+        const socialTags = buildSocialTags(t.social_links);
+        const pctProgress = ((t.progress || 0) * 100).toFixed(1);
+        return `<tr>
+          <td>${i + 1}</td>
+          <td>${esc(t.name || '--')}</td>
+          <td>${esc(t.symbol || '--')}</td>
+          <td><div class="addr-cell">
+            <span class="addr-text">${addr}</span>
+            <button class="copy-btn" onclick="copyAddr('${addr}')">Copy</button>
+            <a class="fourmeme-link" href="https://four.meme/token/${addr}" target="_blank" rel="noopener">4meme</a>
+            <a class="dexscreener-link" href="https://dexscreener.com/bsc/${addr}" target="_blank" rel="noopener">DexS</a>
+          </div></td>
+          <td>${t.holders || 0}${t.peak_holders ? ' <span style="color:#5a6a80;font-size:10px">峰' + t.peak_holders + '</span>' : ''}</td>
+          <td><div class="price-info">${fmtPrice(t.price)}</div></td>
+          <td><div class="price-info" style="color:#5a6a80">${fmtPrice(t.peak_price)}</div></td>
+          <td><div class="price-info">$${(t.liquidity || 0).toFixed(0)}</div></td>
+          <td>${pctProgress}%</td>
+          <td>${socialTags || '--'}</td>
+          <td>${fmtAge(t.age_hours)}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    function renderEliminated(data) {
+      const tbody = document.getElementById('elimBody');
+      const noElim = document.getElementById('noElim');
+      const items = data.eliminatedThisRound || [];
+
+      if (items.length === 0) {
+        tbody.innerHTML = '';
+        noElim.classList.remove('hidden');
+        return;
+      }
+      noElim.classList.add('hidden');
+
+      tbody.innerHTML = items.map((t, i) => {
+        const addr = t.address || '';
+        return `<tr>
+          <td>${i + 1}</td>
+          <td>${esc(t.name || '--')}</td>
+          <td>${esc(t.symbol || '--')}</td>
+          <td><div class="addr-cell">
+            <span class="addr-text">${addr}</span>
+            <button class="copy-btn" onclick="copyAddr('${addr}')">Copy</button>
+            <a class="fourmeme-link" href="https://four.meme/token/${addr}" target="_blank" rel="noopener">4meme</a>
+          </div></td>
+          <td>${t.holders || 0}</td>
+          <td><div class="price-info">${fmtPrice(t.price)}</div></td>
+          <td><div class="price-info" style="color:#5a6a80">${fmtPrice(t.peak_price)}</div></td>
+          <td><span class="elim-reason">${esc(t.reason || '--')}</span></td>
+          <td>${fmtAge(t.age_hours)}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+      document.getElementById('tokenTable').classList.toggle('hidden', tab !== 'filtered');
+      document.getElementById('queueTable').classList.toggle('hidden', tab !== 'queue');
+      document.getElementById('elimTable').classList.toggle('hidden', tab !== 'eliminated');
+    }
+
     function esc(s) {
       const d = document.createElement('div');
       d.textContent = s;
@@ -763,7 +962,7 @@
         list.innerHTML = rows.map(r => `
       <div class="hist-row" onclick="loadScan(${r.id})">
         <span class="ht">${r.scan_time}</span>
-        <span>总数: ${r.total_tokens} | 筛选: <span class="hv">${r.filtered_tokens}</span></span>
+        <span>队列: ${r.queue_size != null ? r.queue_size : r.total_tokens} | 淘汰: ${r.eliminated_count || 0} | 精筛: <span class="hv">${r.filtered_tokens}</span></span>
       </div>
     `).join('');
       } else {

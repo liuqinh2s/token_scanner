@@ -1,74 +1,91 @@
 # BSC Token Scanner
 
-BSC 链上新代币扫描器，自动扫描最近 3 天内通过 [Four.meme](https://four.meme) 创建的代币，三级管线智能筛选展示。
+BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme) 合约的 `TokenCreated` 事件发现新代币，采用**队列淘汰制**持续跟踪，自动剔除弃盘币，对存活代币执行精筛。
+
+## v2 架构：链上发现 + 队列淘汰制
+
+旧版通过 four.meme Search API 拉取代币列表，但实测该 API 只能覆盖平台约 1/3 的代币。v2 改为直接扫链上事件，100% 覆盖。
+
+```
+每 15 分钟执行一次:
+
+1. 链上发现 (~1s)
+   BSC RPC eth_getLogs → four.meme TokenCreated 事件 → 新代币地址
+   
+2. 入场筛 (~35s)
+   four.meme Detail API → 淘汰无社交 / 总量≠10亿
+
+3. 淘汰检查 (~15s)
+   DexScreener 批量查价 + Detail API 查持币数 → 永久淘汰弃盘币
+
+4. 精筛 (~10s)
+   K线/价格比/底价区间 → 输出推荐
+```
 
 ## 数据源
 
 | 数据源 | 用途 | 限流 |
 |--------|------|------|
-| four.meme Search API | 代币发现（批量列表） | ~2 req/s |
-| four.meme Detail API | 代币详情（持币/社交链接/描述） | ~2 req/s |
-| DexScreener API | K线价格数据（主要，快速） | ~300 req/min |
-| GeckoTerminal OHLCV | K线数据（备选，精确） | ~30 req/min，自动退避重试 |
-| 微博/Google/Twitter | 实时热点关键词（加分项） | 各平台独立限流 |
+| BSC RPC (publicnode) | 链上 TokenCreated 事件发现 | 无硬限制 |
+| four.meme Detail API | 持币数/社交链接/进度 | ~5 req/s |
+| DexScreener API | 批量价格+流动性查询 | ~300 req/min |
+| GeckoTerminal OHLCV | K线数据（精筛用） | ~30 req/min |
+| 微博热搜 | 热点关键词匹配（加分项） | 独立限流 |
 
-## 三级筛选管线
+## 淘汰规则（永久剔除）
 
-| 阶段 | 条件 | 数据源 | 请求开销 |
-|------|------|--------|----------|
-| 初筛 | 币龄≤3天、当前价≤$0.00002、持币地址粗筛 | Search API（批量） | 0 额外请求 |
-| 详情筛 | 社交媒体≥1、持币地址(>1h:≥60,≤1h:≥30)、总量=10亿、当前价(≤1h:≤$0.000004,>1h:≤$0.00002)（币龄<4h且价>$0.00001时≤1h放宽至$0.0000045） | Detail API | 每候选 1 请求 |
-| K线筛 | 历史最高价≤$0.00004、前2h最高价≤$0.00002(币龄>1h)（币龄<4h且价>$0.00001时放宽至$0.000023）、当前价在最高价40%~90%、现价比底价高10%~100%(币龄>1h排除首根K线,≤1h用全部K线) | DexScreener (主) + GeckoTerminal (备) | 每候选 1~3 请求 |
+满足任一条件即从队列中永久移除，不再关注：
 
-逐级收窄，避免不必要的 API 调用。
+| # | 条件 | 说明 |
+|---|------|------|
+| 1 | 价格从峰值跌 90%+ | 暴跌弃盘 |
+| 2 | 持币地址从 30+ 跌破 10 | 大量抛售 |
+| 3 | 无社交媒体 | 无运营意愿 |
+| 4 | 流动性从 >$1k 跌破 $100 | 流动性枯竭 |
+| 5 | 连续 3 个周期价格下跌 | 趋势性弃盘 |
+| 6 | 进度 < 1% 且币龄 > 4h | bonding curve 上的死币 |
+| 7 | 币龄 > 72h | 超出关注窗口 |
 
-## 筛选规则
+## 精筛规则
 
-1. **社交媒体 ≥ 1**：至少关联 1 个社交媒体（Twitter/Telegram/Website）
-   - 币龄 > 1 小时：持币地址数 ≥ 60
-   - 币龄 ≤ 1 小时：持币地址数 ≥ 30
-2. **价格条件**：总量 10 亿，历史最高价 ≤ 0.00004
-   - 币龄 ≤ 1 小时：当前价 ≤ 0.000004（币龄<4h且价>0.00001时放宽至 0.0000045）
-   - 币龄 > 1 小时：当前价 ≤ 0.00002
-   - 币龄 > 1 小时：前 2 小时最高价 ≤ 0.00002（币龄<4h且价>0.00001时放宽至 0.000023）（通过 GeckoTerminal K线精确计算）
-3. **价格区间**：当前价在历史最高价的 40%~90% 之间
-4. **底部区间**：当前价比历史最低价高 10%~100%
-   - 币龄 > 1 小时：排除第一根 K 线（排除发行价）
-   - 币龄 ≤ 1 小时：使用所有 K 线
-5. **热点新闻**（加分项，不作为筛选条件）：实时抓取社交媒体热点关键词，与代币名称/描述交叉匹配
-   - 数据源：微博热搜 Top50、Google Trends（US/CN）、Twitter/X Trending
-   - 匹配逻辑：短关键词(≤3字符)精确匹配名称，长关键词子串匹配，支持反向匹配
-   - 按热点排名和来源加权评分，匹配到的代币标注 🔥
+对队列中存活代币执行：
 
-## 工作原理
+- 持币地址数：币龄 >1h ≥ 60，≤1h ≥ 30
+- 当前价：≤1h ≤ $0.000004，>1h ≤ $0.00002（币龄<4h 且价>$0.00001 时放宽）
+- 历史最高价 ≤ $0.00004
+- 前 2h 最高价 ≤ $0.00002（币龄 >1h，K线计算）
+- 当前价在最高价 40%~90%
+- 现价比底价高 10%~100%
+- 热点匹配（加分项）：微博热搜关键词与代币名称交叉匹配，标注 🔥
 
-1. GitHub Actions 定时任务（每 15 分钟）触发 `scripts/scan.js`
-2. 通过 Four.meme Search API 获取代币列表（Stage 1 初筛）
-3. 通过 Four.meme Detail API 获取详细信息：持币数、社交链接等（Stage 2 详情筛）
-4. 通过 GeckoTerminal OHLCV API 获取 K线数据，计算真实历史最高价、前2h最高价和底价（Stage 3 K线筛）
-5. `scripts/build.js` 将扫描数据整理到 `site/data/`，生成前端所需的静态文件
-6. GitHub Pages 自动部署 `site/` 目录
+## 前端功能
 
-## 自动刷新
+三个 Tab 视图：
 
-- 本地开发：使用 `live-server` 监听 `site/data/` 目录，`scan.js` + `build.js` 生成新数据后浏览器自动整页刷新
-- 生产环境：每 60 秒轮询 `data/latest.json`，检测到新扫描结果时自动更新页面并弹出提示，可通过 "Auto-refresh" 按钮手动开关
+- **精筛结果**：通过全部筛选条件的推荐代币
+- **队列存活**：当前队列中所有存活代币（含价格/持币/流动性/峰值等）
+- **本轮淘汰**：本轮被淘汰的代币及淘汰原因
+
+支持通过历史记录查看任意时刻的队列快照。
 
 ## 项目结构
 
 ```
 ├── .github/workflows/
-│   └── scan.yml              # GitHub Actions 定时任务（每 15 分钟）
-├── data/                     # 扫描结果存档（按时间戳命名的 JSON）
+│   └── scan.yml              # GitHub Actions 定时任务
+├── data/
+│   ├── queue.json            # 队列状态（代币列表 + 已淘汰记录 + lastBlock）
+│   └── 2026-04-10T*.json     # 每轮扫描结果（含 queue/eliminated 快照）
 ├── scripts/
-│   ├── scan.js               # 三级管线扫描 + 筛选 (four.meme + GeckoTerminal)
-│   └── build.js              # 构建静态站点数据
+│   ├── scan.js               # v2 扫描：链上发现 + 队列淘汰 + 精筛
+│   ├── build.js              # 构建静态站点数据
+│   └── compare.js            # 链上 vs API 覆盖率比对工具
 ├── public/
 │   └── index.html            # 前端页面源文件
-├── site/                     # 构建产物（部署到 GitHub Pages）
+├── site/                     # 构建产物（GitHub Pages）
 │   ├── index.html
 │   └── data/
-│       ├── latest.json       # 最新扫描结果
+│       ├── latest.json       # 最新扫描结果（含队列快照）
 │       ├── history.json      # 历史扫描索引
 │       └── scans/            # 各次扫描详情
 └── package.json
@@ -77,43 +94,31 @@ BSC 链上新代币扫描器，自动扫描最近 3 天内通过 [Four.meme](htt
 ## 本地开发
 
 ```bash
-# 构建静态站点（输出到 site/）
-npm run build
-
-# 启动开发服务器（live-server 监听 site/data/ 变化，自动刷新浏览器）
-npm run dev
-
-# 另一个终端运行扫描（结果写入 data/，之后再 build 即可触发刷新）
-npm run scan && npm run build
-
-# 本地预览生产版本（不带 live-reload）
-npx serve site
+npm run build          # 构建静态站点
+npm run dev            # 启动开发服务器（live-server）
+npm run scan && npm run build   # 运行扫描 + 构建
 ```
 
-## GitHub 部署
+## 配置
 
-1. 将代码推送到 GitHub 仓库
-2. 在仓库 Settings → Pages 中，Source 选择 "GitHub Actions"
-3. 工作流会自动每 15 分钟运行一次扫描并部署
-4. 也可在 Actions 页面手动触发 `workflow_dispatch`
+`config.local.json`（已 gitignore）：
 
-## 配置参数
+```json
+{
+  "proxy": { "enabled": true, "host": "127.0.0.1", "port": 7890 }
+}
+```
 
-以下常量定义在 `scripts/scan.js` 顶部：
+`scripts/scan.js` 顶部常量：
 
 | 参数 | 默认值 | 说明 |
 |------|--------|------|
-| `MAX_AGE_HOURS` | 72 | 扫描时间窗口（小时） |
-| `TOTAL_SUPPLY` | 1,000,000,000 | 代币总量要求（10亿） |
-| `MAX_CURRENT_PRICE_OLD` | 0.00002 | 币龄>1h 当前价格上限 |
-| `MAX_CURRENT_PRICE_YOUNG` | 0.000004 | 币龄≤1h 当前价格上限（币龄<4h且价>0.00001时放宽至0.0000045） |
-| `MAX_HIGH_PRICE` | 0.00004 | 历史最高价上限 (GeckoTerminal K线) |
-| `MAX_EARLY_HIGH_PRICE` | 0.00002 | 币龄>1h时前2h最高价上限 (K线)（币龄<4h且价>0.00001时放宽至0.000023） |
-| `PRICE_RATIO_LOW` | 0.4 | 当前价/最高价 下限 (40%) |
-| `PRICE_RATIO_HIGH` | 0.9 | 当前价/最高价 上限 (90%) |
-| `HOLDERS_THRESHOLD_OLD` | 60 | 币龄>1h 持币地址数阈值 |
-| `HOLDERS_THRESHOLD_YOUNG` | 30 | 币龄≤1h 持币地址数阈值 |
-| `MIN_SOCIAL_COUNT` | 1 | 最少社交媒体关联数 |
+| `MAX_AGE_HOURS` | 72 | 关注窗口（小时） |
+| `SCAN_INTERVAL_MIN` | 15 | 扫描间隔（分钟） |
+| `ELIM_PRICE_DROP_PCT` | 0.90 | 价格跌幅淘汰阈值 |
+| `ELIM_HOLDERS_FLOOR` | 10 | 持币数淘汰下限 |
+| `ELIM_LIQ_FLOOR` | 100 | 流动性淘汰下限（USD） |
+| `ELIM_CONSEC_DROP_CYCLES` | 3 | 连续下跌周期淘汰 |
 
 ## License
 

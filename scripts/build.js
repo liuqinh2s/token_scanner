@@ -2,9 +2,10 @@
  * Build Script - generates static JSON files for GitHub Pages frontend.
  *
  * Reads scan results from data/, generates:
- *   site/data/latest.json    - most recent scan result
- *   site/data/history.json   - list of all scans (summary)
+ *   site/data/latest.json    - most recent scan result (含 queue/eliminated 快照)
+ *   site/data/history.json   - list of all scans (summary, 含 queue_size/eliminated_count)
  *   site/data/scans/0.json   - individual scan results (0 = newest)
+ *   site/data/search-index.json - deduplicated tokens for client-side search
  *
  * Also copies public/index.html to site/index.html with API paths rewritten.
  */
@@ -25,7 +26,7 @@ for (const d of [SITE_DIR, SITE_DATA_DIR, SCANS_DIR]) {
 
 // Read all scan files from data/, sorted newest first
 const scanFiles = fs.readdirSync(DATA_DIR)
-  .filter(f => f.endsWith(".json"))
+  .filter(f => f.endsWith(".json") && f !== "queue.json")
   .sort()
   .reverse();
 
@@ -56,6 +57,8 @@ if (scanFiles.length === 0) {
       scan_time: data.scanTime,
       total_tokens: data.totalTokens,
       filtered_tokens: data.filteredTokens,
+      queue_size: (data.queue || []).length,
+      eliminated_count: (data.eliminatedThisRound || []).length,
     });
     fs.writeFileSync(path.join(SCANS_DIR, `${idx}.json`), JSON.stringify(data));
   });
