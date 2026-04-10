@@ -1,52 +1,6 @@
 {
   "tokens": [
     {
-      "address": "0x4375926fcf0c945c8badd2816d8655b9fb664444",
-      "name": "Elon Childhood Dog",
-      "symbol": "MAX",
-      "createdAt": 1775835089000,
-      "addedAt": 1775835917936,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "twitter": "https://x.com/lucie_1412/status/2042618124395254019"
-      },
-      "descr": "Elon Childhood Dog",
-      "price": 0.000003658,
-      "peakPrice": 0.000003891,
-      "holders": 11,
-      "peakHolders": 17,
-      "liquidity": 0,
-      "peakLiquidity": 0,
-      "progress": 0,
-      "day1Vol": 0,
-      "consecDrops": 0,
-      "lastPrice": 0.000003658
-    },
-    {
-      "address": "0xd1c13143fec7e035a08667b15dc00c7d9c4e4444",
-      "name": "你的人格是由自己定义",
-      "symbol": "你自己",
-      "createdAt": 1775835194000,
-      "addedAt": 1775835917936,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "website": "https://weibo.com/detail/5286298204247045"
-      },
-      "descr": "你的人格是由自己定义",
-      "price": 0.000003976,
-      "peakPrice": 0.000004338,
-      "holders": 15,
-      "peakHolders": 24,
-      "liquidity": 0,
-      "peakLiquidity": 0,
-      "progress": 0,
-      "day1Vol": 0,
-      "consecDrops": 0,
-      "lastPrice": 0.000003976
-    },
-    {
       "address": "0xf921169b5b228210739c9470608a94ec79444444",
       "name": "Tung Tung Tung Sahur",
       "symbol": "TripleT",
@@ -58,16 +12,16 @@
         "twitter": "https://x.com/BinanceUS/status/2042630008896917885"
       },
       "descr": "x",
-      "price": 0.00001683,
+      "price": 0.00001737,
       "peakPrice": 0.00003225,
-      "holders": 251,
+      "holders": 254,
       "peakHolders": 326,
       "liquidity": 0,
       "peakLiquidity": 0,
       "progress": 0,
       "day1Vol": 0,
-      "consecDrops": 2,
-      "lastPrice": 0.00001683
+      "consecDrops": 0,
+      "lastPrice": 0.00001737
     },
     {
       "address": "0x22ebd10558b82209e2a822a32a0699a35f884444",
@@ -183,7 +137,7 @@
       "peakLiquidity": 0,
       "progress": 0,
       "day1Vol": 0,
-      "consecDrops": 1,
+      "consecDrops": 0,
       "lastPrice": 0.000004503
     },
     {
@@ -222,16 +176,16 @@
         "website": "https://x.com/Cz_Vlog"
       },
       "descr": "CZ新书《币安人生》Vlog",
-      "price": 0.000005897,
+      "price": 0.000005793,
       "peakPrice": 0.00001249,
-      "holders": 54,
+      "holders": 53,
       "peakHolders": 74,
       "liquidity": 0,
       "peakLiquidity": 0,
       "progress": 0,
       "day1Vol": 0,
-      "consecDrops": 0,
-      "lastPrice": 0.000005897
+      "consecDrops": 1,
+      "lastPrice": 0.000005793
     },
     {
       "address": "0x48b8f71554ef9fa452d9a47966bb8daf9e494444",
@@ -246,16 +200,16 @@
         "website": "https://x.com/i/grok/share/fe8ff12e7f614ccba92056076989ee04"
       },
       "descr": "Deployed using j7tracker.io",
-      "price": 0.000003746,
+      "price": 0.000003729,
       "peakPrice": 0.000003746,
-      "holders": 5,
+      "holders": 4,
       "peakHolders": 5,
       "liquidity": 0,
       "peakLiquidity": 0,
       "progress": 0,
       "day1Vol": 0,
-      "consecDrops": 0,
-      "lastPrice": 0.000003746
+      "consecDrops": 1,
+      "lastPrice": 0.000003729
     },
     {
       "address": "0xd17920987e006a3dfc0b9de0f3ee3aea66424444",
@@ -269,47 +223,42 @@
         "twitter": "https://x.com/cookershiroo/status/2042682219244708235"
       },
       "descr": "Launched on discord.gg/uxento",
-      "price": 0.000004021,
-      "peakPrice": 0.000004021,
-      "holders": 2,
-      "peakHolders": 2,
+      "price": 0.000004042,
+      "peakPrice": 0.000004042,
+      "holders": 8,
+      "peakHolders": 8,
       "liquidity": 0,
       "peakLiquidity": 0,
       "progress": 0,
       "day1Vol": 0,
       "consecDrops": 0,
-      "lastPrice": 0.000004021
+      "lastPrice": 0.000004042
+    },
+    {
+      "address": "0x44ed22376f29cbabc8f98de72e7bd4b48c404444",
+      "name": "PsyopTrumpUsaElon",
+      "symbol": "PLTR",
+      "createdAt": 1775849623000,
+      "addedAt": 1775850316840,
+      "totalSupply": 1000000000,
+      "socialCount": 1,
+      "socialLinks": {
+        "twitter": "https://x.com/cookershiroo/status/2042682219244708235"
+      },
+      "descr": "PsyopTrumpUsaElon",
+      "price": 0.000005316,
+      "peakPrice": 0.000005316437708156,
+      "holders": 10,
+      "peakHolders": 10,
+      "liquidity": 0,
+      "peakLiquidity": 0,
+      "progress": 0,
+      "day1Vol": 0,
+      "consecDrops": 1,
+      "lastPrice": 0.000005316
     }
   ],
   "eliminated": [
-    {
-      "address": "0x356828d97c8fa30ea8c660ae6d2ac7efba944444",
-      "name": "那一晚",
-      "elimReason": "币龄0.9h 最高持币仅2",
-      "eliminatedAt": 1775833234272,
-      "createdAt": 1775829844000
-    },
-    {
-      "address": "0x121620ae96b1e8ec1031fd73dd4b62db52784444",
-      "name": "原推",
-      "elimReason": "币龄0.9h 最高持币仅1",
-      "eliminatedAt": 1775833234272,
-      "createdAt": 1775829838000
-    },
-    {
-      "address": "0x8e29730085e443e6dc8cf172017935ab2b064444",
-      "name": "加密霸主",
-      "elimReason": "币龄0.9h 最高持币仅1",
-      "eliminatedAt": 1775833234272,
-      "createdAt": 1775829845000
-    },
-    {
-      "address": "0xdc8f192652a6a2d349b06c220dfb44c9121b4444",
-      "name": "加密霸主",
-      "elimReason": "币龄0.9h 最高持币仅1",
-      "eliminatedAt": 1775833234272,
-      "createdAt": 1775829845000
-    },
     {
       "address": "0x90160e53d17ba6e0e1269d4241c91831a51e4444",
       "name": "幣安天使",
@@ -7281,8 +7230,36 @@
       "elimReason": "币龄0.1h 最高持币仅0",
       "eliminatedAt": 1775849422619,
       "createdAt": 1775848905000
+    },
+    {
+      "address": "0x4375926fcf0c945c8badd2816d8655b9fb664444",
+      "name": "Elon Childhood Dog",
+      "elimReason": "进度0.00% 币龄4.2h",
+      "eliminatedAt": 1775850316840,
+      "createdAt": 1775835089000
+    },
+    {
+      "address": "0xd1c13143fec7e035a08667b15dc00c7d9c4e4444",
+      "name": "你的人格是由自己定义",
+      "elimReason": "进度0.00% 币龄4.2h",
+      "eliminatedAt": 1775850316840,
+      "createdAt": 1775835194000
+    },
+    {
+      "address": "0x98edb9594edcff691708f7b561819d1702c44444",
+      "name": "狗的真名翠花",
+      "elimReason": "币龄0.2h 最高持币仅1",
+      "eliminatedAt": 1775850316840,
+      "createdAt": 1775849731000
+    },
+    {
+      "address": "0x41f655dcca022fdc0ec5993acf21bc74b9094444",
+      "name": "特朗普发了个股票代码",
+      "elimReason": "币龄0.2h 最高持币仅1",
+      "eliminatedAt": 1775850316840,
+      "createdAt": 1775849768000
     }
   ],
-  "lastBlock": 91775792,
-  "lastScanTime": 1775849422619
+  "lastBlock": 91777778,
+  "lastScanTime": 1775850316840
 }
