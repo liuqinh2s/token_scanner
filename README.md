@@ -44,7 +44,10 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 | 4 | 流动性从 >$1k 跌破 $100 | 流动性枯竭 |
 | 5 | 连续 3 个周期价格下跌 | 趋势性弃盘 |
 | 6 | 进度 < 1% 且币龄 > 4h | bonding curve 上的死币 |
-| 7 | 币龄 > 72h | 超出关注窗口 |
+| 7 | 币龄 > 5min 且最高持币数 < 3 | 无人问津 |
+| 8 | 币龄 > 15min 且最高持币数 < 5 | 无人问津 |
+| 9 | 币龄 > 1h 且最高持币数 < 10 | 热度不足 |
+| 10 | 币龄 > 72h | 超出关注窗口 |
 
 ## 精筛规则
 
@@ -91,13 +94,16 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 └── package.json
 ```
 
-## 本地开发
+## 使用方法
 
 ```bash
-npm run build          # 构建静态站点
-npm run dev            # 启动开发服务器（live-server）
-npm run scan && npm run build   # 运行扫描 + 构建
+npm run scan                    # 执行一次扫币（链上发现 + 队列淘汰 + 精筛）
+npm run build                   # 构建静态站点
+npm run scan && npm run build   # 扫币 + 构建（完整流程）
+npm run dev                     # 启动开发服务器（live-server）
 ```
+
+`npm run scan` 即 `node scripts/scan.js`，执行一次完整扫描流程：链上发现新代币 → 入场筛 → 淘汰检查 → 精筛输出。扫描结果保存在 `data/` 目录，队列状态持久化在 `data/queue.json`。GitHub Actions 每 15 分钟自动执行一次。
 
 ## 配置
 
@@ -119,6 +125,9 @@ npm run scan && npm run build   # 运行扫描 + 构建
 | `ELIM_HOLDERS_FLOOR` | 10 | 持币数淘汰下限 |
 | `ELIM_LIQ_FLOOR` | 100 | 流动性淘汰下限（USD） |
 | `ELIM_CONSEC_DROP_CYCLES` | 3 | 连续下跌周期淘汰 |
+| `ELIM_EARLY_PEAK_HOLDERS` | 5 | 币龄>15min 最高持币数淘汰下限 |
+| `ELIM_TINY_PEAK_HOLDERS` | 3 | 币龄>5min 最高持币数淘汰下限 |
+| `ELIM_MID_PEAK_HOLDERS` | 10 | 币龄>1h 最高持币数淘汰下限 |
 
 ## License
 

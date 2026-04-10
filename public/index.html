@@ -470,7 +470,10 @@
     }
 
     @media (max-width: 768px) {
-      #tokenTable table {
+
+      #tokenTable table,
+      #queueTable table,
+      #elimTable table {
         display: none;
       }
 
@@ -573,7 +576,9 @@
       <p class="subtitle">链上发现 · 队列淘汰制 · 每15分钟扫描</p>
       <p class="filter-desc">
         链上扫描 four.meme TokenCreated 事件发现新代币 → 入场筛(社交≥1、总量10亿) →
-        队列淘汰(价格跌90%/持币30→10/无社交/流动性1k→100/连续3周期下跌/进度&lt;1%且币龄&gt;4h/币龄&gt;72h) → 精筛(价格/K线/底价区间)<br>
+        队列淘汰(价格跌90%/持币30→10/无社交/流动性1k→100/连续3周期下跌/进度&lt;1%且币龄&gt;4h/5min峰值持币&lt;3/15min峰值持币&lt;5/1h峰值持币&lt;10/币龄&gt;72h)
+        →
+        精筛(价格/K线/底价区间)<br>
         价格数据: DexScreener + GeckoTerminal K线 · 🔥 = 匹配实时热点关键词
       </p>
     </header>
@@ -651,6 +656,7 @@
         <tbody id="queueBody"></tbody>
       </table>
       <p id="noQueue" class="no-data hidden">队列为空。</p>
+      <div id="queueCardList" class="card-list"></div>
     </div>
 
     <!-- Eliminated tokens table -->
@@ -672,6 +678,7 @@
         <tbody id="elimBody"></tbody>
       </table>
       <p id="noElim" class="no-data hidden">本轮无淘汰。</p>
+      <div id="elimCardList" class="card-list"></div>
     </div>
   </div>
 
@@ -849,10 +856,12 @@
     function renderQueue(data) {
       const tbody = document.getElementById('queueBody');
       const noQueue = document.getElementById('noQueue');
+      const queueCardList = document.getElementById('queueCardList');
       const items = (data.queue || []).slice().sort((a, b) => (b.holders || 0) - (a.holders || 0));
 
       if (items.length === 0) {
         tbody.innerHTML = '';
+        queueCardList.innerHTML = '';
         noQueue.classList.remove('hidden');
         return;
       }
@@ -869,6 +878,7 @@
           <td><div class="addr-cell">
             <span class="addr-text">${addr}</span>
             <button class="copy-btn" onclick="copyAddr('${addr}')">Copy</button>
+            <a class="bscscan-link" href="https://bscscan.com/token/${addr}" target="_blank" rel="noopener">BscScan</a>
             <a class="fourmeme-link" href="https://four.meme/token/${addr}" target="_blank" rel="noopener">4meme</a>
             <a class="dexscreener-link" href="https://dexscreener.com/bsc/${addr}" target="_blank" rel="noopener">DexS</a>
           </div></td>
@@ -881,15 +891,49 @@
           <td>${fmtAge(t.age_hours)}</td>
         </tr>`;
       }).join('');
+
+      // 手机卡片视图
+      queueCardList.innerHTML = items.map((t, i) => {
+        const addr = t.address || '';
+        const shortAddr = addr.length > 16 ? addr.slice(0, 8) + '...' + addr.slice(-6) : addr;
+        const socialTags = buildSocialTags(t.social_links);
+        const pctProgress = ((t.progress || 0) * 100).toFixed(1);
+        return `<div class="token-card">
+          <div class="card-top">
+            <span><span class="card-name">${esc(t.name || '--')}</span><span class="card-symbol">${esc(t.symbol || '--')}</span></span>
+            <span class="card-holders">${t.holders || 0} 持币</span>
+          </div>
+          <div class="card-addr-row">
+            <span class="card-addr-text">${shortAddr}</span>
+            <button class="copy-btn" onclick="copyAddr('${addr}')">Copy</button>
+            <a class="bscscan-link" href="https://bscscan.com/token/${addr}" target="_blank" rel="noopener">BscScan</a>
+            <a class="fourmeme-link" href="https://four.meme/token/${addr}" target="_blank" rel="noopener">4meme</a>
+            <a class="dexscreener-link" href="https://dexscreener.com/bsc/${addr}" target="_blank" rel="noopener">DexS</a>
+          </div>
+          <div class="card-price-row">
+            <span>现:${fmtPrice(t.price)}</span>
+            <span>峰:${fmtPrice(t.peak_price)}</span>
+            <span>流动性:${(t.liquidity || 0).toFixed(0)}</span>
+            <span>进度:${pctProgress}%</span>
+          </div>
+          <div class="card-social">${socialTags}</div>
+          <div class="card-meta">
+            <span>#${i + 1} · 币龄 ${fmtAge(t.age_hours)}</span>
+            ${t.peak_holders ? '<span>峰值持币 ' + t.peak_holders + '</span>' : ''}
+          </div>
+        </div>`;
+      }).join('');
     }
 
     function renderEliminated(data) {
       const tbody = document.getElementById('elimBody');
       const noElim = document.getElementById('noElim');
+      const elimCardList = document.getElementById('elimCardList');
       const items = data.eliminatedThisRound || [];
 
       if (items.length === 0) {
         tbody.innerHTML = '';
+        elimCardList.innerHTML = '';
         noElim.classList.remove('hidden');
         return;
       }
@@ -904,7 +948,9 @@
           <td><div class="addr-cell">
             <span class="addr-text">${addr}</span>
             <button class="copy-btn" onclick="copyAddr('${addr}')">Copy</button>
+            <a class="bscscan-link" href="https://bscscan.com/token/${addr}" target="_blank" rel="noopener">BscScan</a>
             <a class="fourmeme-link" href="https://four.meme/token/${addr}" target="_blank" rel="noopener">4meme</a>
+            <a class="dexscreener-link" href="https://dexscreener.com/bsc/${addr}" target="_blank" rel="noopener">DexS</a>
           </div></td>
           <td>${t.holders || 0}</td>
           <td><div class="price-info">${fmtPrice(t.price)}</div></td>
@@ -912,6 +958,33 @@
           <td><span class="elim-reason">${esc(t.reason || '--')}</span></td>
           <td>${fmtAge(t.age_hours)}</td>
         </tr>`;
+      }).join('');
+
+      // 手机卡片视图
+      elimCardList.innerHTML = items.map((t, i) => {
+        const addr = t.address || '';
+        const shortAddr = addr.length > 16 ? addr.slice(0, 8) + '...' + addr.slice(-6) : addr;
+        return `<div class="token-card">
+          <div class="card-top">
+            <span><span class="card-name">${esc(t.name || '--')}</span><span class="card-symbol">${esc(t.symbol || '--')}</span></span>
+            <span class="card-holders">${t.holders || 0} 持币</span>
+          </div>
+          <div class="card-addr-row">
+            <span class="card-addr-text">${shortAddr}</span>
+            <button class="copy-btn" onclick="copyAddr('${addr}')">Copy</button>
+            <a class="bscscan-link" href="https://bscscan.com/token/${addr}" target="_blank" rel="noopener">BscScan</a>
+            <a class="fourmeme-link" href="https://four.meme/token/${addr}" target="_blank" rel="noopener">4meme</a>
+            <a class="dexscreener-link" href="https://dexscreener.com/bsc/${addr}" target="_blank" rel="noopener">DexS</a>
+          </div>
+          <div class="card-price-row">
+            <span>现:${fmtPrice(t.price)}</span>
+            <span>峰:${fmtPrice(t.peak_price)}</span>
+          </div>
+          <div style="margin-top:6px"><span class="elim-reason">${esc(t.reason || '--')}</span></div>
+          <div class="card-meta">
+            <span>#${i + 1} · 币龄 ${fmtAge(t.age_hours)}</span>
+          </div>
+        </div>`;
       }).join('');
     }
 

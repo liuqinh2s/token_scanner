@@ -15,6 +15,9 @@
  *   - 连续 3 个周期价格持续下跌
  *   - 15 分钟内无任何买入事件
  *   - 进度 < 1% 且币龄 > 4h
+ *   - 币龄 > 5min 且最高持币数 < 3
+ *   - 币龄 > 15min 且最高持币数 < 5
+ *   - 币龄 > 1h 且最高持币数 < 10
  *   - 币龄 > 72h
  *
  * 状态持久化: data/queue.json
@@ -70,6 +73,12 @@ const ELIM_LIQ_PEAK_MIN = 1000;         // 流动性曾达到 $1000 才触发跌
 const ELIM_CONSEC_DROP_CYCLES = 3;      // 连续下跌周期数
 const ELIM_PROGRESS_MIN = 0.01;         // 进度 < 1%
 const ELIM_PROGRESS_AGE_HOURS = 4;      // 进度淘汰的币龄门槛
+const ELIM_EARLY_PEAK_HOLDERS = 5;      // 币龄>15min 最高持币数 < 5 淘汰
+const ELIM_EARLY_AGE_MIN = 0.25;        // 15 分钟 = 0.25h
+const ELIM_TINY_PEAK_HOLDERS = 3;       // 币龄>5min 最高持币数 < 3 淘汰
+const ELIM_TINY_AGE_MIN = 5 / 60;       // 5 分钟
+const ELIM_MID_PEAK_HOLDERS = 10;       // 币龄>1h 最高持币数 < 10 淘汰
+const ELIM_MID_AGE_HOURS = 1;           // 1 小时
 
 // API endpoints
 const FM_DETAIL = "https://four.meme/meme-api/v1/private/token/get/v2";
@@ -570,6 +579,18 @@ async function eliminationCheck(queue, nowMs) {
     // 6. 进度 < 1% 且币龄 > 4h
     if (!elimReason && ageHours > ELIM_PROGRESS_AGE_HOURS && currentProgress < ELIM_PROGRESS_MIN) {
       elimReason = `进度${(currentProgress * 100).toFixed(2)}% 币龄${ageHours.toFixed(1)}h`;
+    }
+    // 7. 币龄>5min 最高持币数 < 3
+    if (!elimReason && ageHours > ELIM_TINY_AGE_MIN && t.peakHolders < ELIM_TINY_PEAK_HOLDERS) {
+      elimReason = `币龄${ageHours.toFixed(1)}h 最高持币仅${t.peakHolders}`;
+    }
+    // 8. 币龄>15min 最高持币数 < 5
+    if (!elimReason && ageHours > ELIM_EARLY_AGE_MIN && t.peakHolders < ELIM_EARLY_PEAK_HOLDERS) {
+      elimReason = `币龄${ageHours.toFixed(1)}h 最高持币仅${t.peakHolders}`;
+    }
+    // 9. 币龄>1h 最高持币数 < 10
+    if (!elimReason && ageHours > ELIM_MID_AGE_HOURS && t.peakHolders < ELIM_MID_PEAK_HOLDERS) {
+      elimReason = `币龄${ageHours.toFixed(1)}h 最高持币仅${t.peakHolders}`;
     }
 
     if (elimReason) {
