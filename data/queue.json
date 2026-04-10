@@ -105,16 +105,16 @@
         "twitter": "https://x.com/BinanceMovie"
       },
       "descr": "Binance Movie",
-      "price": 0.00004848,
-      "peakPrice": 0.00008905,
+      "price": 0.000628,
+      "peakPrice": 0.000628,
       "holders": 77,
       "peakHolders": 77,
-      "liquidity": 21129.98,
-      "peakLiquidity": 28341.34,
+      "liquidity": 78698.87,
+      "peakLiquidity": 78698.87,
       "progress": 0,
       "day1Vol": 0,
-      "consecDrops": 1,
-      "lastPrice": 0.00004848
+      "consecDrops": 0,
+      "lastPrice": 0.000628
     },
     {
       "address": "0x4375926fcf0c945c8badd2816d8655b9fb664444",
@@ -174,16 +174,16 @@
         "twitter": "https://x.com/BinanceUS/status/2042630008896917885"
       },
       "descr": "x",
-      "price": 0.00002192,
+      "price": 0.00001386,
       "peakPrice": 0.00003225,
-      "holders": 300,
+      "holders": 253,
       "peakHolders": 326,
       "liquidity": 0,
       "peakLiquidity": 0,
       "progress": 0,
       "day1Vol": 0,
-      "consecDrops": 1,
-      "lastPrice": 0.00002192
+      "consecDrops": 2,
+      "lastPrice": 0.00001386
     },
     {
       "address": "0x22ebd10558b82209e2a822a32a0699a35f884444",
@@ -221,7 +221,7 @@
         "website": "https://www.wisdomofmoney.xyz/"
       },
       "descr": "Wisdom of Money",
-      "price": 0.000003517,
+      "price": 0.000003519,
       "peakPrice": 0.000004011,
       "holders": 7,
       "peakHolders": 10,
@@ -230,7 +230,7 @@
       "progress": 0,
       "day1Vol": 0,
       "consecDrops": 0,
-      "lastPrice": 0.000003517
+      "lastPrice": 0.000003519
     },
     {
       "address": "0xdbca886231604706baa7323f3d19633d6f124444",
@@ -360,16 +360,16 @@
         "website": "https://x.com/HoTPOfficial"
       },
       "descr": "House Of The People",
-      "price": 0.0000048,
+      "price": 0.000004564,
       "peakPrice": 0.0000048,
-      "holders": 12,
+      "holders": 8,
       "peakHolders": 12,
       "liquidity": 0,
       "peakLiquidity": 0,
       "progress": 0,
       "day1Vol": 0,
-      "consecDrops": 0,
-      "lastPrice": 0.0000048
+      "consecDrops": 1,
+      "lastPrice": 0.000004564
     },
     {
       "address": "0xc32ac703e3d683ed568be2a0e6a79884f9bc4444",
@@ -383,31 +383,103 @@
         "twitter": "https://x.com/i/status/2042647635606053157"
       },
       "descr": "遗憾",
-      "price": 0.000003816,
+      "price": 0.000003804,
       "peakPrice": 0.000003816,
-      "holders": 5,
+      "holders": 4,
       "peakHolders": 5,
       "liquidity": 0,
       "peakLiquidity": 0,
       "progress": 0,
       "day1Vol": 0,
-      "consecDrops": 0,
-      "lastPrice": 0.000003816
+      "consecDrops": 1,
+      "lastPrice": 0.000003804
     },
     {
-      "address": "0x943e7de9b5d30935d354b649ba7474c0b1394444",
-      "name": "Prediction Jelly",
-      "symbol": "Prediction Jelly",
-      "createdAt": 1775840231000,
-      "addedAt": 1775840432578,
+      "address": "0x6f18b36c5fe5779d562b3dfb82bd332384e74444",
+      "name": "preSPAX",
+      "symbol": "SpaceX",
+      "createdAt": 1775840588000,
+      "addedAt": 1775841317863,
+      "totalSupply": 1000000000,
+      "socialCount": 2,
+      "socialLinks": {
+        "twitter": "https://x.com/i/status/2041748590239084826",
+        "website": "https://share.google/4lnYvuKLO12ZjMmf7"
+      },
+      "descr": "SpaceX (Space Exploration Technologies Corp.) was founded by Elon Musk in 2002. It is committed to reducing launch costs through reusable rockets and advancing the development of commercial spaceflight. Its flagship products include the Falcon 9, Dragon spacecraft, and Starship. Its long-term goal is to enable human missions to Mars and support multi-planetary life.",
+      "price": 0.000003612,
+      "peakPrice": 0.000003612,
+      "holders": 3,
+      "peakHolders": 3,
+      "liquidity": 0,
+      "peakLiquidity": 0,
+      "progress": 0,
+      "day1Vol": 0,
+      "consecDrops": 0,
+      "lastPrice": 0.000003612
+    },
+    {
+      "address": "0xa1915751c29f4970f7fcc707205e08ab3d774444",
+      "name": "问问你妈妈",
+      "symbol": "问问你妈",
+      "createdAt": 1775840799000,
+      "addedAt": 1775841317863,
       "totalSupply": 1000000000,
       "socialCount": 1,
       "socialLinks": {
-        "twitter": "https://x.com/agentz010/status/2042360333910642930"
+        "twitter": "https://x.com/cz_binance/status/2042650410813378819"
       },
-      "descr": "Welcome to my world",
-      "price": 0.000003478,
-      "peakPrice": 0.000003478,
+      "descr": "Deployed using j7tracker.io",
+      "price": 0.000003476,
+      "peakPrice": 0.000003476,
+      "holders": 3,
+      "peakHolders": 3,
+      "liquidity": 0,
+      "peakLiquidity": 0,
+      "progress": 0,
+      "day1Vol": 0,
+      "consecDrops": 0,
+      "lastPrice": 0.000003476
+    },
+    {
+      "address": "0xaf6b309f66d74050fc4106c43706ae1e1e674444",
+      "name": "a new age",
+      "symbol": "atoms",
+      "createdAt": 1775841019000,
+      "addedAt": 1775841317863,
+      "totalSupply": 1000000000,
+      "socialCount": 2,
+      "socialLinks": {
+        "twitter": "https://x.com/i/communities/2032559372224626716",
+        "website": "https://atoms.co/vision"
+      },
+      "descr": "a new age",
+      "price": 0.000003476,
+      "peakPrice": 0.000003476,
+      "holders": 2,
+      "peakHolders": 2,
+      "liquidity": 0,
+      "peakLiquidity": 0,
+      "progress": 0,
+      "day1Vol": 0,
+      "consecDrops": 0,
+      "lastPrice": 0.000003476
+    },
+    {
+      "address": "0xa9584d1e03a31b69c7c47ec72fbd9d99707f4444",
+      "name": "Capital Connect Mast",
+      "symbol": "Capital Connect Mast",
+      "createdAt": 1775841235000,
+      "addedAt": 1775841317863,
+      "totalSupply": 1000000000,
+      "socialCount": 2,
+      "socialLinks": {
+        "twitter": "https://x.com/heyibinance/status/2042652328239489177",
+        "website": "https://x.com/heyibinance/status/2042652328239489177"
+      },
+      "descr": "Capital Connect Mast",
+      "price": 0.000003475,
+      "peakPrice": 0.000003475,
       "holders": 1,
       "peakHolders": 1,
       "liquidity": 0,
@@ -415,22 +487,23 @@
       "progress": 0,
       "day1Vol": 0,
       "consecDrops": 0,
-      "lastPrice": 0.000003478
+      "lastPrice": 0.000003475
     },
     {
-      "address": "0xcd97dea4885861891555bc0e31f4c72566794444",
-      "name": "Prediction Jelly",
-      "symbol": "Prediction Jelly",
-      "createdAt": 1775840313000,
-      "addedAt": 1775840432578,
+      "address": "0xe8e4355ed18ca7dd837fe2aebdd3f81ef6f44444",
+      "name": "资本大师赛",
+      "symbol": "CapitalMasters",
+      "createdAt": 1775841236000,
+      "addedAt": 1775841317863,
       "totalSupply": 1000000000,
-      "socialCount": 1,
+      "socialCount": 2,
       "socialLinks": {
-        "twitter": "https://x.com/agentz010/status/2042360333910642930"
+        "twitter": "https://x.com/heyibinance/status/2042652328239489177",
+        "website": "https://x.com/heyibinance/status/2042652328239489177"
       },
-      "descr": "Welcome to my world",
-      "price": 0.000003483,
-      "peakPrice": 0.000003483,
+      "descr": "By @heyibinance",
+      "price": 0.000003475,
+      "peakPrice": 0.000003475,
       "holders": 1,
       "peakHolders": 1,
       "liquidity": 0,
@@ -438,7 +511,100 @@
       "progress": 0,
       "day1Vol": 0,
       "consecDrops": 0,
-      "lastPrice": 0.000003483
+      "lastPrice": 0.000003475
+    },
+    {
+      "address": "0x7aa2f3ab6b48eb3979f007b2fb69c4225cac4444",
+      "name": "30万奖金",
+      "symbol": "30万奖金",
+      "createdAt": 1775841238000,
+      "addedAt": 1775841317863,
+      "totalSupply": 1000000000,
+      "socialCount": 2,
+      "socialLinks": {
+        "twitter": "https://x.com/i/status/2042652328239489177",
+        "website": "https://x.com/i/status/2042652328239489177"
+      },
+      "descr": "天，3 种策略，30 万美元奖金池。 锦标赛现已开放，专业交易团队和资产管理公司均可参赛，展现您的实力。 您是否具备参赛资格？ 请于 月 日前注册",
+      "price": 0.000003542,
+      "peakPrice": 0.000003542,
+      "holders": 2,
+      "peakHolders": 2,
+      "liquidity": 0,
+      "peakLiquidity": 0,
+      "progress": 0,
+      "day1Vol": 0,
+      "consecDrops": 0,
+      "lastPrice": 0.000003542
+    },
+    {
+      "address": "0x13d0ac8435df19ff75a8e26194bb87da101e4444",
+      "name": "CapitalCon",
+      "symbol": "CapitalCon",
+      "createdAt": 1775841240000,
+      "addedAt": 1775841317863,
+      "totalSupply": 1000000000,
+      "socialCount": 1,
+      "socialLinks": {
+        "twitter": "https://x.com/heyibinance/status/2042652328239489177"
+      },
+      "descr": "CapitalCon",
+      "price": 0.000003474,
+      "peakPrice": 0.000003474,
+      "holders": 1,
+      "peakHolders": 1,
+      "liquidity": 0,
+      "peakLiquidity": 0,
+      "progress": 0,
+      "day1Vol": 0,
+      "consecDrops": 0,
+      "lastPrice": 0.000003474
+    },
+    {
+      "address": "0x9bfbb3aede1d410d50dfef132f529a9ef91d4444",
+      "name": "30天",
+      "symbol": "30天",
+      "createdAt": 1775841244000,
+      "addedAt": 1775841317863,
+      "totalSupply": 1000000000,
+      "socialCount": 1,
+      "socialLinks": {
+        "twitter": "https://x.com/heyibinance/status/2042652328239489177"
+      },
+      "descr": "30天",
+      "price": 0.000003587,
+      "peakPrice": 0.000003587,
+      "holders": 0,
+      "peakHolders": 0,
+      "liquidity": 0,
+      "peakLiquidity": 0,
+      "progress": 0,
+      "day1Vol": 0,
+      "consecDrops": 0,
+      "lastPrice": 0.000003587
+    },
+    {
+      "address": "0xff10cfb6589a37f96c734bf348e83e9385624444",
+      "name": "30 天，3 种策略，30 万美元奖金池",
+      "symbol": "3",
+      "createdAt": 1775841251000,
+      "addedAt": 1775841317863,
+      "totalSupply": 1000000000,
+      "socialCount": 1,
+      "socialLinks": {
+        "twitter": "https://x.com/heyibinance/status/2042652328239489177"
+      },
+      "descr": "30 天，3 种策略，30 万美元奖金池",
+      "price": 0.000003815,
+      "peakPrice": 0.000003815,
+      "holders": 2,
+      "peakHolders": 2,
+      "liquidity": 0,
+      "peakLiquidity": 0,
+      "progress": 0,
+      "day1Vol": 0,
+      "consecDrops": 0,
+      "lastPrice": 0.000003815
     }
   ],
   "eliminated": [
@@ -6615,8 +6781,323 @@
       "elimReason": "币龄0.1h 最高持币仅1",
       "eliminatedAt": 1775840432578,
       "createdAt": 1775840125000
+    },
+    {
+      "address": "0x943e7de9b5d30935d354b649ba7474c0b1394444",
+      "name": "Prediction Jelly",
+      "elimReason": "币龄0.3h 最高持币仅2",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840231000
+    },
+    {
+      "address": "0xcd97dea4885861891555bc0e31f4c72566794444",
+      "name": "Prediction Jelly",
+      "elimReason": "币龄0.3h 最高持币仅1",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840313000
+    },
+    {
+      "address": "0xf58d6565d61f5b93942d96f67988f49695044444",
+      "name": "井水与灯",
+      "elimReason": "币龄0.2h 最高持币仅1",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840441000
+    },
+    {
+      "address": "0xbe89494ec2e9f0c0ac58f653efe239ec7fca4444",
+      "name": "井水与灯",
+      "elimReason": "币龄0.2h 最高持币仅1",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840442000
+    },
+    {
+      "address": "0xc5eac9f1c28c8cac24cded63dbcee61c12e34444",
+      "name": "井水与灯",
+      "elimReason": "币龄0.2h 最高持币仅1",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840677000
+    },
+    {
+      "address": "0x6fb6f37de7afe1ac331cf610bd6279b0c8094444",
+      "name": "赞同",
+      "elimReason": "币龄0.2h 最高持币仅1",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840677000
+    },
+    {
+      "address": "0x290a51049426f547f3eb8acf92d13429a4cd4444",
+      "name": "井水与灯",
+      "elimReason": "币龄0.2h 最高持币仅1",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840678000
+    },
+    {
+      "address": "0xfe61ac7e80b44c895f09cddacb288ec744c54444",
+      "name": "井水与灯",
+      "elimReason": "币龄0.2h 最高持币仅1",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840678000
+    },
+    {
+      "address": "0xa80b5293c1a2869f5fc21e35ff2f7128db344444",
+      "name": "井水与灯",
+      "elimReason": "币龄0.2h 最高持币仅0",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840679000
+    },
+    {
+      "address": "0x810a4cdd9b53e16a3c829e03811c6f4ebc7e4444",
+      "name": "井水与灯",
+      "elimReason": "币龄0.2h 最高持币仅1",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840679000
+    },
+    {
+      "address": "0x39db58235025de69e39523fbb92b4071bab74444",
+      "name": "BinanceMovie 点赞",
+      "elimReason": "币龄0.2h 最高持币仅1",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840682000
+    },
+    {
+      "address": "0x0f919440ecd26d0493392d0b5c961028780d4444",
+      "name": "井水与灯",
+      "elimReason": "币龄0.2h 最高持币仅2",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840680000
+    },
+    {
+      "address": "0x2d300c7b85af17738fd7732cda47daac61d94444",
+      "name": "BinanceMov",
+      "elimReason": "币龄0.2h 最高持币仅1",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840680000
+    },
+    {
+      "address": "0x7d6866daae16239aab2cebe8dc48a473a7464444",
+      "name": "井水与灯",
+      "elimReason": "币龄0.2h 最高持币仅1",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840682000
+    },
+    {
+      "address": "0xb0ce33836a7442efb318db6c96f36b05a46a4444",
+      "name": "井水与灯",
+      "elimReason": "币龄0.2h 最高持币仅1",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840684000
+    },
+    {
+      "address": "0x31858e8cc0e8cf6d4c94ea905fe53f3b8d704444",
+      "name": "井水和灯",
+      "elimReason": "币龄0.2h 最高持币仅0",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840684000
+    },
+    {
+      "address": "0x4b4eaa93f3fcbd14789c8f627fd6fb9d304f4444",
+      "name": "BINANCE MOVIE",
+      "elimReason": "币龄0.2h 最高持币仅0",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840684000
+    },
+    {
+      "address": "0xe87665eb05ea7d57e588feb643bc04ffb9fe4444",
+      "name": "水井和灯",
+      "elimReason": "币龄0.2h 最高持币仅1",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840687000
+    },
+    {
+      "address": "0x65c3d6351206d8e6415ea6b512de0ba791154444",
+      "name": "cz离开了村子",
+      "elimReason": "币龄0.2h 最高持币仅1",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840688000
+    },
+    {
+      "address": "0x68d68e7b214eca09067f297b9e20a233df1d4444",
+      "name": "井水与灯",
+      "elimReason": "币龄0.2h 最高持币仅0",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840689000
+    },
+    {
+      "address": "0x366a2f38cf4f93051d1c8e1f6b7dc249246f4444",
+      "name": "要问妈妈",
+      "elimReason": "币龄0.1h 最高持币仅1",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840778000
+    },
+    {
+      "address": "0xfbc1981d24e655dcbee19a67e07dbc32c7b84444",
+      "name": "要问妈妈",
+      "elimReason": "币龄0.1h 最高持币仅0",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840781000
+    },
+    {
+      "address": "0x6b24873ac39213801774907265bbee2632474444",
+      "name": "要问妈妈",
+      "elimReason": "币龄0.1h 最高持币仅1",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840778000
+    },
+    {
+      "address": "0xeffc77ec47bc792065e71593d9061188f8794444",
+      "name": "问妈妈",
+      "elimReason": "币龄0.1h 最高持币仅1",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840779000
+    },
+    {
+      "address": "0x6151c175195036630c3cc9c42304549ac0ea4444",
+      "name": "妈妈问",
+      "elimReason": "币龄0.1h 最高持币仅1",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840780000
+    },
+    {
+      "address": "0x37b95f8e47b764bac3b8670d7fd098eb50074444",
+      "name": "要问妈妈",
+      "elimReason": "币龄0.1h 最高持币仅1",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840781000
+    },
+    {
+      "address": "0xf36a6ed42e359fb9520f98b25865fb91b5a34444",
+      "name": "要问妈妈",
+      "elimReason": "币龄0.1h 最高持币仅0",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840782000
+    },
+    {
+      "address": "0x74022ac76247ac54ae32e2b6ab147c80c4154444",
+      "name": "妈妈",
+      "elimReason": "币龄0.1h 最高持币仅1",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840784000
+    },
+    {
+      "address": "0xf0240666cd557396a4ce929d8794a26b73054444",
+      "name": "妈妈",
+      "elimReason": "币龄0.1h 最高持币仅1",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840785000
+    },
+    {
+      "address": "0x86cea475c48e792d200bc333f7b82d4753194444",
+      "name": "妈妈",
+      "elimReason": "币龄0.1h 最高持币仅1",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840785000
+    },
+    {
+      "address": "0x5cb7addd8d835696dd4083bd5f339200098a4444",
+      "name": "要问妈妈",
+      "elimReason": "币龄0.1h 最高持币仅1",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840789000
+    },
+    {
+      "address": "0x779dc16309742ab57cf56a56db3c04ed06344444",
+      "name": "妈妈",
+      "elimReason": "币龄0.1h 最高持币仅1",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840786000
+    },
+    {
+      "address": "0xe3f14d3b31eb5e181599003aedbfaf2f088b4444",
+      "name": "你妈妈",
+      "elimReason": "币龄0.1h 最高持币仅1",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840786000
+    },
+    {
+      "address": "0xa76dc460297775aae59c8f3298e52eb775544444",
+      "name": "妈妈",
+      "elimReason": "币龄0.1h 最高持币仅1",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840787000
+    },
+    {
+      "address": "0xe9000e7dc3a0e9601ed239e9b4d140fe2f674444",
+      "name": "要问妈妈🤣",
+      "elimReason": "币龄0.1h 最高持币仅0",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840789000
+    },
+    {
+      "address": "0xf8408b8e007b4f63da13533abe7e5e7c9f474444",
+      "name": "妈妈",
+      "elimReason": "币龄0.1h 最高持币仅1",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840793000
+    },
+    {
+      "address": "0xb65b065d0aef89a3be9c7310fec60dcd82934444",
+      "name": "问妈妈",
+      "elimReason": "币龄0.1h 最高持币仅1",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840795000
+    },
+    {
+      "address": "0xb82d90017eee9fe5277738154ddb155f47624444",
+      "name": "小赵",
+      "elimReason": "币龄0.1h 最高持币仅1",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840795000
+    },
+    {
+      "address": "0xfc21a7ff09a2dc4a6a63340e37a200654f6a4444",
+      "name": "妈妈",
+      "elimReason": "币龄0.1h 最高持币仅1",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840795000
+    },
+    {
+      "address": "0x83d2452c32f74d87d22972d0334244ad4f484444",
+      "name": "大",
+      "elimReason": "币龄0.1h 最高持币仅1",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840796000
+    },
+    {
+      "address": "0xa6516fb59bbf2c8f0a17d2c7c65bb3a69f5e4444",
+      "name": "CZ妈妈",
+      "elimReason": "币龄0.1h 最高持币仅1",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840797000
+    },
+    {
+      "address": "0xf9f5e6f03ade0c8bf9ecc1f2f6c3e08ef3374444",
+      "name": "问问你妈妈",
+      "elimReason": "币龄0.1h 最高持币仅0",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840804000
+    },
+    {
+      "address": "0x22b73f5ef98ad62bfff96ec2d336120953364444",
+      "name": "姐弟",
+      "elimReason": "币龄0.1h 最高持币仅1",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840828000
+    },
+    {
+      "address": "0x89b127795e9ce961e95ea172d0173218af4a4444",
+      "name": "要问妈妈",
+      "elimReason": "币龄0.1h 最高持币仅2",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840850000
+    },
+    {
+      "address": "0x0a32ee4cb37d7cc04c403fd6f72862a6f9bd4444",
+      "name": "Wisdom of Money",
+      "elimReason": "币龄0.1h 最高持币仅0",
+      "eliminatedAt": 1775841317863,
+      "createdAt": 1775840967000
     }
   ],
-  "lastBlock": 91755825,
-  "lastScanTime": 1775840432578
+  "lastBlock": 91757790,
+  "lastScanTime": 1775841317863
 }
