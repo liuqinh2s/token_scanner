@@ -1,29 +1,6 @@
 {
   "tokens": [
     {
-      "address": "0xf921169b5b228210739c9470608a94ec79444444",
-      "name": "Tung Tung Tung Sahur",
-      "symbol": "TripleT",
-      "createdAt": 1775835922000,
-      "addedAt": 1775836828590,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "twitter": "https://x.com/BinanceUS/status/2042630008896917885"
-      },
-      "descr": "x",
-      "price": 0.00001737,
-      "peakPrice": 0.00003225,
-      "holders": 254,
-      "peakHolders": 326,
-      "liquidity": 0,
-      "peakLiquidity": 0,
-      "progress": 0,
-      "day1Vol": 0,
-      "consecDrops": 0,
-      "lastPrice": 0.00001737
-    },
-    {
       "address": "0x22ebd10558b82209e2a822a32a0699a35f884444",
       "name": "XHunt",
       "symbol": "XHunt",
@@ -129,7 +106,7 @@
         "website": "https://x.com/HoTPOfficial"
       },
       "descr": "House Of The People",
-      "price": 0.000004503,
+      "price": 0.000004178,
       "peakPrice": 0.00000542,
       "holders": 17,
       "peakHolders": 18,
@@ -137,8 +114,8 @@
       "peakLiquidity": 0,
       "progress": 0,
       "day1Vol": 0,
-      "consecDrops": 0,
-      "lastPrice": 0.000004503
+      "consecDrops": 1,
+      "lastPrice": 0.000004178
     },
     {
       "address": "0x13d0ac8435df19ff75a8e26194bb87da101e4444",
@@ -176,16 +153,16 @@
         "website": "https://x.com/Cz_Vlog"
       },
       "descr": "CZ新书《币安人生》Vlog",
-      "price": 0.000005793,
+      "price": 0.000005662,
       "peakPrice": 0.00001249,
-      "holders": 53,
+      "holders": 52,
       "peakHolders": 74,
       "liquidity": 0,
       "peakLiquidity": 0,
       "progress": 0,
       "day1Vol": 0,
-      "consecDrops": 1,
-      "lastPrice": 0.000005793
+      "consecDrops": 2,
+      "lastPrice": 0.000005662
     },
     {
       "address": "0x48b8f71554ef9fa452d9a47966bb8daf9e494444",
@@ -200,16 +177,16 @@
         "website": "https://x.com/i/grok/share/fe8ff12e7f614ccba92056076989ee04"
       },
       "descr": "Deployed using j7tracker.io",
-      "price": 0.000003729,
-      "peakPrice": 0.000003746,
-      "holders": 4,
-      "peakHolders": 5,
+      "price": 0.000003967,
+      "peakPrice": 0.000003967,
+      "holders": 6,
+      "peakHolders": 6,
       "liquidity": 0,
       "peakLiquidity": 0,
       "progress": 0,
       "day1Vol": 0,
-      "consecDrops": 1,
-      "lastPrice": 0.000003729
+      "consecDrops": 0,
+      "lastPrice": 0.000003967
     },
     {
       "address": "0xd17920987e006a3dfc0b9de0f3ee3aea66424444",
@@ -223,16 +200,16 @@
         "twitter": "https://x.com/cookershiroo/status/2042682219244708235"
       },
       "descr": "Launched on discord.gg/uxento",
-      "price": 0.000004042,
-      "peakPrice": 0.000004042,
-      "holders": 8,
-      "peakHolders": 8,
+      "price": 0.000004634,
+      "peakPrice": 0.000004634,
+      "holders": 13,
+      "peakHolders": 13,
       "liquidity": 0,
       "peakLiquidity": 0,
       "progress": 0,
       "day1Vol": 0,
       "consecDrops": 0,
-      "lastPrice": 0.000004042
+      "lastPrice": 0.000004634
     },
     {
       "address": "0x44ed22376f29cbabc8f98de72e7bd4b48c404444",
@@ -246,33 +223,90 @@
         "twitter": "https://x.com/cookershiroo/status/2042682219244708235"
       },
       "descr": "PsyopTrumpUsaElon",
-      "price": 0.000005316,
-      "peakPrice": 0.000005316437708156,
-      "holders": 10,
-      "peakHolders": 10,
+      "price": 0.00000798,
+      "peakPrice": 0.00000798,
+      "holders": 35,
+      "peakHolders": 35,
       "liquidity": 0,
       "peakLiquidity": 0,
       "progress": 0,
       "day1Vol": 0,
-      "consecDrops": 1,
-      "lastPrice": 0.000005316
+      "consecDrops": 0,
+      "lastPrice": 0.00000798
+    },
+    {
+      "address": "0x3c5da76f68fb7325c959741986a9a903edde4444",
+      "name": "不失眠",
+      "symbol": "不失眠",
+      "createdAt": 1775851209000,
+      "addedAt": 1775851225449,
+      "totalSupply": 1000000000,
+      "socialCount": 2,
+      "socialLinks": {
+        "twitter": "https://x.com/BinanceUS/status/2042694151171358944",
+        "website": "https://x.com/BinanceUS/status/2042694151171358944"
+      },
+      "descr": "不失眠",
+      "price": 5.739795918367347e-9,
+      "peakPrice": 5.739795918367347e-9,
+      "holders": 0,
+      "peakHolders": 0,
+      "liquidity": 0,
+      "peakLiquidity": 0,
+      "progress": 0,
+      "day1Vol": 0,
+      "consecDrops": 0,
+      "lastPrice": 5.739795918367347e-9
+    },
+    {
+      "address": "0x51ca8f53f3132561a7dafd3901709b1723294444",
+      "name": "不眠之地",
+      "symbol": "不眠之地",
+      "createdAt": 1775851209000,
+      "addedAt": 1775851225449,
+      "totalSupply": 1000000000,
+      "socialCount": 2,
+      "socialLinks": {
+        "twitter": "https://x.com/BinanceUS/status/2042694151171358944",
+        "website": "https://x.com/BinanceUS/status/2042694151171358944"
+      },
+      "descr": "不眠之地",
+      "price": 8.866146891e-9,
+      "peakPrice": 8.866146891e-9,
+      "holders": 0,
+      "peakHolders": 0,
+      "liquidity": 0,
+      "peakLiquidity": 0,
+      "progress": 0,
+      "day1Vol": 0,
+      "consecDrops": 0,
+      "lastPrice": 8.866146891e-9
+    },
+    {
+      "address": "0x096292784784d2da18f4f316379727d4dbd74444",
+      "name": "xchat",
+      "symbol": "xchat",
+      "createdAt": 1775851211000,
+      "addedAt": 1775851225449,
+      "totalSupply": 1000000000,
+      "socialCount": 1,
+      "socialLinks": {
+        "twitter": "https://x.com/nikitabier/status/2042694084775809072"
+      },
+      "descr": "xchat",
+      "price": 5.739795918367347e-9,
+      "peakPrice": 5.739795918367347e-9,
+      "holders": 0,
+      "peakHolders": 0,
+      "liquidity": 0,
+      "peakLiquidity": 0,
+      "progress": 0,
+      "day1Vol": 0,
+      "consecDrops": 0,
+      "lastPrice": 5.739795918367347e-9
     }
   ],
   "eliminated": [
-    {
-      "address": "0x90160e53d17ba6e0e1269d4241c91831a51e4444",
-      "name": "幣安天使",
-      "elimReason": "币龄0.9h 最高持币仅1",
-      "eliminatedAt": 1775833234272,
-      "createdAt": 1775829854000
-    },
-    {
-      "address": "0xf9077ade66419c7bc79d0c9971f734b1d2d34444",
-      "name": "AgentCity",
-      "elimReason": "币龄0.9h 最高持币仅3",
-      "eliminatedAt": 1775833234272,
-      "createdAt": 1775829852000
-    },
     {
       "address": "0x68ad736dee1fb096614ab6d750cb012cb8984444",
       "name": "Crypto Overlord",
@@ -7258,8 +7292,22 @@
       "elimReason": "币龄0.2h 最高持币仅1",
       "eliminatedAt": 1775850316840,
       "createdAt": 1775849768000
+    },
+    {
+      "address": "0xf921169b5b228210739c9470608a94ec79444444",
+      "name": "Tung Tung Tung Sahur",
+      "elimReason": "进度0.00% 币龄4.3h",
+      "eliminatedAt": 1775851225449,
+      "createdAt": 1775835922000
+    },
+    {
+      "address": "0x937a511fd1f58bed7da67d66077f9c52b5ba4444",
+      "name": "The Runner",
+      "elimReason": "币龄0.2h 最高持币仅0",
+      "eliminatedAt": 1775851225449,
+      "createdAt": 1775850669000
     }
   ],
-  "lastBlock": 91777778,
-  "lastScanTime": 1775850316840
+  "lastBlock": 91779792,
+  "lastScanTime": 1775851225449
 }
