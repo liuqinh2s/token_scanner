@@ -1,52 +1,6 @@
 {
   "tokens": [
     {
-      "address": "0xf3deec7241b7c4ccfbdbf5185513f63c8c2d4444",
-      "name": "Panda Elon",
-      "symbol": "PELON",
-      "createdAt": 1775832086000,
-      "addedAt": 1775832315256,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "website": "https://poocoin.app/tokens/0x6e169d536553a21ae02cc0fee2e1b0672e4d5d49"
-      },
-      "descr": "Panda Elon",
-      "price": 0.000003481,
-      "peakPrice": 0.000004292,
-      "holders": 2,
-      "peakHolders": 10,
-      "liquidity": 0,
-      "peakLiquidity": 0,
-      "progress": 0,
-      "day1Vol": 0,
-      "consecDrops": 0,
-      "lastPrice": 0.000003481
-    },
-    {
-      "address": "0xc5e21ce6f807a6d97429ed0aaac1cc73f819ffff",
-      "name": "Binance Movie",
-      "symbol": "BM",
-      "createdAt": 1775832222000,
-      "addedAt": 1775832315256,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "twitter": "https://x.com/BinanceMovie"
-      },
-      "descr": "Binance Movie",
-      "price": 0.000402,
-      "peakPrice": 0.000628,
-      "holders": 77,
-      "peakHolders": 77,
-      "liquidity": 64471.3,
-      "peakLiquidity": 78698.87,
-      "progress": 0,
-      "day1Vol": 0,
-      "consecDrops": 0,
-      "lastPrice": 0.000402
-    },
-    {
       "address": "0x4375926fcf0c945c8badd2816d8655b9fb664444",
       "name": "Elon Childhood Dog",
       "symbol": "MAX",
@@ -104,16 +58,16 @@
         "twitter": "https://x.com/BinanceUS/status/2042630008896917885"
       },
       "descr": "x",
-      "price": 0.00001949,
+      "price": 0.00002062,
       "peakPrice": 0.00003225,
-      "holders": 257,
+      "holders": 255,
       "peakHolders": 326,
       "liquidity": 0,
       "peakLiquidity": 0,
       "progress": 0,
       "day1Vol": 0,
       "consecDrops": 0,
-      "lastPrice": 0.00001949
+      "lastPrice": 0.00002062
     },
     {
       "address": "0x22ebd10558b82209e2a822a32a0699a35f884444",
@@ -268,16 +222,16 @@
         "website": "https://x.com/Cz_Vlog"
       },
       "descr": "CZ新书《币安人生》Vlog",
-      "price": 0.000005545,
+      "price": 0.000006505,
       "peakPrice": 0.00001249,
-      "holders": 43,
+      "holders": 46,
       "peakHolders": 74,
       "liquidity": 0,
       "peakLiquidity": 0,
       "progress": 0,
       "day1Vol": 0,
-      "consecDrops": 1,
-      "lastPrice": 0.000005545
+      "consecDrops": 0,
+      "lastPrice": 0.000006505
     },
     {
       "address": "0xa9acb14cc82a76c74a6c712b817ec2d978974444",
@@ -292,16 +246,16 @@
         "website": "https://x.com/BinanceMovie"
       },
       "descr": "将《幣安人生》影像化改编中......\n\n解读币安真实故事背后的幸运、压力与用户优先文化",
-      "price": 0.00002135,
-      "peakPrice": 0.00002135,
-      "holders": 301,
-      "peakHolders": 301,
+      "price": 0.00002187,
+      "peakPrice": 0.00002187,
+      "holders": 373,
+      "peakHolders": 373,
       "liquidity": 0,
       "peakLiquidity": 0,
       "progress": 0,
       "day1Vol": 0,
       "consecDrops": 0,
-      "lastPrice": 0.00002135
+      "lastPrice": 0.00002187
     },
     {
       "address": "0x2fc42a72e592b040e87caee04137998b436d4444",
@@ -316,7 +270,7 @@
         "website": "https://www.nbcnews.com/tech/tech-news/openai-ceo-sam-altman-molotov-cocktail-house-headquarters-rcna273694"
       },
       "descr": "",
-      "price": 0.000003629,
+      "price": 0.000003577,
       "peakPrice": 0.000003629,
       "holders": 9,
       "peakHolders": 9,
@@ -324,53 +278,149 @@
       "peakLiquidity": 0,
       "progress": 0,
       "day1Vol": 0,
+      "consecDrops": 1,
+      "lastPrice": 0.000003577
+    },
+    {
+      "address": "0x7766261f2928f75c6b12e3a89faf9851e4df4444",
+      "name": "PANDAPUMP",
+      "symbol": "PANDAPUMP",
+      "createdAt": 1775846430000,
+      "addedAt": 1775846715766,
+      "totalSupply": 1000000000,
+      "socialCount": 1,
+      "socialLinks": {
+        "twitter": "https://x.com/elonmusk"
+      },
+      "descr": "Get rich or get rekt on Binance\n\nNo utility. Just hype. Just PANDA.",
+      "price": 0.000003489,
+      "peakPrice": 0.000003489,
+      "holders": 0,
+      "peakHolders": 0,
+      "liquidity": 0,
+      "peakLiquidity": 0,
+      "progress": 0,
+      "day1Vol": 0,
       "consecDrops": 0,
-      "lastPrice": 0.000003629
+      "lastPrice": 0.000003489
+    },
+    {
+      "address": "0x00dedb77dfcfb5745812b999abdabfd175824444",
+      "name": "The Final Survivor",
+      "symbol": "The Final Survivor",
+      "createdAt": 1775846500000,
+      "addedAt": 1775846715766,
+      "totalSupply": 1000000000,
+      "socialCount": 1,
+      "socialLinks": {
+        "website": "https://four.meme/token/0x444414735b23394c5798472fe7b6c7ed833b28e0?code=32CB4HMEPW5B"
+      },
+      "descr": "The Final Survivor",
+      "price": 5.739795918367347e-9,
+      "peakPrice": 5.739795918367347e-9,
+      "holders": 0,
+      "peakHolders": 0,
+      "liquidity": 0,
+      "peakLiquidity": 0,
+      "progress": 0,
+      "day1Vol": 0,
+      "consecDrops": 0,
+      "lastPrice": 5.739795918367347e-9
+    },
+    {
+      "address": "0x5d47c246b043d6cb52af944b5ae7af276e2c4444",
+      "name": "The Final Survivor",
+      "symbol": "The Final Survivor",
+      "createdAt": 1775846507000,
+      "addedAt": 1775846715766,
+      "totalSupply": 1000000000,
+      "socialCount": 1,
+      "socialLinks": {
+        "website": "https://four.meme/token/0x444414735b23394c5798472fe7b6c7ed833b28e0?code=32CB4HMEPW5B"
+      },
+      "descr": "The Final Survivor",
+      "price": 5.739795918367347e-9,
+      "peakPrice": 5.739795918367347e-9,
+      "holders": 0,
+      "peakHolders": 0,
+      "liquidity": 0,
+      "peakLiquidity": 0,
+      "progress": 0,
+      "day1Vol": 0,
+      "consecDrops": 0,
+      "lastPrice": 5.739795918367347e-9
+    },
+    {
+      "address": "0x4c438032703b0f41bfa53fbe939ec35a58f24444",
+      "name": "Official Barron Coin",
+      "symbol": "Official Barron Coin",
+      "createdAt": 1775846558000,
+      "addedAt": 1775846715766,
+      "totalSupply": 1000000000,
+      "socialCount": 1,
+      "socialLinks": {
+        "website": "https://four.meme/token/0x444402a43ab5ddc2ab9c9f3c2640ab72897ffe67?code=32CB4HMEPW5B"
+      },
+      "descr": "Official Barron Coin",
+      "price": 5.739795918367347e-9,
+      "peakPrice": 5.739795918367347e-9,
+      "holders": 0,
+      "peakHolders": 0,
+      "liquidity": 0,
+      "peakLiquidity": 0,
+      "progress": 0,
+      "day1Vol": 0,
+      "consecDrops": 0,
+      "lastPrice": 5.739795918367347e-9
+    },
+    {
+      "address": "0x8ec9f9e0b5f27d44c04a37233e0ffbcd65974444",
+      "name": "灵机",
+      "symbol": "灵机",
+      "createdAt": 1775846634000,
+      "addedAt": 1775846715766,
+      "totalSupply": 1000000000,
+      "socialCount": 1,
+      "socialLinks": {
+        "website": "https://four.meme/token/0x0e142630f6f33cd276da6795d06b63ae35444444?code=32CB4HMEPW5B"
+      },
+      "descr": "灵机",
+      "price": 5.739795918367347e-9,
+      "peakPrice": 5.739795918367347e-9,
+      "holders": 0,
+      "peakHolders": 0,
+      "liquidity": 0,
+      "peakLiquidity": 0,
+      "progress": 0,
+      "day1Vol": 0,
+      "consecDrops": 0,
+      "lastPrice": 5.739795918367347e-9
+    },
+    {
+      "address": "0x3bf6c9a5f85987adca52ba9765a13ec256104444",
+      "name": "Ramadhan",
+      "symbol": "Ramadhan",
+      "createdAt": 1775846700000,
+      "addedAt": 1775846715766,
+      "totalSupply": 1000000000,
+      "socialCount": 1,
+      "socialLinks": {
+        "website": "https://four.meme/token/0x23a63e85d16a9517a9c735a04b07688bda334444?code=32CB4HMEPW5B"
+      },
+      "descr": "Ramadhan",
+      "price": 5.739795918367347e-9,
+      "peakPrice": 5.739795918367347e-9,
+      "holders": 0,
+      "peakHolders": 0,
+      "liquidity": 0,
+      "peakLiquidity": 0,
+      "progress": 0,
+      "day1Vol": 0,
+      "consecDrops": 0,
+      "lastPrice": 5.739795918367347e-9
     }
   ],
   "eliminated": [
-    {
-      "address": "0xad1655d37702e0bb032025cdf588f51056e54444",
-      "name": "虚无主义",
-      "elimReason": "币龄1.0h 最高持币仅4",
-      "eliminatedAt": 1775833234272,
-      "createdAt": 1775829801000
-    },
-    {
-      "address": "0xe944a487eba12668aad052f6c3bdeee626044444",
-      "name": "Crypto Overlord",
-      "elimReason": "币龄0.9h 最高持币仅2",
-      "eliminatedAt": 1775833234272,
-      "createdAt": 1775829819000
-    },
-    {
-      "address": "0x1cd74486e4f1be982da577848610a4d4722f4444",
-      "name": "合手",
-      "elimReason": "币龄0.9h 最高持币仅1",
-      "eliminatedAt": 1775833234272,
-      "createdAt": 1775829817000
-    },
-    {
-      "address": "0xaf4a43679451d12f274f5045795960c92e424444",
-      "name": "NIHILISM",
-      "elimReason": "币龄0.9h 最高持币仅2",
-      "eliminatedAt": 1775833234272,
-      "createdAt": 1775829818000
-    },
-    {
-      "address": "0x4c82d636583417fb7c68e8f994fba1e42e4d4444",
-      "name": "🤝",
-      "elimReason": "币龄0.9h 最高持币仅1",
-      "eliminatedAt": 1775833234272,
-      "createdAt": 1775829818000
-    },
-    {
-      "address": "0xe68cf139515a520f9e79cc74dbd41cb5328f4444",
-      "name": "DawesomeDoge",
-      "elimReason": "币龄0.9h 最高持币仅1",
-      "eliminatedAt": 1775833234272,
-      "createdAt": 1775829821000
-    },
     {
       "address": "0x5747969c4fae70d3258efe06872e97107d514444",
       "name": "Crypto Overlord",
@@ -7328,8 +7378,50 @@
       "elimReason": "币龄0.3h 最高持币仅0",
       "eliminatedAt": 1775845825318,
       "createdAt": 1775844894000
+    },
+    {
+      "address": "0xf3deec7241b7c4ccfbdbf5185513f63c8c2d4444",
+      "name": "Panda Elon",
+      "elimReason": "进度0.00% 币龄4.1h",
+      "eliminatedAt": 1775846715766,
+      "createdAt": 1775832086000
+    },
+    {
+      "address": "0xc5e21ce6f807a6d97429ed0aaac1cc73f819ffff",
+      "name": "Binance Movie",
+      "elimReason": "进度0.00% 币龄4.0h",
+      "eliminatedAt": 1775846715766,
+      "createdAt": 1775832222000
+    },
+    {
+      "address": "0x29158ed3962ead65733d5fc7b2cffe9169374444",
+      "name": "leadertest",
+      "elimReason": "币龄0.2h 最高持币仅1",
+      "eliminatedAt": 1775846715766,
+      "createdAt": 1775845831000
+    },
+    {
+      "address": "0x729d29da1ed4cf854273817055f93e3b62054444",
+      "name": "Neuralink",
+      "elimReason": "币龄0.2h 最高持币仅0",
+      "eliminatedAt": 1775846715766,
+      "createdAt": 1775845866000
+    },
+    {
+      "address": "0xa82f2afb4df81a4a20bd4ead852a1b9559d94444",
+      "name": "AI写公众号年赚200万",
+      "elimReason": "币龄0.2h 最高持币仅0",
+      "eliminatedAt": 1775846715766,
+      "createdAt": 1775845918000
+    },
+    {
+      "address": "0xeef36e7de07c955a5de2123f9ee6ee4101b94444",
+      "name": "asd",
+      "elimReason": "币龄0.1h 最高持币仅1",
+      "eliminatedAt": 1775846715766,
+      "createdAt": 1775846401000
     }
   ],
-  "lastBlock": 91767802,
-  "lastScanTime": 1775845825318
+  "lastBlock": 91769777,
+  "lastScanTime": 1775846715766
 }
