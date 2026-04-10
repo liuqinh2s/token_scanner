@@ -1,0 +1,648 @@
+{
+  "scanTime": "2026-4-11 02:15:15",
+  "totalTokens": 21,
+  "newDiscovered": 17,
+  "newAdmitted": 14,
+  "eliminatedCount": 19,
+  "filteredTokens": 0,
+  "queueSize": 21,
+  "tokens": [],
+  "queue": [
+    {
+      "address": "0x8328e54e93aab691b2d6a97cd78da15fb2a54444",
+      "name": "Four.meme 的联名吉祥物",
+      "symbol": "TAGGER",
+      "holders": 5,
+      "created_at": 1775830798000,
+      "price": 0.000003571,
+      "peak_price": 0.000003802,
+      "peak_holders": 13,
+      "liquidity": 0,
+      "peak_liquidity": 0,
+      "progress": 0,
+      "social_count": 2,
+      "social_links": {
+        "twitter": "https://x.com/vukgz/status/2042608527554867275",
+        "website": "https://four.meme/competition/Tagger"
+      },
+      "age_hours": 3.92,
+      "consec_drops": 0
+    },
+    {
+      "address": "0xf3deec7241b7c4ccfbdbf5185513f63c8c2d4444",
+      "name": "Panda Elon",
+      "symbol": "PELON",
+      "holders": 2,
+      "created_at": 1775832086000,
+      "price": 0.000003481,
+      "peak_price": 0.000004292,
+      "peak_holders": 10,
+      "liquidity": 0,
+      "peak_liquidity": 0,
+      "progress": 0,
+      "social_count": 1,
+      "social_links": {
+        "website": "https://poocoin.app/tokens/0x6e169d536553a21ae02cc0fee2e1b0672e4d5d49"
+      },
+      "age_hours": 3.56,
+      "consec_drops": 0
+    },
+    {
+      "address": "0xc5e21ce6f807a6d97429ed0aaac1cc73f819ffff",
+      "name": "Binance Movie",
+      "symbol": "BM",
+      "holders": 77,
+      "created_at": 1775832222000,
+      "price": 0.0003893,
+      "peak_price": 0.000628,
+      "peak_holders": 77,
+      "liquidity": 63354.6,
+      "peak_liquidity": 78698.87,
+      "progress": 0,
+      "social_count": 1,
+      "social_links": {
+        "twitter": "https://x.com/BinanceMovie"
+      },
+      "age_hours": 3.53,
+      "consec_drops": 1
+    },
+    {
+      "address": "0x4375926fcf0c945c8badd2816d8655b9fb664444",
+      "name": "Elon Childhood Dog",
+      "symbol": "MAX",
+      "holders": 11,
+      "created_at": 1775835089000,
+      "price": 0.000003658,
+      "peak_price": 0.000003891,
+      "peak_holders": 17,
+      "liquidity": 0,
+      "peak_liquidity": 0,
+      "progress": 0,
+      "social_count": 1,
+      "social_links": {
+        "twitter": "https://x.com/lucie_1412/status/2042618124395254019"
+      },
+      "age_hours": 2.73,
+      "consec_drops": 0
+    },
+    {
+      "address": "0xd1c13143fec7e035a08667b15dc00c7d9c4e4444",
+      "name": "你的人格是由自己定义",
+      "symbol": "你自己",
+      "holders": 15,
+      "created_at": 1775835194000,
+      "price": 0.000003964,
+      "peak_price": 0.000004338,
+      "peak_holders": 24,
+      "liquidity": 0,
+      "peak_liquidity": 0,
+      "progress": 0,
+      "social_count": 1,
+      "social_links": {
+        "website": "https://weibo.com/detail/5286298204247045"
+      },
+      "age_hours": 2.7,
+      "consec_drops": 0
+    },
+    {
+      "address": "0xf921169b5b228210739c9470608a94ec79444444",
+      "name": "Tung Tung Tung Sahur",
+      "symbol": "TripleT",
+      "holders": 251,
+      "created_at": 1775835922000,
+      "price": 0.00001751,
+      "peak_price": 0.00003225,
+      "peak_holders": 326,
+      "liquidity": 0,
+      "peak_liquidity": 0,
+      "progress": 0,
+      "social_count": 1,
+      "social_links": {
+        "twitter": "https://x.com/BinanceUS/status/2042630008896917885"
+      },
+      "age_hours": 2.5,
+      "consec_drops": 1
+    },
+    {
+      "address": "0x22ebd10558b82209e2a822a32a0699a35f884444",
+      "name": "XHunt",
+      "symbol": "XHunt",
+      "holders": 4,
+      "created_at": 1775837521000,
+      "price": 0.000003571,
+      "peak_price": 0.000003747,
+      "peak_holders": 10,
+      "liquidity": 0,
+      "peak_liquidity": 0,
+      "progress": 0,
+      "social_count": 1,
+      "social_links": {
+        "twitter": "https://x.com/i/status/2042636635469193646"
+      },
+      "age_hours": 2.05,
+      "consec_drops": 0
+    },
+    {
+      "address": "0xcf975a8c3db9ca7aed5178cbb1bc299c894a4444",
+      "name": "Wisdom of Money",
+      "symbol": "Wisdom of Money",
+      "holders": 5,
+      "created_at": 1775838246000,
+      "price": 0.000003515,
+      "peak_price": 0.000004011,
+      "peak_holders": 10,
+      "liquidity": 0,
+      "peak_liquidity": 0,
+      "progress": 0,
+      "social_count": 2,
+      "social_links": {
+        "twitter": "https://x.com/WisdomofMoney_",
+        "website": "https://www.wisdomofmoney.xyz/"
+      },
+      "age_hours": 1.85,
+      "consec_drops": 0
+    },
+    {
+      "address": "0x2da0cee7ff66cbe261347ec27ebf59002e2b4444",
+      "name": "Prediction Jelly",
+      "symbol": "Prediction Jelly",
+      "holders": 17,
+      "created_at": 1775838571000,
+      "price": 0.000003476,
+      "peak_price": 0.000003495,
+      "peak_holders": 17,
+      "liquidity": 0,
+      "peak_liquidity": 0,
+      "progress": 0,
+      "social_count": 1,
+      "social_links": {
+        "twitter": "https://x.com/agentz010/status/2042379228885201246"
+      },
+      "age_hours": 1.76,
+      "consec_drops": 0
+    },
+    {
+      "address": "0x1c5e5402535b237703b4adce45eb9da496844444",
+      "name": "Prediction Jelly",
+      "symbol": "Prediction Jelly",
+      "holders": 13,
+      "created_at": 1775839550000,
+      "price": 0.000003475,
+      "peak_price": 0.000003475,
+      "peak_holders": 13,
+      "liquidity": 0,
+      "peak_liquidity": 0,
+      "progress": 0,
+      "social_count": 1,
+      "social_links": {
+        "twitter": "https://x.com/agentz010/status/2042379228885201246"
+      },
+      "age_hours": 1.49,
+      "consec_drops": 0
+    },
+    {
+      "address": "0x288ccbc2852bc5c9dd73eca5bff154606465ffff",
+      "name": "House Of The People",
+      "symbol": "HoTP",
+      "holders": 17,
+      "created_at": 1775839736000,
+      "price": 0.000004688,
+      "peak_price": 0.00000542,
+      "peak_holders": 18,
+      "liquidity": 0,
+      "peak_liquidity": 0,
+      "progress": 0,
+      "social_count": 2,
+      "social_links": {
+        "twitter": "https://x.com/sakainorikoreal/status/2042644442985763192",
+        "website": "https://x.com/HoTPOfficial"
+      },
+      "age_hours": 1.44,
+      "consec_drops": 1
+    },
+    {
+      "address": "0x13d0ac8435df19ff75a8e26194bb87da101e4444",
+      "name": "CapitalCon",
+      "symbol": "CapitalCon",
+      "holders": 33,
+      "created_at": 1775841240000,
+      "price": 0.000003483,
+      "peak_price": 0.000003483,
+      "peak_holders": 33,
+      "liquidity": 0,
+      "peak_liquidity": 0,
+      "progress": 0,
+      "social_count": 1,
+      "social_links": {
+        "twitter": "https://x.com/heyibinance/status/2042652328239489177"
+      },
+      "age_hours": 1.02,
+      "consec_drops": 0
+    },
+    {
+      "address": "0x7cf132f0d2e6ae0b797df776dc6b361eed7d4444",
+      "name": "玩乐人生",
+      "symbol": "玩乐人生",
+      "holders": 20,
+      "created_at": 1775842232000,
+      "price": 0.000004489,
+      "peak_price": 0.000005942,
+      "peak_holders": 33,
+      "liquidity": 0,
+      "peak_liquidity": 0,
+      "progress": 0,
+      "social_count": 1,
+      "social_links": {
+        "twitter": "https://x.com/pmarca/status/2042656476200902833"
+      },
+      "age_hours": 0.75,
+      "consec_drops": 2
+    },
+    {
+      "address": "0x4021c2eb5664142ba26ef88fcfb7aeb7a086ffff",
+      "name": "CZVlog",
+      "symbol": "CZVlog",
+      "holders": 74,
+      "created_at": 1775843352000,
+      "price": 0.00001249,
+      "peak_price": 0.00001249,
+      "peak_holders": 74,
+      "liquidity": 0,
+      "peak_liquidity": 0,
+      "progress": 0,
+      "social_count": 2,
+      "social_links": {
+        "twitter": "https://x.com/Cz_Vlog",
+        "website": "https://x.com/Cz_Vlog"
+      },
+      "age_hours": 0.43,
+      "consec_drops": 0
+    },
+    {
+      "address": "0x3cf4cbda3bd48b1e50421c01076880e8cbb64444",
+      "name": "ترامپ رسمی",
+      "symbol": "ترامپ",
+      "holders": 9,
+      "created_at": 1775843760000,
+      "price": 0.000004103,
+      "peak_price": 0.000004627138019761,
+      "peak_holders": 19,
+      "liquidity": 0,
+      "peak_liquidity": 0,
+      "progress": 0,
+      "social_count": 1,
+      "social_links": {
+        "twitter": "https://x.com/MarioNawfal/status/2042662051286237372"
+      },
+      "age_hours": 0.32,
+      "consec_drops": 2
+    },
+    {
+      "address": "0xa9acb14cc82a76c74a6c712b817ec2d978974444",
+      "name": "Binance Movie",
+      "symbol": "Binance Movie",
+      "holders": 74,
+      "created_at": 1775843889000,
+      "price": 0.00001862,
+      "peak_price": 0.00001862,
+      "peak_holders": 74,
+      "liquidity": 0,
+      "peak_liquidity": 0,
+      "progress": 0,
+      "social_count": 2,
+      "social_links": {
+        "twitter": "https://x.com/BinanceMovie",
+        "website": "https://x.com/BinanceMovie"
+      },
+      "age_hours": 0.29,
+      "consec_drops": 0
+    },
+    {
+      "address": "0xa3b6cfbe135438ee1e100118908fa419b73f4444",
+      "name": "币安暴富",
+      "symbol": "BNBFU",
+      "holders": 4,
+      "created_at": 1775844049000,
+      "price": 0.000003657,
+      "peak_price": 0.000003657,
+      "peak_holders": 4,
+      "liquidity": 0,
+      "peak_liquidity": 0,
+      "progress": 0,
+      "social_count": 1,
+      "social_links": {
+        "twitter": "https://x.com/binance"
+      },
+      "age_hours": 0.24,
+      "consec_drops": 0
+    },
+    {
+      "address": "0x2fc42a72e592b040e87caee04137998b436d4444",
+      "name": "FOMO",
+      "symbol": "FOMO",
+      "holders": 9,
+      "created_at": 1775844182000,
+      "price": 0.000003603,
+      "peak_price": 0.000003603,
+      "peak_holders": 9,
+      "liquidity": 0,
+      "peak_liquidity": 0,
+      "progress": 0,
+      "social_count": 2,
+      "social_links": {
+        "twitter": "https://x.com/cryptorover/status/2042664659401003293",
+        "website": "https://www.nbcnews.com/tech/tech-news/openai-ceo-sam-altman-molotov-cocktail-house-headquarters-rcna273694"
+      },
+      "age_hours": 0.2,
+      "consec_drops": 0
+    },
+    {
+      "address": "0x59de348fe5bca1ef42e3ad13419ab7f6a2154444",
+      "name": "늑구",
+      "symbol": "Neukgu",
+      "holders": 0,
+      "created_at": 1775844764000,
+      "price": 0.000003486,
+      "peak_price": 0.000003486,
+      "peak_holders": 0,
+      "liquidity": 0,
+      "peak_liquidity": 0,
+      "progress": 0,
+      "social_count": 2,
+      "social_links": {
+        "twitter": "https://x.com/Chubsters0x/status/2041780153299460475?s=20",
+        "website": "https://bnbagent.fun/go"
+      },
+      "age_hours": 0.04,
+      "consec_drops": 0
+    },
+    {
+      "address": "0x55e70d06cf1effa79d6a369f7ccec166d538ffff",
+      "name": "Quantum CZ",
+      "symbol": "QCZ",
+      "holders": 0,
+      "created_at": 1775844877000,
+      "price": 5.739795918367347e-9,
+      "peak_price": 5.739795918367347e-9,
+      "peak_holders": 0,
+      "liquidity": 0,
+      "peak_liquidity": 0,
+      "progress": 0,
+      "social_count": 1,
+      "social_links": {
+        "twitter": "https://x.com/cz_binance/status/2030542891412984204"
+      },
+      "age_hours": 0.01,
+      "consec_drops": 0
+    },
+    {
+      "address": "0x6e38fb9a2b4dfc610ec21c61f83f50c47b56ffff",
+      "name": "SuperCycle",
+      "symbol": "SCYCLE",
+      "holders": 0,
+      "created_at": 1775844894000,
+      "price": 5.739795918367347e-9,
+      "peak_price": 5.739795918367347e-9,
+      "peak_holders": 0,
+      "liquidity": 0,
+      "peak_liquidity": 0,
+      "progress": 0,
+      "social_count": 1,
+      "social_links": {
+        "twitter": "https://x.com/cz_binance/status/2010003621531038068"
+      },
+      "age_hours": 0.01,
+      "consec_drops": 0
+    }
+  ],
+  "eliminatedThisRound": [
+    {
+      "address": "0xc6fee1ab77e6cfd9553ab0cb43a84ac6b10a4444",
+      "name": "Crypto Overlord",
+      "symbol": "加密霸主",
+      "holders": 3,
+      "created_at": 1775829856000,
+      "price": 0.000003567,
+      "peak_price": 0.000004848,
+      "reason": "进度0.00% 币龄4.2h",
+      "social_count": 1,
+      "age_hours": 4.18
+    },
+    {
+      "address": "0xfe8b43b790f89ce1bcb9cbce8dc0af2034264444",
+      "name": "Bitcoin Finance",
+      "symbol": "币很安全",
+      "holders": 10,
+      "created_at": 1775830165000,
+      "price": 0.000003733,
+      "peak_price": 0.000004827,
+      "reason": "进度0.00% 币龄4.1h",
+      "social_count": 1,
+      "age_hours": 4.1
+    },
+    {
+      "address": "0xb5cba0357b96b46ac1a4c0b0135026d276494444",
+      "name": "movie",
+      "symbol": "MOVIE",
+      "holders": 1,
+      "created_at": 1775843739000,
+      "price": 0.000003484,
+      "peak_price": 0.000003484,
+      "reason": "币龄0.3h 最高持币仅1",
+      "social_count": 1,
+      "age_hours": 0.33
+    },
+    {
+      "address": "0x7293642f10e4b32d6b0ebe55369df010c44a4444",
+      "name": "test",
+      "symbol": "TEST",
+      "holders": 1,
+      "created_at": 1775843759000,
+      "price": 0.000003484,
+      "peak_price": 0.000003484,
+      "reason": "币龄0.3h 最高持币仅1",
+      "social_count": 1,
+      "age_hours": 0.32
+    },
+    {
+      "address": "0xb53938302c01e0012ab982d55f6bafb126164444",
+      "name": "ترامپ رسمی",
+      "symbol": "ترامپ",
+      "holders": 1,
+      "created_at": 1775843762000,
+      "price": 0.000003826,
+      "peak_price": 0.000003826530612244,
+      "reason": "币龄0.3h 最高持币仅1",
+      "social_count": 1,
+      "age_hours": 0.32
+    },
+    {
+      "address": "0x19c7e61fec4b78e2cb4238ee083d220d3b5a4444",
+      "name": "test",
+      "symbol": "TEST",
+      "holders": 1,
+      "created_at": 1775843760000,
+      "price": 0.000003484,
+      "peak_price": 0.000003484,
+      "reason": "币龄0.3h 最高持币仅1",
+      "social_count": 1,
+      "age_hours": 0.32
+    },
+    {
+      "address": "0x3815a60d3e15ac3c6561350822e3fdb323c34444",
+      "name": "test",
+      "symbol": "TEST",
+      "holders": 0,
+      "created_at": 1775843766000,
+      "price": 0.000003484,
+      "peak_price": 0.000003484,
+      "reason": "币龄0.3h 最高持币仅0",
+      "social_count": 1,
+      "age_hours": 0.32
+    },
+    {
+      "address": "0x4342cdf4364fbdfb21f713f7ff5d38725a494444",
+      "name": "EVE游戏货币",
+      "symbol": "星币",
+      "holders": 1,
+      "created_at": 1775843810000,
+      "price": 0.000003486,
+      "peak_price": 0.000003749,
+      "reason": "币龄0.3h 最高持币仅3",
+      "social_count": 1,
+      "age_hours": 0.31
+    },
+    {
+      "address": "0x122b156fc15f02b2696a3a0bed09794cf0b44444",
+      "name": "睡前清单",
+      "symbol": "睡前清单",
+      "holders": 1,
+      "created_at": 1775843998000,
+      "price": 0.000003486,
+      "peak_price": 0.000005535,
+      "reason": "币龄0.3h 最高持币仅1",
+      "social_count": 2,
+      "age_hours": 0.25
+    },
+    {
+      "address": "0xb06b1e5c7ce0a48478e9568fc8171fc743c64444",
+      "name": "to-do",
+      "symbol": "to-do",
+      "holders": 3,
+      "created_at": 1775843998000,
+      "price": 0.000003483,
+      "peak_price": 0.000005535,
+      "reason": "币龄0.3h 最高持币仅3",
+      "social_count": 2,
+      "age_hours": 0.25
+    },
+    {
+      "address": "0x337708083bdb008464b42b749369fcf309c54444",
+      "name": "猫币激励",
+      "symbol": "猫币",
+      "holders": 0,
+      "created_at": 1775844092000,
+      "price": 0.000003484,
+      "peak_price": 0.000003484,
+      "reason": "币龄0.2h 最高持币仅0",
+      "social_count": 2,
+      "age_hours": 0.23
+    },
+    {
+      "address": "0xd8e57d327d386ac5566b00e29290f9462bf24444",
+      "name": "CATI Boost Airdrop",
+      "symbol": "Boost",
+      "holders": 1,
+      "created_at": 1775844096000,
+      "price": 0.000003484,
+      "peak_price": 0.000003484,
+      "reason": "币龄0.2h 最高持币仅1",
+      "social_count": 1,
+      "age_hours": 0.23
+    },
+    {
+      "address": "0x081661c0cabc94c5bd75b0c1e19f15c775e84444",
+      "name": "Enjoy Daily CATI Boo",
+      "symbol": "CATIBoost",
+      "holders": 0,
+      "created_at": 1775844095000,
+      "price": 0.000003484,
+      "peak_price": 0.000003484,
+      "reason": "币龄0.2h 最高持币仅0",
+      "social_count": 1,
+      "age_hours": 0.23
+    },
+    {
+      "address": "0x6c75b5277c962466cc6a29ee9083767dd3354444",
+      "name": "New Earn Binance",
+      "symbol": "New",
+      "holders": 1,
+      "created_at": 1775844098000,
+      "price": 0.000003484,
+      "peak_price": 0.000003484,
+      "reason": "币龄0.2h 最高持币仅1",
+      "social_count": 1,
+      "age_hours": 0.23
+    },
+    {
+      "address": "0xd76d0afa6f05201c21fc1d4a799131b809094444",
+      "name": "每日 CATI Boost 空投奖励",
+      "symbol": "CATI Boost",
+      "holders": 1,
+      "created_at": 1775844096000,
+      "price": 0.000003486,
+      "peak_price": 0.000003486,
+      "reason": "币龄0.2h 最高持币仅1",
+      "social_count": 1,
+      "age_hours": 0.23
+    },
+    {
+      "address": "0xd56ae1410b31a6dbba3ec001c809f586cbd8ffff",
+      "name": "Charlotte",
+      "symbol": "CHARLOTTE",
+      "holders": 0,
+      "created_at": 1775844144000,
+      "price": 5.739795918367347e-9,
+      "peak_price": 5.739795918367347e-9,
+      "reason": "币龄0.2h 最高持币仅0",
+      "social_count": 1,
+      "age_hours": 0.21
+    },
+    {
+      "address": "0x0c135284f5c6b8513b7abba3830bc026ec134444",
+      "name": "CATI Boost",
+      "symbol": "CATIBoost",
+      "holders": 1,
+      "created_at": 1775844226000,
+      "price": 0.000003484,
+      "peak_price": 0.000003484,
+      "reason": "币龄0.2h 最高持币仅1",
+      "social_count": 1,
+      "age_hours": 0.19
+    },
+    {
+      "address": "0x68c2378ca2bdf88cb00589b9e8772a3c67174444",
+      "name": "HelloKitty",
+      "symbol": "HelloKitty",
+      "holders": 1,
+      "created_at": 1775844450000,
+      "price": 0.000003485,
+      "peak_price": 0.000003485,
+      "reason": "币龄0.1h 最高持币仅1",
+      "social_count": 2,
+      "age_hours": 0.13
+    },
+    {
+      "address": "0x0142d94d3b417ce7d750d48ee909d7b572ad4444",
+      "name": "Tf are you talking",
+      "symbol": "TF",
+      "holders": 1,
+      "created_at": 1775844460000,
+      "price": 0.000003823,
+      "peak_price": 0.000003823,
+      "reason": "币龄0.1h 最高持币仅1",
+      "social_count": 1,
+      "age_hours": 0.13
+    }
+  ]
+}
