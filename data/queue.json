@@ -58,16 +58,16 @@
         "twitter": "https://x.com/BinanceUS/status/2042630008896917885"
       },
       "descr": "x",
-      "price": 0.00001961,
+      "price": 0.00001683,
       "peakPrice": 0.00003225,
-      "holders": 257,
+      "holders": 251,
       "peakHolders": 326,
       "liquidity": 0,
       "peakLiquidity": 0,
       "progress": 0,
       "day1Vol": 0,
-      "consecDrops": 1,
-      "lastPrice": 0.00001961
+      "consecDrops": 2,
+      "lastPrice": 0.00001683
     },
     {
       "address": "0x22ebd10558b82209e2a822a32a0699a35f884444",
@@ -175,16 +175,16 @@
         "website": "https://x.com/HoTPOfficial"
       },
       "descr": "House Of The People",
-      "price": 0.000005101,
+      "price": 0.000004503,
       "peakPrice": 0.00000542,
-      "holders": 16,
+      "holders": 17,
       "peakHolders": 18,
       "liquidity": 0,
       "peakLiquidity": 0,
       "progress": 0,
       "day1Vol": 0,
-      "consecDrops": 0,
-      "lastPrice": 0.000005101
+      "consecDrops": 1,
+      "lastPrice": 0.000004503
     },
     {
       "address": "0x13d0ac8435df19ff75a8e26194bb87da101e4444",
@@ -222,40 +222,16 @@
         "website": "https://x.com/Cz_Vlog"
       },
       "descr": "CZ新书《币安人生》Vlog",
-      "price": 0.000005791,
+      "price": 0.000005897,
       "peakPrice": 0.00001249,
-      "holders": 51,
+      "holders": 54,
       "peakHolders": 74,
       "liquidity": 0,
       "peakLiquidity": 0,
       "progress": 0,
       "day1Vol": 0,
       "consecDrops": 0,
-      "lastPrice": 0.000005791
-    },
-    {
-      "address": "0xa9acb14cc82a76c74a6c712b817ec2d978974444",
-      "name": "Binance Movie",
-      "symbol": "Binance Movie",
-      "createdAt": 1775843889000,
-      "addedAt": 1775844028051,
-      "totalSupply": 1000000000,
-      "socialCount": 2,
-      "socialLinks": {
-        "twitter": "https://x.com/BinanceMovie",
-        "website": "https://x.com/BinanceMovie"
-      },
-      "descr": "将《幣安人生》影像化改编中......\n\n解读币安真实故事背后的幸运、压力与用户优先文化",
-      "price": 0.00003859,
-      "peakPrice": 0.00003859,
-      "holders": 408,
-      "peakHolders": 408,
-      "liquidity": 0,
-      "peakLiquidity": 0,
-      "progress": 0,
-      "day1Vol": 0,
-      "consecDrops": 0,
-      "lastPrice": 0.00003859
+      "lastPrice": 0.000005897
     },
     {
       "address": "0x48b8f71554ef9fa452d9a47966bb8daf9e494444",
@@ -280,30 +256,32 @@
       "day1Vol": 0,
       "consecDrops": 0,
       "lastPrice": 0.000003746
+    },
+    {
+      "address": "0xd17920987e006a3dfc0b9de0f3ee3aea66424444",
+      "name": "PsyopTrumpUsaElon",
+      "symbol": "PLTR",
+      "createdAt": 1775849316000,
+      "addedAt": 1775849422619,
+      "totalSupply": 1000000000,
+      "socialCount": 1,
+      "socialLinks": {
+        "twitter": "https://x.com/cookershiroo/status/2042682219244708235"
+      },
+      "descr": "Launched on discord.gg/uxento",
+      "price": 0.000004021,
+      "peakPrice": 0.000004021,
+      "holders": 2,
+      "peakHolders": 2,
+      "liquidity": 0,
+      "peakLiquidity": 0,
+      "progress": 0,
+      "day1Vol": 0,
+      "consecDrops": 0,
+      "lastPrice": 0.000004021
     }
   ],
   "eliminated": [
-    {
-      "address": "0x7611a9acd0b544522a41b37cd386267cf0344444",
-      "name": "Crypto Overlord",
-      "elimReason": "币龄0.9h 最高持币仅0",
-      "eliminatedAt": 1775833234272,
-      "createdAt": 1775829837000
-    },
-    {
-      "address": "0x2272ef21f706c0487e2ebf425cc2ab7f29904444",
-      "name": "幣安天使",
-      "elimReason": "币龄0.9h 最高持币仅1",
-      "eliminatedAt": 1775833234272,
-      "createdAt": 1775829838000
-    },
-    {
-      "address": "0x8b54298e32a2137b40f789b676c8409a4b904444",
-      "name": "Crypto Overlord",
-      "elimReason": "币龄0.9h 最高持币仅1",
-      "eliminatedAt": 1775833234272,
-      "createdAt": 1775829840000
-    },
     {
       "address": "0x356828d97c8fa30ea8c660ae6d2ac7efba944444",
       "name": "那一晚",
@@ -7282,8 +7260,29 @@
       "elimReason": "币龄0.1h 最高持币仅0",
       "eliminatedAt": 1775848516083,
       "createdAt": 1775848066000
+    },
+    {
+      "address": "0xa9acb14cc82a76c74a6c712b817ec2d978974444",
+      "name": "Binance Movie",
+      "elimReason": "价格跌91% (峰:3.86e-5 现:3.63e-6)",
+      "eliminatedAt": 1775849422619,
+      "createdAt": 1775843889000
+    },
+    {
+      "address": "0x876cab912f5af14460d4257be5ba4623713a4444",
+      "name": "PsyopLigmaTrumpRacis",
+      "elimReason": "币龄0.2h 最高持币仅1",
+      "eliminatedAt": 1775849422619,
+      "createdAt": 1775848798000
+    },
+    {
+      "address": "0x53ef8672e6c7c8fb0703f837846792280a1d4444",
+      "name": "阿耳忒弥斯二号飞船回地球听的一首歌",
+      "elimReason": "币龄0.1h 最高持币仅0",
+      "eliminatedAt": 1775849422619,
+      "createdAt": 1775848905000
     }
   ],
-  "lastBlock": 91773777,
-  "lastScanTime": 1775848516083
+  "lastBlock": 91775792,
+  "lastScanTime": 1775849422619
 }
