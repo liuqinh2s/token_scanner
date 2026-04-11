@@ -4,7 +4,7 @@
  * 设计:
  *   1. 链上发现: RPC eth_getLogs 查 four.meme TokenCreated 事件 (近15分钟)
  *   2. 入场筛: four.meme detail API — 无社交/总量≠10亿 直接淘汰
- *   3. 淘汰检查: 对队列中代币定期检查, 永久淘汰弃盘币
+ *   3. 淘汰检查: 对队列中代币定期检查, 永久淘汰弃盘币 (持币数来自 BscScan)
  *   4. 精筛: 对存活代币执行 K线/价格/持币数 等条件筛选
  *
  * 淘汰条件 (永久剔除):
@@ -12,8 +12,6 @@
  *   - 持币地址从 30+ 跌破 10
  *   - 无社交媒体
  *   - 流动性从 >$1k 跌破 $100
- *   - 连续 3 个周期价格持续下跌
- *   - 15 分钟内无任何买入事件
  *   - 进度 < 1% 且币龄 > 4h
  *   - 币龄 > 5min 且最高持币数 < 3
  *   - 币龄 > 15min 且最高持币数 < 5
@@ -70,7 +68,6 @@ const ELIM_HOLDERS_FLOOR = 10;          // 持币数跌破 10
 const ELIM_HOLDERS_PEAK_MIN = 30;       // 持币数曾达到 30 才触发跌破淘汰
 const ELIM_LIQ_FLOOR = 100;             // 流动性跌破 $100
 const ELIM_LIQ_PEAK_MIN = 1000;         // 流动性曾达到 $1000 才触发跌破淘汰
-const ELIM_CONSEC_DROP_CYCLES = 3;      // 连续下跌周期数
 const ELIM_PROGRESS_MIN = 0.01;         // 进度 < 1%
 const ELIM_PROGRESS_AGE_HOURS = 4;      // 进度淘汰的币龄门槛
 const ELIM_EARLY_PEAK_HOLDERS = 5;      // 币龄>15min 最高持币数 < 5 淘汰
@@ -85,6 +82,8 @@ const FM_DETAIL = "https://four.meme/meme-api/v1/private/token/get/v2";
 const DS_BASE = "https://api.dexscreener.com";
 const GT_BASE = "https://api.geckoterminal.com/api/v2";
 const BSC_RPC = "https://bsc-rpc.publicnode.com/";
+const BSCSCAN_API = "https://api.etherscan.io/v2/api";
+const BSCSCAN_API_KEY = localConfig.bscscanApiKey || "";
 
 const FOUR_MEME_CONTRACT = "0x5c952063c7fc8610ffdb798152d69f0b9550762b";
 const TOKEN_CREATE_TOPIC = "0x396d5e902b675b032348d3d2e9517ee8f0c4a926603fbc075d3d282ff00cad20";
@@ -222,6 +221,7 @@ class RateLimiter {
 }
 const fmLimiter = new RateLimiter(5);
 const gtLimiter = new RateLimiter(1);
+const bscScanLimiter = new RateLimiter(5);  // BscScan 免费 5 req/s
 let gtRateDelay = 2000;
 
 // ===================================================================
@@ -436,6 +436,25 @@ async function admissionFilter(newTokens, existingAddrs) {
 //  Step 3: 淘汰检查 — DexScreener + four.meme detail
 // ===================================================================
 
+/** BscScan 批量查持币地址数 (Etherscan V2 API, chainid=56) */
+async function bscScanHolderCounts(addresses) {
+  const result = new Map(); // addr -> holderCount
+  if (!BSCSCAN_API_KEY) return result;
+
+  for (const addr of addresses) {
+    await bscScanLimiter.acquire();
+    try {
+      const url = `${BSCSCAN_API}?chainid=56&module=token&action=tokenholdercount&contractaddress=${addr}&apikey=${BSCSCAN_API_KEY}`;
+      const res = await fetchJSON(url, { timeout: 10000 });
+      if (res.data && res.data.status === "1" && res.data.result) {
+        result.set(addr, parseInt(res.data.result, 10));
+      }
+    } catch (e) { /* silent */ }
+  }
+  console.log(`[BSCSCAN] 查到 ${result.size}/${addresses.length} 个代币持币数`);
+  return result;
+}
+
 /** DexScreener 批量查价格+流动性 (最多 30 个地址/请求) */
 async function dsBatchPrices(addresses) {
   const result = new Map(); // addr -> { price, liquidity }
@@ -499,7 +518,10 @@ async function eliminationCheck(queue, nowMs) {
   const addrs = ageFiltered.map(t => t.address);
   const dsData = await dsBatchPrices(addrs);
 
-  // 3. four.meme detail 查持币数+进度 (并发)
+  // 2.5 BscScan 查链上真实持币地址数
+  const bscHolders = await bscScanHolderCounts(addrs);
+
+  // 3. four.meme detail 查社交/进度 (并发)
   console.log(`[淘汰] 查询 ${ageFiltered.length} 个代币详情...`);
   const CONCURRENCY = 5;
   const detailMap = new Map();
@@ -522,7 +544,8 @@ async function eliminationCheck(queue, nowMs) {
 
     // 更新动态数据
     const currentPrice = ds?.price || detail?.price || t.price || 0;
-    const currentHolders = detail?.holders || t.holders || 0;
+    const bscHolder = bscHolders.get(t.address);
+    const currentHolders = bscHolder != null ? bscHolder : (detail?.holders || t.holders || 0);
     const currentLiq = ds?.liquidity || t.liquidity || 0;
     const currentProgress = detail?.progress || t.progress || 0;
 
@@ -572,23 +595,19 @@ async function eliminationCheck(queue, nowMs) {
     if (!elimReason && t.peakLiquidity >= ELIM_LIQ_PEAK_MIN && currentLiq < ELIM_LIQ_FLOOR) {
       elimReason = `流动性 $${t.peakLiquidity.toFixed(0)}→$${currentLiq.toFixed(0)}`;
     }
-    // 5. 连续 3 周期价格下跌
-    if (!elimReason && t.consecDrops >= ELIM_CONSEC_DROP_CYCLES) {
-      elimReason = `连续${t.consecDrops}周期下跌`;
-    }
-    // 6. 进度 < 1% 且币龄 > 4h
+    // 5. 进度 < 1% 且币龄 > 4h
     if (!elimReason && ageHours > ELIM_PROGRESS_AGE_HOURS && currentProgress < ELIM_PROGRESS_MIN) {
       elimReason = `进度${(currentProgress * 100).toFixed(2)}% 币龄${ageHours.toFixed(1)}h`;
     }
-    // 7. 币龄>5min 最高持币数 < 3
+    // 6. 币龄>5min 最高持币数 < 3
     if (!elimReason && ageHours > ELIM_TINY_AGE_MIN && t.peakHolders < ELIM_TINY_PEAK_HOLDERS) {
       elimReason = `币龄${ageHours.toFixed(1)}h 最高持币仅${t.peakHolders}`;
     }
-    // 8. 币龄>15min 最高持币数 < 5
+    // 7. 币龄>15min 最高持币数 < 5
     if (!elimReason && ageHours > ELIM_EARLY_AGE_MIN && t.peakHolders < ELIM_EARLY_PEAK_HOLDERS) {
       elimReason = `币龄${ageHours.toFixed(1)}h 最高持币仅${t.peakHolders}`;
     }
-    // 9. 币龄>1h 最高持币数 < 10
+    // 8. 币龄>1h 最高持币数 < 10
     if (!elimReason && ageHours > ELIM_MID_AGE_HOURS && t.peakHolders < ELIM_MID_PEAK_HOLDERS) {
       elimReason = `币龄${ageHours.toFixed(1)}h 最高持币仅${t.peakHolders}`;
     }
@@ -830,29 +849,35 @@ async function main() {
   console.log("\n--- Step 2: 入场筛 ---");
   const admitted = await admissionFilter(newOnChain, existingAddrs);
 
-  // 将通过入场筛的代币加入队列
-  for (const { token, detail } of admitted) {
-    queueState.tokens.push({
-      address: token.address,
-      name: detail.name || token.name || "",
-      symbol: detail.shortName || token.symbol || "",
-      createdAt: token.createdAt,
-      addedAt: nowMs,
-      totalSupply: detail.totalSupply,
-      socialCount: detail.socialCount,
-      socialLinks: detail.socialLinks,
-      descr: detail.descr,
-      price: detail.price,
-      peakPrice: detail.price,
-      holders: detail.holders,
-      peakHolders: detail.holders,
-      liquidity: detail.liquidity || 0,
-      peakLiquidity: detail.liquidity || 0,
-      progress: detail.progress || 0,
-      day1Vol: detail.day1Vol || 0,
-      consecDrops: 0,
-      lastPrice: detail.price,
-    });
+  // 将通过入场筛的代币加入队列 (用 BscScan 修正初始持币数)
+  if (admitted.length > 0) {
+    const newAddrs = admitted.map(a => a.token.address);
+    const newBscHolders = await bscScanHolderCounts(newAddrs);
+    for (const { token, detail } of admitted) {
+      const bscH = newBscHolders.get(token.address);
+      const initHolders = bscH != null ? bscH : detail.holders;
+      queueState.tokens.push({
+        address: token.address,
+        name: detail.name || token.name || "",
+        symbol: detail.shortName || token.symbol || "",
+        createdAt: token.createdAt,
+        addedAt: nowMs,
+        totalSupply: detail.totalSupply,
+        socialCount: detail.socialCount,
+        socialLinks: detail.socialLinks,
+        descr: detail.descr,
+        price: detail.price,
+        peakPrice: detail.price,
+        holders: initHolders,
+        peakHolders: initHolders,
+        liquidity: detail.liquidity || 0,
+        peakLiquidity: detail.liquidity || 0,
+        progress: detail.progress || 0,
+        day1Vol: detail.day1Vol || 0,
+        consecDrops: 0,
+        lastPrice: detail.price,
+      });
+    }
   }
 
   console.log(`[QUEUE] 入队后: ${queueState.tokens.length} 个代币`);

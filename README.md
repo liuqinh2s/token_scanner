@@ -27,7 +27,8 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 | 数据源 | 用途 | 限流 |
 |--------|------|------|
 | BSC RPC (publicnode) | 链上 TokenCreated 事件发现 | 无硬限制 |
-| four.meme Detail API | 持币数/社交链接/进度 | ~5 req/s |
+| four.meme Detail API | 社交链接/进度 | ~5 req/s |
+| BscScan API (Etherscan V2) | 链上真实持币地址数 | ~5 req/s |
 | DexScreener API | 批量价格+流动性查询 | ~300 req/min |
 | GeckoTerminal OHLCV | K线数据（精筛用） | ~30 req/min |
 | 微博热搜 | 热点关键词匹配（加分项） | 独立限流 |
@@ -42,12 +43,11 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 | 2 | 持币地址从 30+ 跌破 10 | 大量抛售 |
 | 3 | 无社交媒体 | 无运营意愿 |
 | 4 | 流动性从 >$1k 跌破 $100 | 流动性枯竭 |
-| 5 | 连续 3 个周期价格下跌 | 趋势性弃盘 |
-| 6 | 进度 < 1% 且币龄 > 4h | bonding curve 上的死币 |
-| 7 | 币龄 > 5min 且最高持币数 < 3 | 无人问津 |
-| 8 | 币龄 > 15min 且最高持币数 < 5 | 无人问津 |
-| 9 | 币龄 > 1h 且最高持币数 < 10 | 热度不足 |
-| 10 | 币龄 > 72h | 超出关注窗口 |
+| 5 | 进度 < 1% 且币龄 > 4h | bonding curve 上的死币 |
+| 6 | 币龄 > 5min 且最高持币数 < 3 | 无人问津 |
+| 7 | 币龄 > 15min 且最高持币数 < 5 | 无人问津 |
+| 8 | 币龄 > 1h 且最高持币数 < 10 | 热度不足 |
+| 9 | 币龄 > 72h | 超出关注窗口 |
 
 ## 精筛规则
 
@@ -111,7 +111,8 @@ npm run dev                     # 启动开发服务器（live-server）
 
 ```json
 {
-  "proxy": { "enabled": true, "host": "127.0.0.1", "port": 7890 }
+  "proxy": { "enabled": true, "host": "127.0.0.1", "port": 7890 },
+  "bscscanApiKey": "YOUR_BSCSCAN_API_KEY"
 }
 ```
 
@@ -124,7 +125,6 @@ npm run dev                     # 启动开发服务器（live-server）
 | `ELIM_PRICE_DROP_PCT` | 0.90 | 价格跌幅淘汰阈值 |
 | `ELIM_HOLDERS_FLOOR` | 10 | 持币数淘汰下限 |
 | `ELIM_LIQ_FLOOR` | 100 | 流动性淘汰下限（USD） |
-| `ELIM_CONSEC_DROP_CYCLES` | 3 | 连续下跌周期淘汰 |
 | `ELIM_EARLY_PEAK_HOLDERS` | 5 | 币龄>15min 最高持币数淘汰下限 |
 | `ELIM_TINY_PEAK_HOLDERS` | 3 | 币龄>5min 最高持币数淘汰下限 |
 | `ELIM_MID_PEAK_HOLDERS` | 10 | 币龄>1h 最高持币数淘汰下限 |
