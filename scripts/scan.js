@@ -560,9 +560,9 @@ async function bscScanHolderCounts(addresses) {
 async function rpcHolderCounts(tokenInfos) {
   // tokenInfos: [{ address, block, createdAt }] — block 是代币创建时的区块号
   const result = new Map();
-  const CONCURRENCY = 5;
+  const CONCURRENCY = 10;
 
-  // 获取当前区块号, 用于估算缺失 block 的代币
+  // 获取当前区块号
   let latestBlock = 0;
   try {
     const blockRes = await rpcCall("eth_blockNumber", []);
@@ -571,36 +571,47 @@ async function rpcHolderCounts(tokenInfos) {
 
   for (let i = 0; i < tokenInfos.length; i += CONCURRENCY) {
     const batch = tokenInfos.slice(i, i + CONCURRENCY);
-    const promises = batch.map(async ({ address, block, createdAt }) => {
+    const promises = batch.map(async ({ address, block }) => {
       try {
-        // 从创建区块开始查, 避免全链扫描被 RPC 拒绝
-        let fromBlock;
-        if (block > 0) {
-          fromBlock = "0x" + Math.max(0, block - 1).toString(16);
-        } else if (createdAt > 0 && latestBlock > 0) {
-          // 用创建时间估算区块号 (BSC ~3秒/块)
-          const ageSec = Math.max(0, (Date.now() - createdAt) / 1000);
-          const estBlock = Math.max(0, latestBlock - Math.ceil(ageSec / 3) - 100);
-          fromBlock = "0x" + estBlock.toString(16);
-        } else {
-          // 无法确定起始区块, 只查最近 50000 块 (~42小时)
-          const fallback = Math.max(0, latestBlock - 50000);
-          fromBlock = "0x" + fallback.toString(16);
+        // 确定起始区块: 优先用代币创建区块, 否则用最大范围 (50000块 ≈ 42h)
+        const startBlock = block > 0
+          ? Math.max(0, block - 1)
+          : Math.max(0, latestBlock - 50000);
+
+        // 大多数代币有 block 字段, 范围在 50000 以内, 一次请求即可
+        // 超过时分段查询
+        const allLogs = [];
+        let chunkSize = 50000;
+        let current = startBlock;
+        while (current <= latestBlock) {
+          const end = Math.min(current + chunkSize - 1, latestBlock);
+          const res = await Promise.race([
+            rpcCall("eth_getLogs", [{
+              address,
+              fromBlock: "0x" + current.toString(16),
+              toBlock: "0x" + end.toString(16),
+              topics: [ERC20_TRANSFER_TOPIC],
+            }]),
+            sleep(15000).then(() => ({ error: { message: "timeout" } })),
+          ]);
+          if (res.error) {
+            const msg = res.error.message || "";
+            if (msg.includes("exceed") || msg.includes("range")) {
+              chunkSize = Math.floor(chunkSize / 2);
+              if (chunkSize < 1000) break;
+              continue;
+            }
+            break;
+          }
+          allLogs.push(...(res.result || []));
+          current = end + 1;
         }
-        const res = await Promise.race([
-          rpcCall("eth_getLogs", [{
-            address,
-            fromBlock,
-            toBlock: "latest",
-            topics: [ERC20_TRANSFER_TOPIC],
-          }]),
-          sleep(10000).then(() => ({ error: { message: "timeout" } })),
-        ]);
-        if (res.error) return;
-        const logs = res.result || [];
+
+        if (allLogs.length === 0) return;
+
         // 追踪每个地址的净余额
-        const balances = new Map(); // addr -> BigInt net balance
-        for (const log of logs) {
+        const balances = new Map();
+        for (const log of allLogs) {
           if (!log.topics || log.topics.length < 3) continue;
           const from = ("0x" + log.topics[1].slice(26)).toLowerCase();
           const to = ("0x" + log.topics[2].slice(26)).toLowerCase();
@@ -626,7 +637,6 @@ async function rpcHolderCounts(tokenInfos) {
       }
     });
     await Promise.all(promises);
-    if (i + CONCURRENCY < tokenInfos.length) await sleep(200);
   }
   console.log(`[RPC] 查到 ${result.size}/${tokenInfos.length} 个代币持币数`);
   return result;
@@ -691,28 +701,34 @@ async function eliminationCheck(queue, nowMs) {
 
   if (ageFiltered.length === 0) return { survivors, eliminated };
 
-  // 2. DexScreener 批量查价格+流动性 与 RPC 持币数 并行
+  // 2. DexScreener + RPC 持币数 + four.meme detail 三者并行
   const addrs = ageFiltered.map(t => t.address);
   const tokenInfosForRpc = ageFiltered.map(t => ({ address: t.address, block: t.block || 0, createdAt: t.createdAt || 0 }));
-  const [dsData, rpcHolders] = await Promise.all([
+
+  console.log(`[淘汰] 并行查询 ${ageFiltered.length} 个代币 (DexScreener + RPC持币数 + detail)...`);
+
+  // detail 查询函数 (并发)
+  async function fetchAllDetails() {
+    const detailMap = new Map();
+    const CONCURRENCY = 10;
+    for (let i = 0; i < ageFiltered.length; i += CONCURRENCY) {
+      const batch = ageFiltered.slice(i, i + CONCURRENCY);
+      const results = await Promise.all(batch.map(async (t) => {
+        const d = await fetchTokenDetail(t.address);
+        return { address: t.address, detail: d };
+      }));
+      for (const r of results) {
+        if (r.detail) detailMap.set(r.address, r.detail);
+      }
+    }
+    return detailMap;
+  }
+
+  const [dsData, rpcHolders, detailMap] = await Promise.all([
     dsBatchPrices(addrs),
     rpcHolderCounts(tokenInfosForRpc),
+    fetchAllDetails(),
   ]);
-
-  // 3. four.meme detail 查社交/进度 (并发)
-  console.log(`[淘汰] 查询 ${ageFiltered.length} 个代币详情...`);
-  const CONCURRENCY = 10;  // 提高并发, fmLimiter 控制速率
-  const detailMap = new Map();
-  for (let i = 0; i < ageFiltered.length; i += CONCURRENCY) {
-    const batch = ageFiltered.slice(i, i + CONCURRENCY);
-    const results = await Promise.all(batch.map(async (t) => {
-      const d = await fetchTokenDetail(t.address);
-      return { address: t.address, detail: d };
-    }));
-    for (const r of results) {
-      if (r.detail) detailMap.set(r.address, r.detail);
-    }
-  }
 
   // 4. 逐个检查淘汰条件
   for (const t of ageFiltered) {
@@ -1224,8 +1240,9 @@ async function analyzeSmartMoneyBehavior(tokenAddress, smartAddresses) {
  * 返回 Map<address, { excluded, excludeReason, signals, bonus, details }>
  */
 async function batchWalletAnalysis(tokens, smartAddresses) {
-  const CONCURRENCY = 4; // 提高并发, bscScanLimiter 控制速率
+  const CONCURRENCY = 8; // bscScanLimiter 控制速率
   const resultMap = new Map();
+  const hasSmartMoney = smartAddresses && smartAddresses.size > 0;
 
   for (let i = 0; i < tokens.length; i += CONCURRENCY) {
     const batch = tokens.slice(i, i + CONCURRENCY);
@@ -1233,8 +1250,10 @@ async function batchWalletAnalysis(tokens, smartAddresses) {
       // 分析开发者行为
       const dev = await analyzeDeveloperBehavior(t.address, t.creator);
 
-      // 分析聪明钱行为
-      const sm = await analyzeSmartMoneyBehavior(t.address, smartAddresses);
+      // 分析聪明钱行为 (无聪明钱地址时跳过, 省一次 API 调用)
+      const sm = hasSmartMoney
+        ? await analyzeSmartMoneyBehavior(t.address, smartAddresses)
+        : { hasBuy: false, hasSell: false, buyCount: 0, sellCount: 0, details: [], bonus: 0, exclude: false };
 
       // 合并结果
       const allDetails = [...dev.details, ...sm.details];
@@ -1498,13 +1517,9 @@ async function main() {
   console.log("\n--- Step 2: 入场筛 ---");
   const { admitted, rejected: rejectedAtEntry } = await admissionFilter(newOnChain, existingAddrs);
 
-  // 将通过入场筛的代币加入队列 (用 RPC Transfer 事件查持币数)
+  // 将通过入场筛的代币加入队列 (新代币刚创建, 用 detail API 的 holders 即可)
   if (admitted.length > 0) {
-    const newTokenInfos = admitted.map(a => ({ address: a.token.address, block: a.token.block || 0, createdAt: a.token.createdAt || 0 }));
-    const newRpcHolders = await rpcHolderCounts(newTokenInfos);
     for (const { token, detail } of admitted) {
-      const rpcH = newRpcHolders.get(token.address);
-      const initHolders = rpcH != null ? rpcH : detail.holders;
       queueState.tokens.push({
         address: token.address,
         creator: token.creator || "",
@@ -1519,8 +1534,8 @@ async function main() {
         descr: detail.descr,
         price: detail.price,
         peakPrice: detail.price,
-        holders: initHolders,
-        peakHolders: initHolders,
+        holders: detail.holders,
+        peakHolders: detail.holders,
         liquidity: detail.liquidity || 0,
         peakLiquidity: detail.liquidity || 0,
         raisedAmount: detail.raisedAmount || 0,
