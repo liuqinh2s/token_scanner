@@ -1250,6 +1250,11 @@ async function qualityFilter(candidates, nowMs, walletMap) {
       ath = calcAllTimeHigh(candles);
     }
 
+    // 用 K线 ATH 修正队列中的 peakPrice (解决15分钟快照遗漏峰值的问题)
+    if (ath !== null) {
+      t.peakPrice = Math.max(t.peakPrice || 0, ath);
+    }
+
     if (ath === null && high2h === null) continue;
     if (ath === null) ath = high2h;
 
