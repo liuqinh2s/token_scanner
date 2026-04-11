@@ -4,7 +4,7 @@
  * 设计:
  *   1. 链上发现: RPC eth_getLogs 查 four.meme TokenCreated 事件 (近15分钟)
  *   2. 入场筛: four.meme detail API — 无社交/总量≠10亿 直接淘汰
- *   3. 淘汰检查: 对队列中代币定期检查, 永久淘汰弃盘币 (持币数来自 BscScan)
+ *   3. 淘汰检查: 对队列中代币定期检查, 永久淘汰弃盘币 (持币数: RPC Transfer事件 → four.meme)
  *   4. 精筛: 对存活代币执行 K线/价格/持币数 等条件筛选
  *   5. 钱包分析: BscScan tokentx 查开发者+聪明钱的加仓/减仓行为
  *
@@ -119,6 +119,7 @@ const BSCSCAN_API_KEY = localConfig.bscscanApiKey || "";
 
 const FOUR_MEME_CONTRACT = "0x5c952063c7fc8610ffdb798152d69f0b9550762b";
 const TOKEN_CREATE_TOPIC = "0x396d5e902b675b032348d3d2e9517ee8f0c4a926603fbc075d3d282ff00cad20";
+const ERC20_TRANSFER_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
 
 // 已知非聪明钱地址 (交易所/合约/稳定币等, 自动发现时排除)
 const KNOWN_EXCLUDE_ADDRESSES = new Set([
@@ -551,6 +552,77 @@ async function bscScanHolderCounts(addresses) {
   return result;
 }
 
+/**
+ * RPC 查持币地址数 — 通过 eth_getLogs 查 ERC-20 Transfer 事件
+ * 统计所有接收过代币的唯一地址 (排除零地址/销毁地址)
+ * 作为 BscScan tokenholdercount (PRO 端点) 的免费替代方案
+ * 注意: 这是近似值, 不排除余额为0的地址, 但对新币足够准确
+ */
+async function rpcHolderCounts(tokenInfos) {
+  // tokenInfos: [{ address, block, createdAt }] — block 是代币创建时的区块号
+  const result = new Map();
+  const CONCURRENCY = 5;
+
+  // 获取当前区块号, 用于估算缺失 block 的代币
+  let latestBlock = 0;
+  try {
+    const blockRes = await rpcCall("eth_blockNumber", []);
+    latestBlock = parseInt(blockRes.result, 16);
+  } catch (e) { /* 静默 */ }
+
+  for (let i = 0; i < tokenInfos.length; i += CONCURRENCY) {
+    const batch = tokenInfos.slice(i, i + CONCURRENCY);
+    const promises = batch.map(async ({ address, block, createdAt }) => {
+      try {
+        // 从创建区块开始查, 避免全链扫描被 RPC 拒绝
+        let fromBlock;
+        if (block > 0) {
+          fromBlock = "0x" + Math.max(0, block - 1).toString(16);
+        } else if (createdAt > 0 && latestBlock > 0) {
+          // 用创建时间估算区块号 (BSC ~3秒/块)
+          const ageSec = Math.max(0, (Date.now() - createdAt) / 1000);
+          const estBlock = Math.max(0, latestBlock - Math.ceil(ageSec / 3) - 100);
+          fromBlock = "0x" + estBlock.toString(16);
+        } else {
+          // 无法确定起始区块, 只查最近 50000 块 (~42小时)
+          const fallback = Math.max(0, latestBlock - 50000);
+          fromBlock = "0x" + fallback.toString(16);
+        }
+        const res = await Promise.race([
+          rpcCall("eth_getLogs", [{
+            address,
+            fromBlock,
+            toBlock: "latest",
+            topics: [ERC20_TRANSFER_TOPIC],
+          }]),
+          sleep(10000).then(() => ({ error: { message: "timeout" } })),
+        ]);
+        if (res.error) return;
+        const logs = res.result || [];
+        const holders = new Set();
+        for (const log of logs) {
+          if (!log.topics || log.topics.length < 3) continue;
+          const to = ("0x" + log.topics[2].slice(26)).toLowerCase();
+          if (!BURN_ADDRESSES.has(to)) holders.add(to);
+        }
+        holders.delete(ZERO_ADDRESS);
+        holders.delete(DEAD_ADDRESS);
+        holders.delete(address.toLowerCase());
+        holders.delete(FOUR_MEME_CONTRACT.toLowerCase());
+        if (holders.size > 0) {
+          result.set(address, holders.size);
+        }
+      } catch (e) {
+        // 静默失败
+      }
+    });
+    await Promise.all(promises);
+    if (i + CONCURRENCY < tokenInfos.length) await sleep(200);
+  }
+  console.log(`[RPC] 查到 ${result.size}/${tokenInfos.length} 个代币持币数`);
+  return result;
+}
+
 /** DexScreener 批量查价格+流动性 (最多 30 个地址/请求) */
 async function dsBatchPrices(addresses) {
   const result = new Map(); // addr -> { price, liquidity }
@@ -610,11 +682,12 @@ async function eliminationCheck(queue, nowMs) {
 
   if (ageFiltered.length === 0) return { survivors, eliminated };
 
-  // 2. DexScreener 批量查价格+流动性 与 BscScan 持币数 并行
+  // 2. DexScreener 批量查价格+流动性 与 RPC 持币数 并行
   const addrs = ageFiltered.map(t => t.address);
-  const [dsData, bscHolders] = await Promise.all([
+  const tokenInfosForRpc = ageFiltered.map(t => ({ address: t.address, block: t.block || 0, createdAt: t.createdAt || 0 }));
+  const [dsData, rpcHolders] = await Promise.all([
     dsBatchPrices(addrs),
-    bscScanHolderCounts(addrs),
+    rpcHolderCounts(tokenInfosForRpc),
   ]);
 
   // 3. four.meme detail 查社交/进度 (并发)
@@ -640,8 +713,8 @@ async function eliminationCheck(queue, nowMs) {
 
     // 更新动态数据
     const currentPrice = ds?.price || detail?.price || t.price || 0;
-    const bscHolder = bscHolders.get(t.address);
-    const currentHolders = bscHolder != null ? bscHolder : (detail?.holders || t.holders || 0);
+    const rpcHolder = rpcHolders.get(t.address);
+    const currentHolders = rpcHolder != null ? rpcHolder : (detail?.holders || t.holders || 0);
     const currentLiq = ds?.liquidity || detail?.liquidity || t.liquidity || 0;
     const currentProgress = detail?.progress || t.progress || 0;
 
@@ -811,73 +884,117 @@ async function bscScanTopHolders(tokenAddress, offset = 50) {
 // ===================================================================
 
 /**
- * 从 four.meme HOT 列表获取热门代币地址
+ * 从 GeckoTerminal BSC trending pools 获取近期涨幅大的已上 DEX 代币
+ * 替代 four.meme HOT 列表 — 已上 DEX 的代币有真实交易, Top Holders 交叉分析更有效
  */
-async function fetchHotTokenAddresses(limit = 10) {
+async function fetchSmartMoneySourceTokens(limit = 10) {
   try {
-    const res = await fetchJSON(FM_SEARCH, {
-      method: "POST",
-      headers: FM_HEADERS,
-      agent: fmAgent,
-      body: JSON.stringify({
-        type: "HOT", listType: "ADV", status: "TRADE",
-        pageIndex: 1, pageSize: 20,
-      }),
-    });
-    if (res.data && res.data.code === 0 && Array.isArray(res.data.data)) {
-      return res.data.data
-        .map(t => (t.tokenAddress || "").toLowerCase())
-        .filter(a => a)
-        .slice(0, limit);
+    const res = await gtRequest(`${GT_BASE}/networks/bsc/trending_pools`);
+    if (!res || !res.data) return [];
+    const pools = res.data;
+    // 筛选: 24h 涨幅 > 10% 且有足够交易量的池子
+    const seen = new Set();
+    const tokens = [];
+    for (const pool of pools) {
+      const attrs = pool.attributes || {};
+      const h24Change = parseFloat(attrs.price_change_percentage?.h24 || 0);
+      const h24Vol = parseFloat(attrs.volume_usd?.h24 || 0);
+      if (h24Change < 10 || h24Vol < 50000) continue;
+      // 提取 base token 地址
+      const baseTokenId = pool.relationships?.base_token?.data?.id || "";
+      const addr = baseTokenId.replace("bsc_", "").toLowerCase();
+      if (!addr || addr.length !== 42 || seen.has(addr)) continue;
+      // 排除稳定币和 WBNB
+      if (KNOWN_EXCLUDE_ADDRESSES.has(addr)) continue;
+      seen.add(addr);
+      tokens.push(addr);
+      if (tokens.length >= limit) break;
     }
-  } catch (e) { /* silent */ }
-  return [];
+    if (tokens.length > 0) {
+      console.log(`[聪明钱] GeckoTerminal trending: ${tokens.length} 个涨幅代币`);
+    }
+    return tokens;
+  } catch (e) {
+    console.warn(`[聪明钱] GeckoTerminal trending 获取失败: ${e.message}`);
+    return [];
+  }
+}
+
+/**
+ * RPC 查 Top Holders — 通过 Transfer 事件统计净持仓, 取 Top N
+ * 替代 BscScan tokenholderlist (PRO 端点)
+ */
+async function rpcTopHolders(tokenAddress, topN = 50, fromBlock = 0) {
+  try {
+    let fb;
+    if (fromBlock > 0) {
+      fb = "0x" + Math.max(0, fromBlock - 1).toString(16);
+    } else {
+      // 查最近 100000 块 (~3.5天)
+      const blockRes = await rpcCall("eth_blockNumber", []);
+      const latest = parseInt(blockRes.result, 16);
+      fb = "0x" + Math.max(0, latest - 100000).toString(16);
+    }
+    const res = await Promise.race([
+      rpcCall("eth_getLogs", [{
+        address: tokenAddress,
+        fromBlock: fb,
+        toBlock: "latest",
+        topics: [ERC20_TRANSFER_TOPIC],
+      }]),
+      sleep(15000).then(() => ({ error: { message: "timeout" } })),
+    ]);
+    if (res.error) return [];
+    const logs = res.result || [];
+    const balances = new Map(); // addr -> net balance (简化: 用转入-转出次数近似)
+    for (const log of logs) {
+      if (!log.topics || log.topics.length < 3) continue;
+      const from = ("0x" + log.topics[1].slice(26)).toLowerCase();
+      const to = ("0x" + log.topics[2].slice(26)).toLowerCase();
+      // 用转账金额更准确
+      const value = log.data ? BigInt(log.data) : 0n;
+      if (!BURN_ADDRESSES.has(from) && !KNOWN_EXCLUDE_ADDRESSES.has(from)) {
+        balances.set(from, (balances.get(from) || 0n) - value);
+      }
+      if (!BURN_ADDRESSES.has(to) && !KNOWN_EXCLUDE_ADDRESSES.has(to)) {
+        balances.set(to, (balances.get(to) || 0n) + value);
+      }
+    }
+    // 排序取 Top N (余额 > 0 的)
+    return [...balances.entries()]
+      .filter(([, bal]) => bal > 0n)
+      .sort((a, b) => (b[1] > a[1] ? 1 : b[1] < a[1] ? -1 : 0))
+      .slice(0, topN)
+      .map(([addr]) => addr);
+  } catch (e) {
+    return [];
+  }
 }
 
 /**
  * 聪明钱自动发现: Top Holders 交叉分析
  * 逻辑: 获取多个热门代币的 Top 50 Holders, 在 ≥2 个代币中都是大户的地址 → 聪明钱
+ * 数据源: RPC Transfer 事件 (替代 BscScan PRO 端点)
  */
 async function discoverSmartMoneyFromTopHolders() {
-  if (!BSCSCAN_API_KEY) return new Set();
-
-  // 短路: BscScan 不可用时跳过聪明钱发现
-  if (bscScanConsecFails >= BSCSCAN_FAIL_THRESHOLD) {
-    console.log(`[聪明钱] 跳过 Top Holders 分析 (BscScan 不可用)`);
-    return new Set();
-  }
-
-  const hotTokens = await fetchHotTokenAddresses(10);
+  const hotTokens = await fetchSmartMoneySourceTokens(10);
   if (hotTokens.length === 0) return new Set();
 
-  console.log(`[聪明钱] 分析 ${hotTokens.length} 个热门代币的 Top Holders...`);
-  const addrFreq = new Map(); // 地址 → 出现在多少个代币的 Top Holders 中
+  console.log(`[聪明钱] 分析 ${hotTokens.length} 个热门代币的 Top Holders (RPC)...`);
+  const addrFreq = new Map();
 
-  // 先探测第一个代币, 如果返回空则跳过全部
-  const probeHolders = await bscScanTopHolders(hotTokens[0], 50);
-  if (probeHolders.length === 0) {
-    console.log(`[聪明钱] Top Holders 探测无数据, 跳过剩余`);
-    return new Set();
-  }
-  for (const h of probeHolders) {
-    const addr = (h.TokenHolderAddress || "").toLowerCase();
-    if (addr && addr.length === 42 && !KNOWN_EXCLUDE_ADDRESSES.has(addr)) {
-      addrFreq.set(addr, (addrFreq.get(addr) || 0) + 1);
-    }
-  }
-
-  for (const tokenAddr of hotTokens.slice(1)) {
-    await sleep(200);
-    const holders = await bscScanTopHolders(tokenAddr, 50);
-    for (const h of holders) {
-      const addr = (h.TokenHolderAddress || "").toLowerCase();
-      if (addr && addr.length === 42 && !KNOWN_EXCLUDE_ADDRESSES.has(addr)) {
+  const CONCURRENCY = 3;
+  for (let i = 0; i < hotTokens.length; i += CONCURRENCY) {
+    const batch = hotTokens.slice(i, i + CONCURRENCY);
+    const results = await Promise.all(batch.map(addr => rpcTopHolders(addr, 50)));
+    for (const holders of results) {
+      for (const addr of holders) {
         addrFreq.set(addr, (addrFreq.get(addr) || 0) + 1);
       }
     }
+    if (i + CONCURRENCY < hotTokens.length) await sleep(200);
   }
 
-  // 筛选: 在 ≥ minFreq 个热门代币中都是 Top Holder 的地址
   const discovered = new Set();
   for (const [addr, freq] of addrFreq) {
     if (freq >= SMART_MONEY_MIN_CROSS_FREQ) {
@@ -1372,16 +1489,17 @@ async function main() {
   console.log("\n--- Step 2: 入场筛 ---");
   const { admitted, rejected: rejectedAtEntry } = await admissionFilter(newOnChain, existingAddrs);
 
-  // 将通过入场筛的代币加入队列 (用 BscScan 修正初始持币数)
+  // 将通过入场筛的代币加入队列 (用 RPC Transfer 事件查持币数)
   if (admitted.length > 0) {
-    const newAddrs = admitted.map(a => a.token.address);
-    const newBscHolders = await bscScanHolderCounts(newAddrs);
+    const newTokenInfos = admitted.map(a => ({ address: a.token.address, block: a.token.block || 0, createdAt: a.token.createdAt || 0 }));
+    const newRpcHolders = await rpcHolderCounts(newTokenInfos);
     for (const { token, detail } of admitted) {
-      const bscH = newBscHolders.get(token.address);
-      const initHolders = bscH != null ? bscH : detail.holders;
+      const rpcH = newRpcHolders.get(token.address);
+      const initHolders = rpcH != null ? rpcH : detail.holders;
       queueState.tokens.push({
         address: token.address,
         creator: token.creator || "",
+        block: token.block || 0,
         name: detail.name || token.name || "",
         symbol: detail.shortName || token.symbol || "",
         createdAt: token.createdAt,

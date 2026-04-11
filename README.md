@@ -16,7 +16,7 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
    four.meme Detail API → 淘汰无社交 / 总量≠10亿
 
 3. 淘汰检查 (~15s)
-   DexScreener 批量查价 + Detail API 查持币数 → 永久淘汰弃盘币
+   DexScreener 批量查价 + RPC Transfer事件/BscScan 查持币数 + Detail API → 永久淘汰弃盘币
 
 4. 钱包行为分析 (~20s)
    BscScan tokentx → 开发者行为 (DEX Router/LP token mint-burn)
@@ -33,7 +33,8 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 |--------|------|------|
 | BSC RPC (publicnode) | 链上 TokenCreated 事件发现 | 无硬限制 |
 | four.meme Detail API | 社交链接/进度 | ~5 req/s |
-| BscScan API (Etherscan V2) | 链上持币数 + tokentx 开发者行为 + Top Holders 聪明钱自动发现 | ~5 req/s |
+| BscScan API (Etherscan V2) | tokentx 开发者行为 + Top Holders 聪明钱自动发现 | ~5 req/s |
+| BSC RPC Transfer 事件 | 持币地址数 (免费, 替代 BscScan PRO 端点) | 无硬限制 |
 | DexScreener API | 批量价格+流动性查询 | ~300 req/min |
 | GeckoTerminal OHLCV | K线数据（精筛用） | ~30 req/min |
 | 微博热搜 | 热点关键词匹配（加分项） | 独立限流 |
@@ -73,7 +74,7 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 聪明钱地址无需手动维护，支持自动发现（1小时刷新）：
 
 1. 手动配置：`config.local.json` 的 `smartMoneyAddrs` 数组
-2. Top Holders 交叉分析：获取 four.meme HOT 列表前10个代币 → BscScan 查每个代币 Top 50 Holders → 在 ≥2 个代币中都是大户的地址自动识别为聪明钱
+2. Top Holders 交叉分析：GeckoTerminal BSC trending pools 筛选24h涨幅>10%的已上DEX代币 → RPC Transfer 事件统计每个代币 Top 50 Holders → 在 ≥2 个代币中都是大户的地址自动识别为聪明钱
 3. 排除已知非聪明钱地址：交易所合约、DEX Router、WBNB、USDT、BUSD、USDC 等
 
 聪明钱行为判定：
