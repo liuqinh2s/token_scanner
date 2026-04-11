@@ -18,8 +18,13 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 3. 淘汰检查 (~15s)
    DexScreener 批量查价 + Detail API 查持币数 → 永久淘汰弃盘币
 
-4. 精筛 (~10s)
-   K线/价格比/底价区间 → 输出推荐
+4. 钱包行为分析 (~20s)
+   BscScan tokentx → 开发者行为 (DEX Router/LP token mint-burn)
+   Top Holders 交叉分析 → 聪明钱自动发现 (1h缓存)
+   聪明钱行为追踪 → 排除/加分信号
+
+5. 精筛 (~10s)
+   K线/价格比/底价区间 + 钱包行为排除/加分 → 输出推荐
 ```
 
 ## 数据源
@@ -28,7 +33,7 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 |--------|------|------|
 | BSC RPC (publicnode) | 链上 TokenCreated 事件发现 | 无硬限制 |
 | four.meme Detail API | 社交链接/进度 | ~5 req/s |
-| BscScan API (Etherscan V2) | 链上真实持币地址数 | ~5 req/s |
+| BscScan API (Etherscan V2) | 链上持币数 + tokentx 开发者行为 + Top Holders 聪明钱自动发现 | ~5 req/s |
 | DexScreener API | 批量价格+流动性查询 | ~300 req/min |
 | GeckoTerminal OHLCV | K线数据（精筛用） | ~30 req/min |
 | 微博热搜 | 热点关键词匹配（加分项） | 独立限流 |
@@ -49,6 +54,62 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 | 8 | 币龄 > 1h 且最高持币数 < 10 | 热度不足 |
 | 9 | 币龄 > 72h | 超出关注窗口 |
 
+## 钱包行为分析
+
+通过 BscScan API 追踪开发者和聪明钱的链上行为（参考 [token_trading](https://github.com/liuqinh2s/token_trading) 方案）。
+
+### 开发者行为判定
+
+- 开发者地址来源：链上 `TokenCreated` 事件解码的 `creator` 字段
+- 转账查询：BscScan `tokentx` 查开发者对该代币的转账记录
+- 买入判定：从 DEX Router（PancakeSwap V2/V3/Universal）或零地址收到代币
+- 卖出判定：转到 DEX Router 或其他非自己地址（转到零地址/死地址视为销毁，不算卖出）
+- 清仓判定：卖出占收到总量 ≥ 90%
+- 流动性操作：通过 LP token 的 mint/burn 检测（from=0x0 → 加池子，to=0x0 → 撤池子）
+
+### 聪明钱自动发现
+
+聪明钱地址无需手动维护，支持自动发现（1小时刷新）：
+
+1. 手动配置：`config.local.json` 的 `smartMoneyAddrs` 数组
+2. Top Holders 交叉分析：获取 four.meme HOT 列表前10个代币 → BscScan 查每个代币 Top 50 Holders → 在 ≥2 个代币中都是大户的地址自动识别为聪明钱
+3. 排除已知非聪明钱地址：交易所合约、DEX Router、WBNB、USDT、BUSD、USDC 等
+
+聪明钱行为判定：
+- 买入：从 DEX Router 或零地址收到代币，按地址数计数
+- 卖出：转到 DEX Router，按地址数计数
+
+### 精筛排除（有以下行为直接排除，不进精筛结果）
+
+| 行为 | 判定条件 | 说明 |
+|------|----------|------|
+| 开发者减仓 | 有卖出交易（转到 DEX Router 或其他地址） | 开发者在抛售 |
+| 开发者清仓 | 卖出占收到总量 ≥ 90% | 开发者大量抛售 |
+| 开发者撤池子 | LP token burn（from=creator, to=0x0） | 撤流动性，准备跑路 |
+| 聪明钱减仓 | 有卖出交易（转到 DEX Router） | 聪明钱在离场 |
+
+### 精筛加分（标签显示在代币名称旁）
+
+| 信号 | 判定条件 | 标签 |
+|------|----------|------|
+| 开发者加仓 | 从 DEX Router/零地址收到代币 | 💰 开发者加仓 |
+| 开发者加池子 | LP token mint（from=0x0, to=creator） | 🏊 开发者加池子 |
+| 聪明钱加仓 | 从 DEX Router/零地址收到代币（按地址数计分） | 🧠 聪明钱加仓 |
+
+### 配置
+
+在 `config.local.json` 中可选配置：
+
+```json
+{
+  "smartMoneyAddrs": ["0x...", "0x..."],
+  "smartMoneyCrossFreq": 2
+}
+```
+
+- `smartMoneyAddrs`：手动补充的聪明钱地址（可选，自动发现已覆盖大部分）
+- `smartMoneyCrossFreq`：Top Holders 交叉分析最小出现频次（默认 2）
+
 ## 精筛规则
 
 对队列中存活代币执行：
@@ -60,6 +121,7 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 - 当前价在最高价 40%~90%
 - 现价比底价高 10%~100%
 - 热点匹配（加分项）：微博热搜关键词与代币名称交叉匹配，标注 🔥
+- 钱包行为（排除/加分）：开发者/聪明钱减仓清仓撤池子排除，加仓加池子加分标注
 
 ## 前端功能
 
@@ -112,7 +174,9 @@ npm run dev                     # 启动开发服务器（live-server）
 ```json
 {
   "proxy": { "enabled": true, "host": "127.0.0.1", "port": 7890 },
-  "bscscanApiKey": "YOUR_BSCSCAN_API_KEY"
+  "bscscanApiKey": "YOUR_BSCSCAN_API_KEY",
+  "smartMoneyAddrs": ["0x...", "0x..."],
+  "smartMoneyCrossFreq": 2
 }
 ```
 
@@ -128,6 +192,8 @@ npm run dev                     # 启动开发服务器（live-server）
 | `ELIM_EARLY_PEAK_HOLDERS` | 5 | 币龄>15min 最高持币数淘汰下限 |
 | `ELIM_TINY_PEAK_HOLDERS` | 3 | 币龄>5min 最高持币数淘汰下限 |
 | `ELIM_MID_PEAK_HOLDERS` | 10 | 币龄>1h 最高持币数淘汰下限 |
+| `SMART_MONEY_MIN_CROSS_FREQ` | 2 | Top Holders 交叉分析最小出现频次 |
+| `SMART_MONEY_CACHE_TTL` | 3600000 | 聪明钱地址缓存时间（毫秒，1小时） |
 
 ## License
 

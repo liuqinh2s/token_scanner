@@ -7,6 +7,7 @@
  *   site/data/scans/0.json   - individual scan results (0 = newest)
  *   site/data/search-index.json - deduplicated tokens for client-side search
  *
+ * 搜索索引包含 wallet_signals (钱包行为信号: 开发者加仓/加池子/聪明钱加仓)
  * Also copies public/index.html to site/index.html with API paths rewritten.
  */
 
@@ -92,6 +93,7 @@ if (scanFiles.length === 0) {
         ts: t.total_supply || 0,
         dv: t.day1_vol || 0,
         pg: t.progress || 0,
+        ws: t.wallet_signals || [],
         st: data.scanTime,
       });
     }

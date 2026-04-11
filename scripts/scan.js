@@ -6,6 +6,7 @@
  *   2. 入场筛: four.meme detail API — 无社交/总量≠10亿 直接淘汰
  *   3. 淘汰检查: 对队列中代币定期检查, 永久淘汰弃盘币 (持币数来自 BscScan)
  *   4. 精筛: 对存活代币执行 K线/价格/持币数 等条件筛选
+ *   5. 钱包分析: BscScan tokentx 查开发者+聪明钱的加仓/减仓行为
  *
  * 淘汰条件 (永久剔除):
  *   - 价格从峰值跌 90%+
@@ -17,6 +18,16 @@
  *   - 币龄 > 15min 且最高持币数 < 5
  *   - 币龄 > 1h 且最高持币数 < 10
  *   - 币龄 > 72h
+ *
+ * 精筛排除 (钱包行为):
+ *   - 开发者减仓/清仓
+ *   - 开发者撤流动性 (减池子)
+ *   - 聪明钱减仓/清仓
+ *
+ * 精筛加分 (钱包行为):
+ *   - 开发者加仓
+ *   - 开发者加流动性 (加池子)
+ *   - 聪明钱加仓
  *
  * 状态持久化: data/queue.json
  */
@@ -77,8 +88,21 @@ const ELIM_TINY_AGE_MIN = 5 / 60;       // 5 分钟
 const ELIM_MID_PEAK_HOLDERS = 10;       // 币龄>1h 最高持币数 < 10 淘汰
 const ELIM_MID_AGE_HOURS = 1;           // 1 小时
 
+// 已知 DEX Router 地址 (用于识别买入/卖出行为)
+const KNOWN_DEX_ROUTERS = new Set([
+  "0x10ed43c718714eb63d5aa57b78b54704e256024e", // PancakeSwap V2 Router
+  "0x13f4ea83d0bd40e75c8222255bc855a974568dd4", // PancakeSwap V3 Router
+  "0x1b81d678ffb9c0263b24a97847620c99d213eb14", // PancakeSwap Universal Router
+]);
+
+// 零地址/死地址 (转到这些地址不算卖出, 视为销毁)
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+const DEAD_ADDRESS = "0x000000000000000000000000000000000000dead";
+const BURN_ADDRESSES = new Set([ZERO_ADDRESS, DEAD_ADDRESS]);
+
 // API endpoints
 const FM_DETAIL = "https://four.meme/meme-api/v1/private/token/get/v2";
+const FM_SEARCH = "https://four.meme/meme-api/v1/public/token/search";
 const DS_BASE = "https://api.dexscreener.com";
 const GT_BASE = "https://api.geckoterminal.com/api/v2";
 const BSC_RPC = "https://bsc-rpc.publicnode.com/";
@@ -87,6 +111,24 @@ const BSCSCAN_API_KEY = localConfig.bscscanApiKey || "";
 
 const FOUR_MEME_CONTRACT = "0x5c952063c7fc8610ffdb798152d69f0b9550762b";
 const TOKEN_CREATE_TOPIC = "0x396d5e902b675b032348d3d2e9517ee8f0c4a926603fbc075d3d282ff00cad20";
+
+// 已知非聪明钱地址 (交易所/合约/稳定币等, 自动发现时排除)
+const KNOWN_EXCLUDE_ADDRESSES = new Set([
+  ZERO_ADDRESS, DEAD_ADDRESS,
+  "0x10ed43c718714eb63d5aa57b78b54704e256024e", // PancakeSwap V2 Router
+  "0x13f4ea83d0bd40e75c8222255bc855a974568dd4", // PancakeSwap V3 Router
+  "0x1b81d678ffb9c0263b24a97847620c99d213eb14", // PancakeSwap Universal Router
+  "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c", // WBNB
+  "0x55d398326f99059ff775485246999027b3197955", // USDT
+  "0xe9e7cea3dedca5984780bafc599bd69add087d56", // BUSD
+  "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d", // USDC
+  FOUR_MEME_CONTRACT.toLowerCase(),
+]);
+
+// 聪明钱自动发现配置
+const SMART_MONEY_CACHE_TTL = 3600_000;  // 1小时缓存
+const SMART_MONEY_MIN_CROSS_FREQ = localConfig.smartMoneyCrossFreq || 2;
+let smartMoneyCache = { ts: 0, addresses: new Set() };
 
 const FM_HEADERS = {
   "Content-Type": "application/json",
@@ -631,6 +673,399 @@ async function eliminationCheck(queue, nowMs) {
 }
 
 // ===================================================================
+//  Step 4.5: 钱包行为分析 — BscScan tokentx 查开发者+聪明钱
+//  参考: github.com/liuqinh2s/token_trading 的链上行为分析方案
+//  改进:
+//    - 聪明钱自动发现 (Top Holders 交叉分析)
+//    - LP token mint/burn 检测流动性操作
+//    - 销毁地址排除 (转到零地址/死地址不算卖出)
+//    - DEX Router 精确匹配买卖方向
+// ===================================================================
+
+/**
+ * BscScan 统一 GET 请求封装 (带重试和 429 处理)
+ */
+async function bscScanGet(params) {
+  if (!BSCSCAN_API_KEY) return null;
+  const MAX_RETRIES = 2;
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    await bscScanLimiter.acquire();
+    try {
+      const qs = new URLSearchParams({ ...params, apikey: BSCSCAN_API_KEY, chainid: "56" }).toString();
+      const res = await fetchJSON(`${BSCSCAN_API}?${qs}`, { timeout: 15000 });
+      if (res.status === 429) {
+        const wait = 3000 * (attempt + 1);
+        console.warn(`[BSCSCAN] 429, 等待 ${wait / 1000}s (${attempt + 1}/${MAX_RETRIES + 1})`);
+        await sleep(wait);
+        continue;
+      }
+      return res.data || null;
+    } catch (e) {
+      if (attempt < MAX_RETRIES) await sleep(2000);
+    }
+  }
+  return null;
+}
+
+/**
+ * BscScan 查指定地址对某代币的转账记录
+ */
+async function bscScanTokenTxByAddress(tokenAddress, address) {
+  const d = await bscScanGet({
+    module: "account", action: "tokentx",
+    contractaddress: tokenAddress, address,
+    page: 1, offset: 100, sort: "desc",
+  });
+  if (d && d.status === "1" && Array.isArray(d.result)) return d.result;
+  return [];
+}
+
+/**
+ * BscScan 查代币全量转账记录 (用于聪明钱分析)
+ */
+async function bscScanTokenTxAll(tokenAddress) {
+  const d = await bscScanGet({
+    module: "account", action: "tokentx",
+    contractaddress: tokenAddress,
+    page: 1, offset: 200, sort: "desc",
+  });
+  if (d && d.status === "1" && Array.isArray(d.result)) return d.result;
+  return [];
+}
+
+/**
+ * BscScan 查 Top Holders 列表
+ */
+async function bscScanTopHolders(tokenAddress, offset = 50) {
+  const d = await bscScanGet({
+    module: "token", action: "tokenholderlist",
+    contractaddress: tokenAddress,
+    page: 1, offset,
+  });
+  if (d && d.status === "1" && Array.isArray(d.result)) return d.result;
+  return [];
+}
+
+// ===================================================================
+//  聪明钱自动发现 — Top Holders 交叉分析
+// ===================================================================
+
+/**
+ * 从 four.meme HOT 列表获取热门代币地址
+ */
+async function fetchHotTokenAddresses(limit = 10) {
+  try {
+    const res = await fetchJSON(FM_SEARCH, {
+      method: "POST",
+      headers: FM_HEADERS,
+      agent: fmAgent,
+      body: JSON.stringify({
+        type: "HOT", listType: "ADV", status: "TRADE",
+        pageIndex: 1, pageSize: 20,
+      }),
+    });
+    if (res.data && res.data.code === 0 && Array.isArray(res.data.data)) {
+      return res.data.data
+        .map(t => (t.tokenAddress || "").toLowerCase())
+        .filter(a => a)
+        .slice(0, limit);
+    }
+  } catch (e) { /* silent */ }
+  return [];
+}
+
+/**
+ * 聪明钱自动发现: Top Holders 交叉分析
+ * 逻辑: 获取多个热门代币的 Top 50 Holders, 在 ≥2 个代币中都是大户的地址 → 聪明钱
+ */
+async function discoverSmartMoneyFromTopHolders() {
+  if (!BSCSCAN_API_KEY) return new Set();
+
+  const hotTokens = await fetchHotTokenAddresses(10);
+  if (hotTokens.length === 0) return new Set();
+
+  console.log(`[聪明钱] 分析 ${hotTokens.length} 个热门代币的 Top Holders...`);
+  const addrFreq = new Map(); // 地址 → 出现在多少个代币的 Top Holders 中
+
+  for (const tokenAddr of hotTokens) {
+    await sleep(300);
+    const holders = await bscScanTopHolders(tokenAddr, 50);
+    for (const h of holders) {
+      const addr = (h.TokenHolderAddress || "").toLowerCase();
+      if (addr && addr.length === 42 && !KNOWN_EXCLUDE_ADDRESSES.has(addr)) {
+        addrFreq.set(addr, (addrFreq.get(addr) || 0) + 1);
+      }
+    }
+  }
+
+  // 筛选: 在 ≥ minFreq 个热门代币中都是 Top Holder 的地址
+  const discovered = new Set();
+  for (const [addr, freq] of addrFreq) {
+    if (freq >= SMART_MONEY_MIN_CROSS_FREQ) {
+      discovered.add(addr);
+    }
+  }
+
+  if (discovered.size > 0) {
+    console.log(`[聪明钱] Top Holders 交叉分析发现 ${discovered.size} 个地址 (出现≥${SMART_MONEY_MIN_CROSS_FREQ}次)`);
+  }
+  return discovered;
+}
+
+/**
+ * 加载聪明钱地址 (带缓存, 多源合并)
+ * 来源: 1. config.local.json 手动配置  2. Top Holders 交叉分析自动发现
+ */
+async function loadSmartMoneyAddresses() {
+  const now = Date.now();
+  if (now - smartMoneyCache.ts < SMART_MONEY_CACHE_TTL && smartMoneyCache.addresses.size > 0) {
+    return smartMoneyCache.addresses;
+  }
+
+  const addresses = new Set();
+
+  // 来源 1: 手动配置
+  for (const addr of (localConfig.smartMoneyAddrs || [])) {
+    const a = (addr || "").trim().toLowerCase();
+    if (a && a.length === 42 && !KNOWN_EXCLUDE_ADDRESSES.has(a)) {
+      addresses.add(a);
+    }
+  }
+  const manualCount = addresses.size;
+
+  // 来源 2: Top Holders 交叉分析自动发现
+  const discovered = await discoverSmartMoneyFromTopHolders();
+  for (const a of discovered) addresses.add(a);
+
+  // 排除已知非聪明钱地址
+  for (const ex of KNOWN_EXCLUDE_ADDRESSES) addresses.delete(ex);
+
+  console.log(`[聪明钱] 地址总计: ${addresses.size} 个 (手动 ${manualCount}, 自动发现 ${discovered.size})`);
+  smartMoneyCache = { ts: now, addresses };
+  return addresses;
+}
+
+// ===================================================================
+//  开发者行为分析
+// ===================================================================
+
+/**
+ * 分析开发者链上行为 (参考 token_trading 的 analyze_developer_behavior)
+ * 改进: DEX Router 精确匹配, LP token mint/burn 检测, 销毁地址排除
+ */
+async function analyzeDeveloperBehavior(tokenAddress, creatorAddress) {
+  const result = {
+    hasSell: false, hasBuy: false,
+    hasLpAdd: false, hasLpRemove: false,
+    sellPct: 0, details: [],
+    bonus: 0, exclude: false,
+  };
+  if (!creatorAddress || !BSCSCAN_API_KEY) return result;
+
+  const tokenLower = tokenAddress.toLowerCase();
+  const creatorLower = creatorAddress.toLowerCase();
+
+  // 查开发者对该代币的转账记录
+  const transfers = await bscScanTokenTxByAddress(tokenAddress, creatorAddress);
+  if (transfers.length === 0) return result;
+
+  let totalIn = 0, totalOut = 0;
+  let buyCount = 0, sellCount = 0;
+  let lpAddCount = 0, lpRemoveCount = 0;
+
+  for (const tx of transfers) {
+    const from = (tx.from || "").toLowerCase();
+    const to = (tx.to || "").toLowerCase();
+    const value = parseInt(tx.value || "0", 10);
+    const contractAddr = (tx.contractAddress || "").toLowerCase();
+    if (value <= 0) continue;
+
+    // 该代币的转账
+    if (contractAddr === tokenLower) {
+      if (to === creatorLower) {
+        // 开发者收到代币
+        totalIn += value;
+        // 从 DEX Router 或零地址收到 = 买入
+        if (KNOWN_DEX_ROUTERS.has(from) || from === ZERO_ADDRESS) {
+          buyCount++;
+        }
+      } else if (from === creatorLower) {
+        // 开发者转出代币
+        // 转到零地址/死地址 = 销毁, 不算卖出
+        if (BURN_ADDRESSES.has(to)) continue;
+        totalOut += value;
+        // 转到 DEX Router = 卖出
+        if (KNOWN_DEX_ROUTERS.has(to)) {
+          sellCount++;
+        } else {
+          // 转到其他地址也算减仓
+          sellCount++;
+        }
+      }
+    } else {
+      // 非该代币的转账 — 检查是否是 LP token 操作
+      // LP token 的 from=0x0 → 加流动性 (mint), to=0x0 → 撤流动性 (burn)
+      const tokenName = (tx.tokenName || "").toLowerCase();
+      if (tokenName.includes("lp") || tokenName.includes("pancake")) {
+        if (from === ZERO_ADDRESS && to === creatorLower) {
+          lpAddCount++;
+        } else if (from === creatorLower && to === ZERO_ADDRESS) {
+          lpRemoveCount++;
+        }
+      }
+    }
+  }
+
+  // 计算卖出占比
+  if (totalIn > 0) {
+    result.sellPct = Math.min(100, (totalOut / totalIn) * 100);
+  }
+
+  // 判断行为
+  if (sellCount > 0) {
+    result.hasSell = true;
+    if (result.sellPct >= 90) {
+      result.details.push(`开发者清仓 (卖出${result.sellPct.toFixed(0)}%)`);
+    } else {
+      result.details.push(`开发者减仓 (卖出${result.sellPct.toFixed(0)}%)`);
+    }
+    result.exclude = true;
+  }
+  if (buyCount > 0) {
+    result.hasBuy = true;
+    result.details.push(`开发者加仓 (${buyCount}笔)`);
+    result.bonus++;
+  }
+  if (lpAddCount > 0) {
+    result.hasLpAdd = true;
+    result.details.push(`开发者加池子 (${lpAddCount}笔)`);
+    result.bonus++;
+  }
+  if (lpRemoveCount > 0) {
+    result.hasLpRemove = true;
+    result.details.push(`开发者撤池子 (${lpRemoveCount}笔)`);
+    result.exclude = true;
+  }
+
+  return result;
+}
+
+// ===================================================================
+//  聪明钱行为分析
+// ===================================================================
+
+/**
+ * 分析聪明钱对该代币的链上行为 (参考 token_trading 的 analyze_smart_money_behavior)
+ * 改进: DEX Router 精确匹配买卖方向, 按地址数计数
+ */
+async function analyzeSmartMoneyBehavior(tokenAddress, smartAddresses) {
+  const result = {
+    hasBuy: false, hasSell: false,
+    buyCount: 0, sellCount: 0,
+    details: [], bonus: 0, exclude: false,
+  };
+  if (!smartAddresses || smartAddresses.size === 0 || !BSCSCAN_API_KEY) return result;
+
+  // 查该代币的全量转账记录
+  const allTransfers = await bscScanTokenTxAll(tokenAddress);
+  if (allTransfers.length === 0) return result;
+
+  const buyers = new Set();
+  const sellers = new Set();
+
+  for (const tx of allTransfers) {
+    const from = (tx.from || "").toLowerCase();
+    const to = (tx.to || "").toLowerCase();
+    const value = parseInt(tx.value || "0", 10);
+    if (value <= 0) continue;
+
+    // 聪明钱买入: 聪明钱是接收方, 来源是 DEX Router 或零地址
+    if (smartAddresses.has(to)) {
+      if (KNOWN_DEX_ROUTERS.has(from) || from === ZERO_ADDRESS) {
+        buyers.add(to);
+      }
+    }
+    // 聪明钱卖出: 聪明钱是发送方, 目标是 DEX Router
+    if (smartAddresses.has(from)) {
+      if (KNOWN_DEX_ROUTERS.has(to)) {
+        sellers.add(from);
+      }
+    }
+  }
+
+  result.buyCount = buyers.size;
+  result.sellCount = sellers.size;
+
+  if (buyers.size > 0) {
+    result.hasBuy = true;
+    result.details.push(`聪明钱加仓 (${buyers.size}个地址)`);
+    result.bonus += buyers.size; // 每个聪明钱加仓 +1 分
+  }
+  if (sellers.size > 0) {
+    result.hasSell = true;
+    result.details.push(`聪明钱减仓 (${sellers.size}个地址)`);
+    result.exclude = true;
+  }
+
+  return result;
+}
+
+// ===================================================================
+//  钱包分析入口 — 合并开发者+聪明钱
+// ===================================================================
+
+/**
+ * 批量分析钱包行为 (带并发控制)
+ * 返回 Map<address, { excluded, excludeReason, signals, bonus, details }>
+ */
+async function batchWalletAnalysis(tokens, smartAddresses) {
+  const CONCURRENCY = 2; // BscScan 限流, 保守并发 (每个代币需要 2~3 个请求)
+  const resultMap = new Map();
+
+  for (let i = 0; i < tokens.length; i += CONCURRENCY) {
+    const batch = tokens.slice(i, i + CONCURRENCY);
+    const results = await Promise.all(batch.map(async (t) => {
+      if (i > 0) await sleep(300); // BSCScan 速率控制
+
+      // 分析开发者行为
+      const dev = await analyzeDeveloperBehavior(t.address, t.creator);
+      await sleep(200);
+
+      // 分析聪明钱行为
+      const sm = await analyzeSmartMoneyBehavior(t.address, smartAddresses);
+
+      // 合并结果
+      const allDetails = [...dev.details, ...sm.details];
+      const totalBonus = dev.bonus + sm.bonus;
+      const signals = [];
+      if (dev.hasBuy) signals.push("开发者加仓");
+      if (dev.hasLpAdd) signals.push("开发者加池子");
+      if (sm.hasBuy) signals.push("聪明钱加仓");
+
+      let excluded = false, excludeReason = "";
+      if (dev.exclude) {
+        excluded = true;
+        excludeReason = dev.details.join(", ");
+      }
+      if (sm.exclude) {
+        excluded = true;
+        excludeReason = (excludeReason ? excludeReason + ", " : "") + sm.details.join(", ");
+      }
+
+      return {
+        address: t.address,
+        wa: { excluded, excludeReason, signals, bonus: totalBonus, details: allDetails },
+      };
+    }));
+    for (const r of results) {
+      resultMap.set(r.address, r.wa);
+    }
+  }
+
+  return resultMap;
+}
+
+// ===================================================================
 //  Step 4: 精筛 — K线 + 价格比 (与 v1 Stage3 一致)
 // ===================================================================
 
@@ -703,8 +1138,8 @@ function calcMinPriceAll(candles) {
   return found ? minLow : null;
 }
 
-/** 精筛: 对存活代币执行 K线条件筛选 */
-async function qualityFilter(candidates, nowMs) {
+/** 精筛: 对存活代币执行 K线条件筛选 + 钱包行为排除/加分 */
+async function qualityFilter(candidates, nowMs, walletMap) {
   const results = [];
 
   for (let i = 0; i < candidates.length; i++) {
@@ -712,6 +1147,13 @@ async function qualityFilter(candidates, nowMs) {
     const ageHours = (nowMs - t.createdAt) / 3600000;
     const createTsSec = t.createdAt / 1000;
     const currentPrice = t.price || 0;
+
+    // 钱包行为排除检查
+    const wa = walletMap ? walletMap.get(t.address) : null;
+    if (wa && wa.excluded) {
+      console.log(`[精筛] ✗ ${t.name || t.address.slice(0, 16)} — 钱包排除: ${wa.excludeReason}`);
+      continue;
+    }
 
     // 价格初筛
     const isRelaxed = ageHours < 4 && currentPrice > 0.00001;
@@ -760,8 +1202,9 @@ async function qualityFilter(candidates, nowMs) {
       }
     }
 
-    results.push({ ...t, ath, high2h });
-    console.log(`[精筛] ✓ ${t.name || t.address.slice(0, 16)} — ATH ${ath.toExponential(3)}, 现价 ${currentPrice.toExponential(3)}, 持币 ${t.holders}`);
+    results.push({ ...t, ath, high2h, walletSignals: wa ? wa.signals : [], walletAnalysis: wa || null });
+    const sigStr = wa && wa.signals.length > 0 ? ` 💰 ${wa.signals.join(", ")}` : "";
+    console.log(`[精筛] ✓ ${t.name || t.address.slice(0, 16)} — ATH ${ath.toExponential(3)}, 现价 ${currentPrice.toExponential(3)}, 持币 ${t.holders}${sigStr}`);
   }
 
   return results;
@@ -858,6 +1301,7 @@ async function main() {
       const initHolders = bscH != null ? bscH : detail.holders;
       queueState.tokens.push({
         address: token.address,
+        creator: token.creator || "",
         name: detail.name || token.name || "",
         symbol: detail.shortName || token.symbol || "",
         createdAt: token.createdAt,
@@ -893,10 +1337,23 @@ async function main() {
 
   console.log(`[QUEUE] 淘汰后: ${survivors.length} 个存活, ${eliminated.length} 个淘汰`);
 
-  // Step 4: 精筛 + 热点匹配
-  console.log("\n--- Step 4: 精筛 ---");
+  // Step 4: 钱包分析 + 精筛 + 热点匹配
+  console.log("\n--- Step 4: 钱包分析 + 精筛 ---");
+
+  // 钱包行为分析 (开发者+聪明钱)
+  let walletMap = new Map();
+  if (BSCSCAN_API_KEY && survivors.length > 0) {
+    // 加载聪明钱地址 (手动配置 + 自动发现)
+    const smartAddresses = await loadSmartMoneyAddresses();
+    console.log(`[钱包] 分析 ${survivors.length} 个代币的开发者/聪明钱行为...`);
+    walletMap = await batchWalletAnalysis(survivors, smartAddresses);
+    const excludedCount = [...walletMap.values()].filter(w => w.excluded).length;
+    const signalCount = [...walletMap.values()].filter(w => w.signals.length > 0).length;
+    console.log(`[钱包] 排除: ${excludedCount}, 有加分信号: ${signalCount}`);
+  }
+
   const [qualityResults, hotspots] = await Promise.all([
-    qualityFilter(survivors, nowMs),
+    qualityFilter(survivors, nowMs, walletMap),
     fetchAllHotspots(),
   ]);
 
@@ -940,6 +1397,7 @@ async function main() {
         hot_keywords: t.hotNews?.matched || [],
         day1_vol: t.day1Vol || 0,
         progress: t.progress || 0,
+        wallet_signals: t.walletSignals || [],
       };
     }),
     // 队列快照: 存活代币 + 本轮淘汰代币

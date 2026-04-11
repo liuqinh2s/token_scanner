@@ -381,64 +381,57 @@
       text-decoration: underline;
     }
 
-    .tag-hot {
+    /* 统一标签系统 */
+    .tag {
       display: inline-block;
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin: 1px 3px;
+      font-weight: 600;
+      cursor: default;
+      transition: all .15s;
+      white-space: nowrap;
+    }
+
+    .tag:hover {
+      opacity: 0.85;
+      transform: scale(1.05);
+    }
+
+    /* 钱包行为标签 */
+    .tag-dev-buy {
+      background: #00c853;
+      color: #fff;
+    }
+
+    .tag-dev-lp {
+      background: #00bcd4;
+      color: #fff;
+    }
+
+    .tag-smart-buy {
+      background: #7c4dff;
+      color: #fff;
+    }
+
+    /* 热点标签 */
+    .tag-hot-weibo {
       background: #ff4d4f;
       color: #fff;
-      font-size: 10px;
-      padding: 1px 6px;
-      border-radius: 3px;
-      margin-left: 4px;
-      font-weight: 600;
     }
 
-    .tag-hot-link {
-      display: inline-block;
-      background: #ff4d4f;
-      color: #fff;
-      font-size: 10px;
-      padding: 1px 6px;
-      border-radius: 3px;
-      margin-left: 3px;
-      font-weight: 600;
-      text-decoration: none;
-      cursor: pointer;
-    }
-
-    .tag-hot-link:hover {
-      background: #ff7875;
-      text-decoration: none;
-    }
-
-    .tag-hot-link.src-weibo {
-      background: #ff4d4f;
-    }
-
-    .tag-hot-link.src-twitter {
+    .tag-hot-twitter {
       background: #1d9bf0;
+      color: #fff;
     }
 
-    .tag-hot-link.src-google {
+    .tag-hot-google {
       background: #ea4335;
+      color: #fff;
     }
 
-    .tag-social {
-      display: inline-block;
-      font-size: 10px;
-      padding: 1px 5px;
-      border-radius: 3px;
-      margin: 1px 2px;
-    }
-
-    .tag-social a {
-      color: inherit;
-      text-decoration: none;
-    }
-
-    .tag-social a:hover {
-      text-decoration: underline;
-    }
-
+    /* 社交媒体标签 */
     .tag-twitter {
       background: #1d9bf0;
       color: #fff;
@@ -452,6 +445,19 @@
     .tag-website {
       background: #4caf50;
       color: #fff;
+    }
+
+    .tag a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .tag a:hover {
+      text-decoration: underline;
+    }
+
+    .tags-cell {
+      max-width: 280px;
     }
 
     .price-info {
@@ -573,13 +579,14 @@
   <div id="app">
     <header>
       <h1>BSC Token Scanner</h1>
-      <p class="subtitle">链上发现 · 队列淘汰制 · 每15分钟扫描</p>
+      <p class="subtitle">链上发现 · 队列淘汰制 · 钱包行为分析 · 每15分钟扫描</p>
       <p class="filter-desc">
         链上扫描 four.meme TokenCreated 事件发现新代币 → 入场筛(社交≥1、总量10亿) →
         队列淘汰(价格跌90%/持币30→10/无社交/流动性1k→100/进度&lt;1%且币龄&gt;4h/5min峰值持币&lt;3/15min峰值持币&lt;5/1h峰值持币&lt;10/币龄&gt;72h)
         →
-        精筛(价格/K线/底价区间)<br>
-        价格数据: DexScreener + GeckoTerminal K线 · 持币数据: BscScan 链上 · 🔥 = 匹配实时热点关键词
+        钱包分析(开发者/聪明钱加减仓) → 精筛(价格/K线/底价区间)<br>
+        价格数据: DexScreener + GeckoTerminal K线 · 持币数据: BscScan 链上 · 钱包行为: BscScan tokentx<br>
+        🔥 = 匹配实时热点 · 💰 = 开发者加仓 · 🏊 = 开发者加池子 · 🧠 = 聪明钱加仓
       </p>
     </header>
 
@@ -625,7 +632,7 @@
             <th>合约地址</th>
             <th>持币</th>
             <th>价格/最高/2h高</th>
-            <th>社交</th>
+            <th>标签</th>
             <th>币龄</th>
           </tr>
         </thead>
@@ -725,43 +732,58 @@
     }
 
     function parseHotKeyword(kw) {
-      // Format: "关键词(source)" e.g. "张雪(weibo)", "Trump(twitter)", "AI(google/US)"
       const m = kw.match(/^(.+)\(([^)]+)\)$/);
       if (!m) return { word: kw, source: '', url: '' };
       const word = m[1], source = m[2];
       const srcBase = source.split('/')[0];
       const geo = source.split('/')[1] || '';
       let url = '';
-      if (srcBase === 'weibo') {
-        url = 'https://s.weibo.com/weibo?q=' + encodeURIComponent(word);
-      } else if (srcBase === 'twitter') {
-        url = 'https://x.com/search?q=' + encodeURIComponent(word);
-      } else if (srcBase === 'google') {
-        url = 'https://trends.google.com/trending?geo=' + (geo || 'US') + '&q=' + encodeURIComponent(word);
-      }
+      if (srcBase === 'weibo') url = 'https://s.weibo.com/weibo?q=' + encodeURIComponent(word);
+      else if (srcBase === 'twitter') url = 'https://x.com/search?q=' + encodeURIComponent(word);
+      else if (srcBase === 'google') url = 'https://trends.google.com/trending?geo=' + (geo || 'US') + '&q=' + encodeURIComponent(word);
       return { word, source: srcBase, url };
     }
 
-    function buildHotTags(hotKeywords) {
-      if (!hotKeywords || hotKeywords.length === 0) return '';
-      return hotKeywords.map(kw => {
-        const { word, source, url } = parseHotKeyword(kw);
-        const srcClass = source ? ' src-' + source : '';
-        const icon = source === 'weibo' ? '🔥' : source === 'twitter' ? '𝕏' : source === 'google' ? 'G' : '🔥';
-        if (url) {
-          return `<a class="tag-hot-link${srcClass}" href="${esc(url)}" target="_blank" rel="noopener" title="${esc(kw)}">${icon} ${esc(word)}</a>`;
+    function buildAllTags(token) {
+      let html = '';
+      // 钱包行为标签
+      if (token.wallet_signals && token.wallet_signals.length > 0) {
+        const iconMap = { '开发者加仓': ['💰', 'tag-dev-buy'], '开发者加池子': ['🏊', 'tag-dev-lp'], '聪明钱加仓': ['🧠', 'tag-smart-buy'] };
+        for (const s of token.wallet_signals) {
+          const [icon, cls] = iconMap[s] || ['💰', 'tag-dev-buy'];
+          html += `<span class="tag ${cls}" title="${esc(s)}">${icon} ${esc(s)}</span>`;
         }
-        return `<span class="tag-hot" title="${esc(kw)}">${icon} ${esc(word)}</span>`;
-      }).join('');
+      }
+      // 热点标签
+      if (token.hot_news && token.hot_keywords && token.hot_keywords.length > 0) {
+        for (const kw of token.hot_keywords) {
+          const { word, source, url } = parseHotKeyword(kw);
+          const cls = source === 'twitter' ? 'tag-hot-twitter' : source === 'google' ? 'tag-hot-google' : 'tag-hot-weibo';
+          const icon = source === 'twitter' ? '𝕏' : source === 'google' ? 'G' : '🔥';
+          if (url) {
+            html += `<a class="tag ${cls}" href="${esc(url)}" target="_blank" rel="noopener" title="${esc(kw)}">${icon} ${esc(word)}</a>`;
+          } else {
+            html += `<span class="tag ${cls}" title="${esc(kw)}">${icon} ${esc(word)}</span>`;
+          }
+        }
+      }
+      // 社交媒体标签
+      const sl = token.social_links;
+      if (sl) {
+        if (sl.twitter) html += `<span class="tag tag-twitter"><a href="${esc(sl.twitter)}" target="_blank" rel="noopener">𝕏</a></span>`;
+        if (sl.telegram) html += `<span class="tag tag-telegram"><a href="${esc(sl.telegram)}" target="_blank" rel="noopener">TG</a></span>`;
+        if (sl.website) html += `<span class="tag tag-website"><a href="${esc(sl.website)}" target="_blank" rel="noopener">Web</a></span>`;
+      }
+      return html || '<span style="color:#5a6a80">--</span>';
     }
 
-    function buildSocialTags(socialLinks) {
-      if (!socialLinks) return '';
+    function buildSocialOnly(socialLinks) {
+      if (!socialLinks) return '<span style="color:#5a6a80">--</span>';
       let html = '';
-      if (socialLinks.twitter) html += `<span class="tag-social tag-twitter"><a href="${esc(socialLinks.twitter)}" target="_blank" rel="noopener">𝕏</a></span>`;
-      if (socialLinks.telegram) html += `<span class="tag-social tag-telegram"><a href="${esc(socialLinks.telegram)}" target="_blank" rel="noopener">TG</a></span>`;
-      if (socialLinks.website) html += `<span class="tag-social tag-website"><a href="${esc(socialLinks.website)}" target="_blank" rel="noopener">Web</a></span>`;
-      return html;
+      if (socialLinks.twitter) html += `<span class="tag tag-twitter"><a href="${esc(socialLinks.twitter)}" target="_blank" rel="noopener">𝕏</a></span>`;
+      if (socialLinks.telegram) html += `<span class="tag tag-telegram"><a href="${esc(socialLinks.telegram)}" target="_blank" rel="noopener">TG</a></span>`;
+      if (socialLinks.website) html += `<span class="tag tag-website"><a href="${esc(socialLinks.website)}" target="_blank" rel="noopener">Web</a></span>`;
+      return html || '<span style="color:#5a6a80">--</span>';
     }
 
     function renderData(data) {
@@ -791,12 +813,11 @@
 
       tbody.innerHTML = tokens.map((t, i) => {
         const addr = t.address || '';
-        const hotTags = t.hot_news ? buildHotTags(t.hot_keywords) : '';
-        const socialTags = buildSocialTags(t.social_links);
         const priceRatio = t.price_ratio != null ? (t.price_ratio * 100).toFixed(1) + '%' : '--';
+        const tags = buildAllTags(t);
         return `<tr>
       <td>${i + 1}</td>
-      <td>${esc(t.name || '--')}${hotTags}</td>
+      <td>${esc(t.name || '--')}</td>
       <td>${esc(t.symbol || '--')}</td>
       <td>
         <div class="addr-cell">
@@ -814,7 +835,7 @@
         <div class="price-info" style="color:#5a6a80">2h:${fmtPrice(t.high_2h)}</div>
         <div class="price-ratio">现/高:${priceRatio}</div>
       </td>
-      <td>${socialTags || '--'}</td>
+      <td class="tags-cell">${tags}</td>
       <td>${fmtAge(t.age_hours)}</td>
     </tr>`;
       }).join('');
@@ -824,12 +845,11 @@
       cardList.innerHTML = tokens.map((t, i) => {
         const addr = t.address || '';
         const shortAddr = addr.length > 16 ? addr.slice(0, 8) + '...' + addr.slice(-6) : addr;
-        const hotTags = t.hot_news ? buildHotTags(t.hot_keywords) : '';
-        const socialTags = buildSocialTags(t.social_links);
+        const tags = buildAllTags(t);
         const priceRatio = t.price_ratio != null ? (t.price_ratio * 100).toFixed(1) + '%' : '--';
         return `<div class="token-card">
           <div class="card-top">
-            <span><span class="card-name">${esc(t.name || '--')}</span><span class="card-symbol">${esc(t.symbol || '--')}</span>${hotTags}</span>
+            <span><span class="card-name">${esc(t.name || '--')}</span><span class="card-symbol">${esc(t.symbol || '--')}</span></span>
             <span class="card-holders">${t.holders || 0} 持币</span>
           </div>
           <div class="card-addr-row">
@@ -845,7 +865,7 @@
             <span>2h:${fmtPrice(t.high_2h)}</span>
             <span>现/高:${priceRatio}</span>
           </div>
-          <div class="card-social">${socialTags}</div>
+          <div class="card-social">${tags}</div>
           <div class="card-meta">
             <span>#${i + 1} · 币龄 ${fmtAge(t.age_hours)}</span>
           </div>
@@ -869,7 +889,7 @@
 
       tbody.innerHTML = items.map((t, i) => {
         const addr = t.address || '';
-        const socialTags = buildSocialTags(t.social_links);
+        const socialHtml = buildSocialOnly(t.social_links);
         const pctProgress = ((t.progress || 0) * 100).toFixed(1);
         return `<tr>
           <td>${i + 1}</td>
@@ -887,7 +907,7 @@
           <td><div class="price-info" style="color:#5a6a80">${fmtPrice(t.peak_price)}</div></td>
           <td><div class="price-info">$${(t.liquidity || 0).toFixed(0)}</div></td>
           <td>${pctProgress}%</td>
-          <td>${socialTags || '--'}</td>
+          <td>${socialHtml}</td>
           <td>${fmtAge(t.age_hours)}</td>
         </tr>`;
       }).join('');
@@ -896,7 +916,7 @@
       queueCardList.innerHTML = items.map((t, i) => {
         const addr = t.address || '';
         const shortAddr = addr.length > 16 ? addr.slice(0, 8) + '...' + addr.slice(-6) : addr;
-        const socialTags = buildSocialTags(t.social_links);
+        const socialHtml = buildSocialOnly(t.social_links);
         const pctProgress = ((t.progress || 0) * 100).toFixed(1);
         return `<div class="token-card">
           <div class="card-top">
@@ -916,7 +936,7 @@
             <span>流动性:${(t.liquidity || 0).toFixed(0)}</span>
             <span>进度:${pctProgress}%</span>
           </div>
-          <div class="card-social">${socialTags}</div>
+          <div class="card-social">${socialHtml}</div>
           <div class="card-meta">
             <span>#${i + 1} · 币龄 ${fmtAge(t.age_hours)}</span>
             ${t.peak_holders ? '<span>峰值持币 ' + t.peak_holders + '</span>' : ''}
@@ -1085,7 +1105,7 @@
             price_ratio: t.pr, age_hours: t.ah, social_count: t.sc,
             social_links: t.sl, hot_news: t.hn, hot_score: t.hs,
             hot_keywords: t.hk, total_supply: t.ts, day1_vol: t.dv,
-            progress: t.pg, _scanTime: t.st,
+            progress: t.pg, wallet_signals: t.ws || [], _scanTime: t.st,
           }));
         } catch (_) {
           // Fallback: fetch each scan (works with live API server)
