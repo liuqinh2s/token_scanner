@@ -47,29 +47,6 @@
       "lastPrice": 0.00000383
     },
     {
-      "address": "0xb6a3193a06a78be013a04d87ea1d0eab11814444",
-      "name": "XChat",
-      "symbol": "XChat",
-      "createdAt": 1775863200000,
-      "addedAt": 1775863821703,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "twitter": "https://x.com/neso/status/2042743918102507684?s=46"
-      },
-      "descr": "XChat",
-      "price": 0.000003541,
-      "peakPrice": 0.000004328,
-      "holders": 3,
-      "peakHolders": 8,
-      "liquidity": 0,
-      "peakLiquidity": 0,
-      "progress": 0,
-      "day1Vol": 0,
-      "consecDrops": 0,
-      "lastPrice": 0.000003541
-    },
-    {
       "address": "0xec8c6795ecaa1c6e71b846602dd2d4fadd9a4444",
       "name": "Binance Movie",
       "symbol": "Binance Movie",
@@ -82,16 +59,16 @@
         "website": "https://x.com/BinanceMovie"
       },
       "descr": "将《幣安人生》影像化改编中......\n\n解读币安真实故事背后的幸运、压力与用户优先文化",
-      "price": 0.00002495,
-      "peakPrice": 0.00002495,
-      "holders": 386,
-      "peakHolders": 386,
+      "price": 0.00002684,
+      "peakPrice": 0.00002684,
+      "holders": 398,
+      "peakHolders": 398,
       "liquidity": 0,
       "peakLiquidity": 0,
       "progress": 0,
       "day1Vol": 0,
       "consecDrops": 0,
-      "lastPrice": 0.00002495
+      "lastPrice": 0.00002684
     },
     {
       "address": "0xe890007f4f8be466388bbc06b994080622654444",
@@ -106,16 +83,16 @@
         "website": "https://www.binance.com/pt-BR/academy/articles/what-are-ai-agents"
       },
       "descr": "币安官方AiBot",
-      "price": 0.000004279,
+      "price": 0.000004167,
       "peakPrice": 0.00000989,
-      "holders": 28,
+      "holders": 26,
       "peakHolders": 65,
       "liquidity": 0,
       "peakLiquidity": 0,
       "progress": 0,
       "day1Vol": 0,
-      "consecDrops": 1,
-      "lastPrice": 0.000004279
+      "consecDrops": 2,
+      "lastPrice": 0.000004167
     },
     {
       "address": "0x96eeb74fdac96aabd905d715e4f640284b534444",
@@ -130,16 +107,16 @@
         "website": "https://www.douyin.com/video/7627100664400809222"
       },
       "descr": "中国日报最新发的ai短剧",
-      "price": 0.00000852,
+      "price": 0.000004572,
       "peakPrice": 0.00000852,
-      "holders": 34,
+      "holders": 23,
       "peakHolders": 34,
       "liquidity": 0,
       "peakLiquidity": 0,
       "progress": 0,
       "day1Vol": 0,
-      "consecDrops": 0,
-      "lastPrice": 0.00000852
+      "consecDrops": 1,
+      "lastPrice": 0.000004572
     },
     {
       "address": "0xfda5ca4dd83c6bfacd59b40571bd710141764444",
@@ -153,39 +130,16 @@
         "twitter": "https://x.com/pudgypenguins/status/2042700608679854211?s=20"
       },
       "descr": "PenguBot",
-      "price": 0.000005781,
+      "price": 0.000003856,
       "peakPrice": 0.000005781,
-      "holders": 17,
+      "holders": 7,
       "peakHolders": 19,
       "liquidity": 0,
       "peakLiquidity": 0,
       "progress": 0,
       "day1Vol": 0,
-      "consecDrops": 0,
-      "lastPrice": 0.000005781
-    },
-    {
-      "address": "0x36dec9b51578a6834b0d242038105e3032c84444",
-      "name": "SPLASHDOWN",
-      "symbol": "SPLASHDOWN",
-      "createdAt": 1775866356000,
-      "addedAt": 1775866527491,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "twitter": "https://x.com/whitehouse/status/2042757548667801940"
-      },
-      "descr": "The ultimate landing, the big splash. When the movement hits the water, everything changes.",
-      "price": 0.000003474,
-      "peakPrice": 0.000003474,
-      "holders": 0,
-      "peakHolders": 0,
-      "liquidity": 0,
-      "peakLiquidity": 0,
-      "progress": 0,
-      "day1Vol": 0,
-      "consecDrops": 0,
-      "lastPrice": 0.000003474
+      "consecDrops": 1,
+      "lastPrice": 0.000003856
     },
     {
       "address": "0x8dfee4c9ccaaae0ab1e59f476d4cd3ea30e34444",
@@ -199,7 +153,7 @@
         "website": "https://four.meme"
       },
       "descr": "Trending token: SPLASHDOWN (SPLASHDOWN)",
-      "price": 0.000003597,
+      "price": 0.000003474,
       "peakPrice": 0.000003597,
       "holders": 5,
       "peakHolders": 5,
@@ -207,25 +161,35 @@
       "peakLiquidity": 0,
       "progress": 0,
       "day1Vol": 0,
+      "consecDrops": 1,
+      "lastPrice": 0.000003474
+    },
+    {
+      "address": "0x15bb0e2cf749aa0cb48fb9bef858c8e440054444",
+      "name": "微博最新发的虚拟币",
+      "symbol": "兔兔币",
+      "createdAt": 1775867175000,
+      "addedAt": 1775867423266,
+      "totalSupply": 1000000000,
+      "socialCount": 2,
+      "socialLinks": {
+        "twitter": "https://x.com/CathyCh13419758/status/2042761098663989469",
+        "website": "https://weibo.com/5476071411/QAdFcB46d?refer_flag=1001030103_"
+      },
+      "descr": "微博最新发的虚拟币",
+      "price": 0.00000586,
+      "peakPrice": 0.00000586,
+      "holders": 51,
+      "peakHolders": 51,
+      "liquidity": 0,
+      "peakLiquidity": 0,
+      "progress": 0,
+      "day1Vol": 0,
       "consecDrops": 0,
-      "lastPrice": 0.000003597
+      "lastPrice": 0.00000586
     }
   ],
   "eliminated": [
-    {
-      "address": "0x2bfd736499b357a46e75f140cc2c8a10b8284444",
-      "name": "MBTI",
-      "elimReason": "币龄0.6h 最高持币仅1",
-      "eliminatedAt": 1775833234272,
-      "createdAt": 1775830947000
-    },
-    {
-      "address": "0x66b2b70be89e8bc01289d952271698b3ecf44444",
-      "name": "MBTI",
-      "elimReason": "币龄0.6h 最高持币仅1",
-      "eliminatedAt": 1775833234272,
-      "createdAt": 1775830947000
-    },
     {
       "address": "0x8278f3eb93bc9159353ed0d4725f6ea926a64444",
       "name": "币安锦鲤",
@@ -7211,8 +7175,22 @@
       "elimReason": "币龄0.3h 最高持币仅1",
       "eliminatedAt": 1775866527491,
       "createdAt": 1775865623000
+    },
+    {
+      "address": "0xb6a3193a06a78be013a04d87ea1d0eab11814444",
+      "name": "XChat",
+      "elimReason": "币龄1.2h 最高持币仅8",
+      "eliminatedAt": 1775867423266,
+      "createdAt": 1775863200000
+    },
+    {
+      "address": "0x36dec9b51578a6834b0d242038105e3032c84444",
+      "name": "SPLASHDOWN",
+      "elimReason": "币龄0.3h 最高持币仅0",
+      "eliminatedAt": 1775867423266,
+      "createdAt": 1775866356000
     }
   ],
-  "lastBlock": 91813775,
-  "lastScanTime": 1775866527491
+  "lastBlock": 91815763,
+  "lastScanTime": 1775867423266
 }
