@@ -60,43 +60,59 @@ if (scanFiles.length === 0) {
       filtered_tokens: data.filteredTokens,
       queue_size: (data.queue || []).length,
       eliminated_count: (data.eliminatedThisRound || []).length,
+      rejected_count: (data.rejectedAtEntry || []).length,
     });
     fs.writeFileSync(path.join(SCANS_DIR, `${idx}.json`), JSON.stringify(data));
   });
   fs.writeFileSync(path.join(SITE_DATA_DIR, "history.json"), JSON.stringify(history));
 
   // search-index.json - deduplicated tokens across all scans for client-side search
+  // 包含所有四类代币: 精筛结果、队列存活、本轮淘汰、入场淘汰
   const seen = new Set();
   const searchIndex = [];
+
+  function addToIndex(t, source, scanTime) {
+    const addr = t.address || '';
+    if (!addr || seen.has(addr)) return;
+    seen.add(addr);
+    searchIndex.push({
+      a: addr,
+      n: t.name || '',
+      s: t.symbol || '',
+      h: t.holders || 0,
+      c: t.created_at || 0,
+      p: t.price || 0,
+      mp: t.max_price || t.peak_price || 0,
+      h2: t.high_2h || 0,
+      pr: t.price_ratio,
+      ah: t.age_hours,
+      sc: t.social_count || 0,
+      sl: t.social_links || {},
+      hn: t.hot_news || false,
+      hs: t.hot_score || 0,
+      hk: t.hot_keywords || [],
+      ts: t.total_supply || 0,
+      dv: t.day1_vol || 0,
+      pg: t.progress || 0,
+      lq: t.liquidity || 0,
+      ra: t.raised_amount || 0,
+      mc: t.market_cap || 0,
+      ws: t.wallet_signals || [],
+      st: scanTime,
+      src: source,           // 来源: filtered/queue/eliminated/rejected
+      rsn: t.reason || '',   // 淘汰/拒绝原因
+      ph: t.peak_holders || 0,
+      pp: t.peak_price || 0,
+    });
+  }
+
   scanFiles.forEach((file) => {
     const data = JSON.parse(fs.readFileSync(path.join(DATA_DIR, file), "utf-8"));
-    for (const t of (data.tokens || [])) {
-      const addr = t.address || '';
-      if (seen.has(addr)) continue;
-      seen.add(addr);
-      searchIndex.push({
-        a: addr,
-        n: t.name || '',
-        s: t.symbol || '',
-        h: t.holders || 0,
-        c: t.created_at || 0,
-        p: t.price || 0,
-        mp: t.max_price || 0,
-        h2: t.high_2h || 0,
-        pr: t.price_ratio,
-        ah: t.age_hours,
-        sc: t.social_count || 0,
-        sl: t.social_links || {},
-        hn: t.hot_news || false,
-        hs: t.hot_score || 0,
-        hk: t.hot_keywords || [],
-        ts: t.total_supply || 0,
-        dv: t.day1_vol || 0,
-        pg: t.progress || 0,
-        ws: t.wallet_signals || [],
-        st: data.scanTime,
-      });
-    }
+    const st = data.scanTime;
+    for (const t of (data.tokens || [])) addToIndex(t, 'filtered', st);
+    for (const t of (data.queue || [])) addToIndex(t, 'queue', st);
+    for (const t of (data.eliminatedThisRound || [])) addToIndex(t, 'eliminated', st);
+    for (const t of (data.rejectedAtEntry || [])) addToIndex(t, 'rejected', st);
   });
   searchIndex.sort((a, b) => (b.c || 0) - (a.c || 0));
   fs.writeFileSync(path.join(SITE_DATA_DIR, "search-index.json"), JSON.stringify(searchIndex));

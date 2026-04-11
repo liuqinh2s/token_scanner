@@ -8,12 +8,18 @@
  *   4. 精筛: 对存活代币执行 K线/价格/持币数 等条件筛选
  *   5. 钱包分析: BscScan tokentx 查开发者+聪明钱的加仓/减仓行为
  *
+ * 流动性数据:
+ *   - DEX 流动性 > 0 时使用 DexScreener 数据
+ *   - 内盘阶段 (未上 DEX) 使用 four.meme marketCap 作为替代
+ *   - 同时记录 raisedAmount (已募集 BNB) 和 marketCap (市值 USD)
+ *
  * 淘汰条件 (永久剔除):
  *   - 价格从峰值跌 90%+
  *   - 持币地址从 30+ 跌破 10
  *   - 无社交媒体
  *   - 流动性从 >$1k 跌破 $100
- *   - 进度 < 1% 且币龄 > 4h
+ *   - 进度 < 1% 且币龄 > 2h
+ *   - 进度 < 5% 且币龄 > 4h
  *   - 币龄 > 5min 且最高持币数 < 3
  *   - 币龄 > 15min 且最高持币数 < 5
  *   - 币龄 > 1h 且最高持币数 < 10
@@ -80,7 +86,9 @@ const ELIM_HOLDERS_PEAK_MIN = 30;       // 持币数曾达到 30 才触发跌破
 const ELIM_LIQ_FLOOR = 100;             // 流动性跌破 $100
 const ELIM_LIQ_PEAK_MIN = 1000;         // 流动性曾达到 $1000 才触发跌破淘汰
 const ELIM_PROGRESS_MIN = 0.01;         // 进度 < 1%
-const ELIM_PROGRESS_AGE_HOURS = 4;      // 进度淘汰的币龄门槛
+const ELIM_PROGRESS_AGE_HOURS = 2;      // 进度<1%淘汰的币龄门槛
+const ELIM_PROGRESS_MIN_MID = 0.05;     // 进度 < 5%
+const ELIM_PROGRESS_AGE_HOURS_MID = 4;  // 进度<5%淘汰的币龄门槛
 const ELIM_EARLY_PEAK_HOLDERS = 5;      // 币龄>15min 最高持币数 < 5 淘汰
 const ELIM_EARLY_AGE_MIN = 0.25;        // 15 分钟 = 0.25h
 const ELIM_TINY_PEAK_HOLDERS = 3;       // 币龄>5min 最高持币数 < 3 淘汰
@@ -130,6 +138,10 @@ const SMART_MONEY_CACHE_TTL = 3600_000;  // 1小时缓存
 const SMART_MONEY_MIN_CROSS_FREQ = localConfig.smartMoneyCrossFreq || 2;
 let smartMoneyCache = { ts: 0, addresses: new Set() };
 
+// BscScan 可用性追踪 — 连续失败超过阈值则跳过后续调用
+let bscScanConsecFails = 0;
+const BSCSCAN_FAIL_THRESHOLD = 5; // 连续 5 次返回空则判定不可用
+
 const FM_HEADERS = {
   "Content-Type": "application/json",
   "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
@@ -155,7 +167,7 @@ console.warn = (...args) => _origWarn(`[${_ts()}]`, ...args);
 console.error = (...args) => _origErr(`[${_ts()}]`, ...args);
 
 // === HTTP Helpers ===
-const fmAgent = new https.Agent({ keepAlive: true, maxSockets: 15 });
+const fmAgent = new https.Agent({ keepAlive: true, maxSockets: 20 });
 const gtAgent = new https.Agent({ keepAlive: true, maxSockets: 5 });
 
 function fetchJSON(url, options = {}) {
@@ -264,7 +276,7 @@ class RateLimiter {
 const fmLimiter = new RateLimiter(5);
 const gtLimiter = new RateLimiter(1);
 const bscScanLimiter = new RateLimiter(5);  // BscScan 免费 5 req/s
-let gtRateDelay = 2000;
+let gtRateDelay = 1000;
 
 // ===================================================================
 //  队列状态管理
@@ -404,7 +416,7 @@ async function discoverOnChain(fromBlock) {
       await sleep(1000);
     }
     current = end + 1;
-    await sleep(100);
+    if (current <= latestBlock) await sleep(50); // 多 chunk 时短暂间隔
   }
 
   console.log(`[CHAIN] 发现 ${tokens.length} 个新代币`);
@@ -427,6 +439,10 @@ async function fetchTokenDetail(tokenAddress) {
     if (d.twitterUrl) socialLinks.twitter = d.twitterUrl;
     if (d.telegramUrl) socialLinks.telegram = d.telegramUrl;
     if (d.webUrl) socialLinks.website = d.webUrl;
+    // 内盘阶段 DEX 流动性为 0, 用 marketCap 作为替代指标
+    const dexLiq = parseFloat(tp.liquidity || 0);
+    const marketCap = parseFloat(tp.marketCap || 0);
+    const raisedAmount = parseFloat(tp.raisedAmount || 0);
     return {
       holders: parseInt(tp.holderCount || 0, 10),
       price: parseFloat(tp.price || 0),
@@ -436,9 +452,11 @@ async function fetchTokenDetail(tokenAddress) {
       descr: d.descr || "",
       name: d.name || "",
       shortName: d.shortName || "",
-      progress: parseFloat(d.progress || 0),
+      progress: parseFloat(tp.progress || d.progress || 0),
       day1Vol: parseFloat(tp.day1Vol || d.day1Vol || 0),
-      liquidity: parseFloat(tp.liquidity || 0),
+      liquidity: dexLiq > 0 ? dexLiq : marketCap,
+      raisedAmount,
+      marketCap,
     };
   } catch (e) { /* silent */ }
   return null;
@@ -446,11 +464,12 @@ async function fetchTokenDetail(tokenAddress) {
 
 async function admissionFilter(newTokens, existingAddrs) {
   const admitted = [];
-  const CONCURRENCY = 5;
+  const rejected = [];
+  const CONCURRENCY = 10;  // 提高并发, fmLimiter 控制速率
 
   // 过滤已在队列或已淘汰的
   const fresh = newTokens.filter(t => !existingAddrs.has(t.address));
-  if (fresh.length === 0) return admitted;
+  if (fresh.length === 0) return { admitted, rejected };
 
   console.log(`[入场] 对 ${fresh.length} 个新代币调 detail API...`);
 
@@ -458,20 +477,24 @@ async function admissionFilter(newTokens, existingAddrs) {
     const batch = fresh.slice(i, i + CONCURRENCY);
     const results = await Promise.all(batch.map(async (t) => {
       const detail = await fetchTokenDetail(t.address);
-      if (!detail) return null;
+      if (!detail) return { token: t, detail: null, reason: "API无数据" };
       // 入场条件: 社交 ≥ 1, 总供应量 = 10亿
-      if (detail.socialCount < MIN_SOCIAL_COUNT) return null;
-      if (detail.totalSupply !== TOTAL_SUPPLY) return null;
-      return { token: t, detail };
+      if (detail.socialCount < MIN_SOCIAL_COUNT) return { token: t, detail, reason: "无社交媒体" };
+      if (detail.totalSupply !== TOTAL_SUPPLY) return { token: t, detail, reason: `总量${detail.totalSupply}≠10亿` };
+      return { token: t, detail, reason: null };
     }));
 
     for (const r of results) {
-      if (r) admitted.push(r);
+      if (r.reason) {
+        rejected.push(r);
+      } else {
+        admitted.push(r);
+      }
     }
   }
 
-  console.log(`[入场] 通过: ${admitted.length}/${fresh.length} (淘汰 ${fresh.length - admitted.length}: 无社交/总量不符)`);
-  return admitted;
+  console.log(`[入场] 通过: ${admitted.length}/${fresh.length} (淘汰 ${rejected.length}: 无社交/总量不符)`);
+  return { admitted, rejected };
 }
 
 // ===================================================================
@@ -483,11 +506,42 @@ async function bscScanHolderCounts(addresses) {
   const result = new Map(); // addr -> holderCount
   if (!BSCSCAN_API_KEY) return result;
 
-  for (const addr of addresses) {
+  // 短路: BscScan 连续返回空, 跳过无效请求
+  if (bscScanConsecFails >= BSCSCAN_FAIL_THRESHOLD) {
+    console.log(`[BSCSCAN] 跳过持币数查询 (连续 ${bscScanConsecFails} 次无数据, 使用 four.meme 数据)`);
+    return result;
+  }
+
+  // 先用少量地址探测可用性 (最多 3 个)
+  const probeAddrs = addresses.slice(0, Math.min(3, addresses.length));
+  let probeHits = 0;
+  for (const addr of probeAddrs) {
     await bscScanLimiter.acquire();
     try {
       const url = `${BSCSCAN_API}?chainid=56&module=token&action=tokenholdercount&contractaddress=${addr}&apikey=${BSCSCAN_API_KEY}`;
-      const res = await fetchJSON(url, { timeout: 10000 });
+      const res = await fetchJSON(url, { timeout: 8000 });
+      if (res.data && res.data.status === "1" && res.data.result) {
+        result.set(addr, parseInt(res.data.result, 10));
+        probeHits++;
+      }
+    } catch (e) { /* silent */ }
+  }
+
+  // 探测全部失败 → 累计失败计数, 跳过剩余
+  if (probeHits === 0) {
+    bscScanConsecFails += probeAddrs.length;
+    console.log(`[BSCSCAN] 查到 0/${addresses.length} 个代币持币数 (探测无数据, 跳过剩余)`);
+    return result;
+  }
+
+  // 探测有数据 → 重置失败计数, 继续查剩余
+  bscScanConsecFails = 0;
+  const remaining = addresses.slice(probeAddrs.length);
+  for (const addr of remaining) {
+    await bscScanLimiter.acquire();
+    try {
+      const url = `${BSCSCAN_API}?chainid=56&module=token&action=tokenholdercount&contractaddress=${addr}&apikey=${BSCSCAN_API_KEY}`;
+      const res = await fetchJSON(url, { timeout: 8000 });
       if (res.data && res.data.status === "1" && res.data.result) {
         result.set(addr, parseInt(res.data.result, 10));
       }
@@ -556,16 +610,16 @@ async function eliminationCheck(queue, nowMs) {
 
   if (ageFiltered.length === 0) return { survivors, eliminated };
 
-  // 2. DexScreener 批量查价格+流动性
+  // 2. DexScreener 批量查价格+流动性 与 BscScan 持币数 并行
   const addrs = ageFiltered.map(t => t.address);
-  const dsData = await dsBatchPrices(addrs);
-
-  // 2.5 BscScan 查链上真实持币地址数
-  const bscHolders = await bscScanHolderCounts(addrs);
+  const [dsData, bscHolders] = await Promise.all([
+    dsBatchPrices(addrs),
+    bscScanHolderCounts(addrs),
+  ]);
 
   // 3. four.meme detail 查社交/进度 (并发)
   console.log(`[淘汰] 查询 ${ageFiltered.length} 个代币详情...`);
-  const CONCURRENCY = 5;
+  const CONCURRENCY = 10;  // 提高并发, fmLimiter 控制速率
   const detailMap = new Map();
   for (let i = 0; i < ageFiltered.length; i += CONCURRENCY) {
     const batch = ageFiltered.slice(i, i + CONCURRENCY);
@@ -588,7 +642,7 @@ async function eliminationCheck(queue, nowMs) {
     const currentPrice = ds?.price || detail?.price || t.price || 0;
     const bscHolder = bscHolders.get(t.address);
     const currentHolders = bscHolder != null ? bscHolder : (detail?.holders || t.holders || 0);
-    const currentLiq = ds?.liquidity || t.liquidity || 0;
+    const currentLiq = ds?.liquidity || detail?.liquidity || t.liquidity || 0;
     const currentProgress = detail?.progress || t.progress || 0;
 
     t.price = currentPrice;
@@ -599,6 +653,8 @@ async function eliminationCheck(queue, nowMs) {
       t.socialCount = detail.socialCount;
       t.socialLinks = detail.socialLinks;
       t.day1Vol = detail.day1Vol || t.day1Vol || 0;
+      t.raisedAmount = detail.raisedAmount || t.raisedAmount || 0;
+      t.marketCap = detail.marketCap || t.marketCap || 0;
     }
     if (ds) {
       t.name = ds.name || t.name;
@@ -637,8 +693,12 @@ async function eliminationCheck(queue, nowMs) {
     if (!elimReason && t.peakLiquidity >= ELIM_LIQ_PEAK_MIN && currentLiq < ELIM_LIQ_FLOOR) {
       elimReason = `流动性 $${t.peakLiquidity.toFixed(0)}→$${currentLiq.toFixed(0)}`;
     }
-    // 5. 进度 < 1% 且币龄 > 4h
+    // 5. 进度 < 1% 且币龄 > 2h
     if (!elimReason && ageHours > ELIM_PROGRESS_AGE_HOURS && currentProgress < ELIM_PROGRESS_MIN) {
+      elimReason = `进度${(currentProgress * 100).toFixed(2)}% 币龄${ageHours.toFixed(1)}h`;
+    }
+    // 5b. 进度 < 5% 且币龄 > 4h
+    if (!elimReason && ageHours > ELIM_PROGRESS_AGE_HOURS_MID && currentProgress < ELIM_PROGRESS_MIN_MID) {
       elimReason = `进度${(currentProgress * 100).toFixed(2)}% 币龄${ageHours.toFixed(1)}h`;
     }
     // 6. 币龄>5min 最高持币数 < 3
@@ -781,14 +841,33 @@ async function fetchHotTokenAddresses(limit = 10) {
 async function discoverSmartMoneyFromTopHolders() {
   if (!BSCSCAN_API_KEY) return new Set();
 
+  // 短路: BscScan 不可用时跳过聪明钱发现
+  if (bscScanConsecFails >= BSCSCAN_FAIL_THRESHOLD) {
+    console.log(`[聪明钱] 跳过 Top Holders 分析 (BscScan 不可用)`);
+    return new Set();
+  }
+
   const hotTokens = await fetchHotTokenAddresses(10);
   if (hotTokens.length === 0) return new Set();
 
   console.log(`[聪明钱] 分析 ${hotTokens.length} 个热门代币的 Top Holders...`);
   const addrFreq = new Map(); // 地址 → 出现在多少个代币的 Top Holders 中
 
-  for (const tokenAddr of hotTokens) {
-    await sleep(300);
+  // 先探测第一个代币, 如果返回空则跳过全部
+  const probeHolders = await bscScanTopHolders(hotTokens[0], 50);
+  if (probeHolders.length === 0) {
+    console.log(`[聪明钱] Top Holders 探测无数据, 跳过剩余`);
+    return new Set();
+  }
+  for (const h of probeHolders) {
+    const addr = (h.TokenHolderAddress || "").toLowerCase();
+    if (addr && addr.length === 42 && !KNOWN_EXCLUDE_ADDRESSES.has(addr)) {
+      addrFreq.set(addr, (addrFreq.get(addr) || 0) + 1);
+    }
+  }
+
+  for (const tokenAddr of hotTokens.slice(1)) {
+    await sleep(200);
     const holders = await bscScanTopHolders(tokenAddr, 50);
     for (const h of holders) {
       const addr = (h.TokenHolderAddress || "").toLowerCase();
@@ -1019,17 +1098,14 @@ async function analyzeSmartMoneyBehavior(tokenAddress, smartAddresses) {
  * 返回 Map<address, { excluded, excludeReason, signals, bonus, details }>
  */
 async function batchWalletAnalysis(tokens, smartAddresses) {
-  const CONCURRENCY = 2; // BscScan 限流, 保守并发 (每个代币需要 2~3 个请求)
+  const CONCURRENCY = 4; // 提高并发, bscScanLimiter 控制速率
   const resultMap = new Map();
 
   for (let i = 0; i < tokens.length; i += CONCURRENCY) {
     const batch = tokens.slice(i, i + CONCURRENCY);
     const results = await Promise.all(batch.map(async (t) => {
-      if (i > 0) await sleep(300); // BSCScan 速率控制
-
       // 分析开发者行为
       const dev = await analyzeDeveloperBehavior(t.address, t.creator);
-      await sleep(200);
 
       // 分析聪明钱行为
       const sm = await analyzeSmartMoneyBehavior(t.address, smartAddresses);
@@ -1165,8 +1241,7 @@ async function qualityFilter(candidates, nowMs, walletMap) {
     if (ageHours > 1 && t.holders < HOLDERS_THRESHOLD_OLD) continue;
     if (ageHours <= 1 && t.holders < HOLDERS_THRESHOLD_YOUNG) continue;
 
-    // K线 (GeckoTerminal)
-    if (i > 0) await sleep(gtRateDelay);
+    // K线 (GeckoTerminal) — gtLimiter 已控制速率, 无需额外 sleep
     const candles = await gtOhlcvDirect(t.address, 72);
 
     let ath = null, high2h = null;
@@ -1290,7 +1365,7 @@ async function main() {
 
   // Step 2: 入场筛
   console.log("\n--- Step 2: 入场筛 ---");
-  const admitted = await admissionFilter(newOnChain, existingAddrs);
+  const { admitted, rejected: rejectedAtEntry } = await admissionFilter(newOnChain, existingAddrs);
 
   // 将通过入场筛的代币加入队列 (用 BscScan 修正初始持币数)
   if (admitted.length > 0) {
@@ -1316,6 +1391,8 @@ async function main() {
         peakHolders: initHolders,
         liquidity: detail.liquidity || 0,
         peakLiquidity: detail.liquidity || 0,
+        raisedAmount: detail.raisedAmount || 0,
+        marketCap: detail.marketCap || 0,
         progress: detail.progress || 0,
         day1Vol: detail.day1Vol || 0,
         consecDrops: 0,
@@ -1340,8 +1417,11 @@ async function main() {
   // Step 4: 钱包分析 + 精筛 + 热点匹配
   console.log("\n--- Step 4: 钱包分析 + 精筛 ---");
 
-  // 钱包行为分析 (开发者+聪明钱)
+  // 钱包行为分析 (开发者+聪明钱) 与 热点获取 并行
   let walletMap = new Map();
+  let hotspots = [];
+  const hotspotPromise = fetchAllHotspots(); // 提前启动热点获取
+
   if (BSCSCAN_API_KEY && survivors.length > 0) {
     // 加载聪明钱地址 (手动配置 + 自动发现)
     const smartAddresses = await loadSmartMoneyAddresses();
@@ -1352,10 +1432,10 @@ async function main() {
     console.log(`[钱包] 排除: ${excludedCount}, 有加分信号: ${signalCount}`);
   }
 
-  const [qualityResults, hotspots] = await Promise.all([
-    qualityFilter(survivors, nowMs, walletMap),
-    fetchAllHotspots(),
-  ]);
+  // 等待热点数据 (大概率已经完成)
+  hotspots = await hotspotPromise;
+
+  const qualityResults = await qualityFilter(survivors, nowMs, walletMap);
 
   // 热点匹配
   for (const t of qualityResults) {
@@ -1389,7 +1469,7 @@ async function main() {
         max_price: t.ath || t.peakPrice || 0,
         high_2h: t.high2h || 0,
         price_ratio: t.ath > 0 ? +(currentPrice / t.ath).toFixed(4) : 0,
-        age_hours: +((nowMs - t.createdAt) / 3600000).toFixed(2),
+        age_hours: +(Math.max(0, (nowMs - t.createdAt) / 3600000)).toFixed(2),
         social_count: t.socialCount || 0,
         social_links: t.socialLinks || {},
         hot_news: t.hotNews?.isHot || false,
@@ -1397,6 +1477,9 @@ async function main() {
         hot_keywords: t.hotNews?.matched || [],
         day1_vol: t.day1Vol || 0,
         progress: t.progress || 0,
+        liquidity: t.liquidity || 0,
+        raised_amount: t.raisedAmount || 0,
+        market_cap: t.marketCap || 0,
         wallet_signals: t.walletSignals || [],
       };
     }),
@@ -1412,10 +1495,12 @@ async function main() {
       peak_holders: t.peakHolders || 0,
       liquidity: t.liquidity || 0,
       peak_liquidity: t.peakLiquidity || 0,
+      raised_amount: t.raisedAmount || 0,
+      market_cap: t.marketCap || 0,
       progress: t.progress || 0,
       social_count: t.socialCount || 0,
       social_links: t.socialLinks || {},
-      age_hours: +((nowMs - t.createdAt) / 3600000).toFixed(2),
+      age_hours: +(Math.max(0, (nowMs - t.createdAt) / 3600000)).toFixed(2),
       consec_drops: t.consecDrops || 0,
     })),
     eliminatedThisRound: eliminated.map(t => ({
@@ -1428,7 +1513,20 @@ async function main() {
       peak_price: t.peakPrice || 0,
       reason: t.elimReason || "",
       social_count: t.socialCount || 0,
-      age_hours: +((nowMs - (t.createdAt || 0)) / 3600000).toFixed(2),
+      age_hours: +(Math.max(0, (nowMs - (t.createdAt || 0)) / 3600000)).toFixed(2),
+    })),
+    rejectedAtEntry: rejectedAtEntry.map(({ token: t, detail, reason }) => ({
+      address: t.address,
+      name: (detail && detail.name) || t.name || "",
+      symbol: (detail && detail.shortName) || t.symbol || "",
+      created_at: t.createdAt,
+      reason: reason || "",
+      holders: (detail && detail.holders) || 0,
+      price: (detail && detail.price) || 0,
+      social_count: (detail && detail.socialCount) || 0,
+      social_links: (detail && detail.socialLinks) || {},
+      progress: (detail && detail.progress) || 0,
+      age_hours: +(Math.max(0, (nowMs - (t.createdAt || 0)) / 3600000)).toFixed(2),
     })),
   };
 
@@ -1459,7 +1557,7 @@ async function main() {
 
   const elapsed = ((Date.now() - scanStart) / 1000).toFixed(1);
   console.log(`\n========== SCAN v2 DONE: ${elapsed}s ==========`);
-  console.log(`链上发现: ${newOnChain.length} | 入场: ${admitted.length} | 队列: ${survivors.length} | 淘汰: ${eliminated.length} | 精筛通过: ${qualityResults.length}`);
+  console.log(`链上发现: ${newOnChain.length} | 入场: ${admitted.length} | 入场淘汰: ${rejectedAtEntry.length} | 队列: ${survivors.length} | 淘汰: ${eliminated.length} | 精筛通过: ${qualityResults.length}`);
 }
 
 main().catch(e => {
