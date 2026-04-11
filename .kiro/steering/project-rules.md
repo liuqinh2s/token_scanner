@@ -29,3 +29,12 @@ inclusion: always
 - 每轮扫描结果包含 `tokens`（精筛通过）、`queue`（存活快照）、`eliminatedThisRound`（本轮淘汰）三个数组
 - `build.js` 处理 `data/` 时必须排除 `queue.json`
 - 前端有三个 Tab：精筛结果、队列存活、本轮淘汰
+
+## 跨项目筛选策略同步（必须遵守）
+
+本项目 (`token_scanner`) 与姊妹项目 `token_trading` 共用同一套筛选策略（入场筛、淘汰条件、精筛阈值、持币数查询方案等）。两个项目语言不同（JavaScript vs Python），但筛选逻辑和阈值必须完全一致。
+
+- 任何筛选策略的改动（常量阈值、淘汰条件、精筛逻辑、数据源切换等），必须同时修改 `token_scanner/scripts/scan.js` 和 `token_trading/scanner.py`
+- 修改前先对比两边当前实现，确认差异点，避免遗漏
+- 对应关系：`token_scanner/scripts/scan.js` 顶部 Constants 区 ↔ `token_trading/scanner.py` 顶部常量区；`eliminationCheck` ↔ `elimination_check`；`qualityFilter` ↔ `quality_filter`；`admissionFilter` ↔ `admission_filter`
+- 文件头注释中的淘汰条件/精筛条件描述也要同步更新

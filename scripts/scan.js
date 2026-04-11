@@ -554,9 +554,8 @@ async function bscScanHolderCounts(addresses) {
 
 /**
  * RPC 查持币地址数 — 通过 eth_getLogs 查 ERC-20 Transfer 事件
- * 统计所有接收过代币的唯一地址 (排除零地址/销毁地址)
+ * 追踪每个地址的净余额 (转入金额 - 转出金额), 只统计余额 > 0 的地址
  * 作为 BscScan tokenholdercount (PRO 端点) 的免费替代方案
- * 注意: 这是近似值, 不排除余额为0的地址, 但对新币足够准确
  */
 async function rpcHolderCounts(tokenInfos) {
   // tokenInfos: [{ address, block, createdAt }] — block 是代币创建时的区块号
@@ -599,18 +598,28 @@ async function rpcHolderCounts(tokenInfos) {
         ]);
         if (res.error) return;
         const logs = res.result || [];
-        const holders = new Set();
+        // 追踪每个地址的净余额
+        const balances = new Map(); // addr -> BigInt net balance
         for (const log of logs) {
           if (!log.topics || log.topics.length < 3) continue;
+          const from = ("0x" + log.topics[1].slice(26)).toLowerCase();
           const to = ("0x" + log.topics[2].slice(26)).toLowerCase();
-          if (!BURN_ADDRESSES.has(to)) holders.add(to);
+          const value = log.data ? BigInt(log.data) : 0n;
+          if (!BURN_ADDRESSES.has(from)) {
+            balances.set(from, (balances.get(from) || 0n) - value);
+          }
+          if (!BURN_ADDRESSES.has(to)) {
+            balances.set(to, (balances.get(to) || 0n) + value);
+          }
         }
-        holders.delete(ZERO_ADDRESS);
-        holders.delete(DEAD_ADDRESS);
-        holders.delete(address.toLowerCase());
-        holders.delete(FOUR_MEME_CONTRACT.toLowerCase());
-        if (holders.size > 0) {
-          result.set(address, holders.size);
+        // 排除特殊地址, 只统计余额 > 0 的
+        const exclude = new Set([ZERO_ADDRESS, DEAD_ADDRESS, address.toLowerCase(), FOUR_MEME_CONTRACT.toLowerCase()]);
+        let holderCount = 0;
+        for (const [addr, bal] of balances) {
+          if (bal > 0n && !exclude.has(addr)) holderCount++;
+        }
+        if (holderCount > 0) {
+          result.set(address, holderCount);
         }
       } catch (e) {
         // 静默失败
