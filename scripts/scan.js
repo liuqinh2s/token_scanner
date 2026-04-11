@@ -23,7 +23,7 @@
  *   - 币龄 > 5min 且最高持币数 < 3
  *   - 币龄 > 15min 且最高持币数 < 5
  *   - 币龄 > 1h 且最高持币数 < 10
- *   - 币龄 > 72h
+ *   - 币龄 > 48h
  *
  * 精筛排除 (钱包行为):
  *   - 开发者减仓/清仓
@@ -62,7 +62,7 @@ if (localConfig.proxy && localConfig.proxy.enabled) {
 }
 
 // === Constants ===
-const MAX_AGE_HOURS = 72;
+const MAX_AGE_HOURS = 48;
 const SCAN_INTERVAL_MIN = 15;
 const TOTAL_SUPPLY = 1_000_000_000;
 const MIN_SOCIAL_COUNT = 1;
