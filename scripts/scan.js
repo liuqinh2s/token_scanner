@@ -6,7 +6,9 @@
  *   2. 入场筛: four.meme detail API — 无社交/总量≠10亿 直接淘汰
  *   3. 淘汰检查: 对队列中代币定期检查, 永久淘汰弃盘币 (持币数: RPC Transfer事件 → four.meme)
  *   4. 精筛: 对存活代币执行 K线/价格/持币数 等条件筛选
- *   5. 钱包分析: BscScan tokentx 查开发者+聪明钱的加仓/减仓行为
+ *   5. 钱包分析: BscScan tokentx 查开发者加仓/减仓行为
+ *      + 币安Web3聪明钱信号 → 交叉验证 + 额外加分
+ *      + 币安Token Dynamic → 开发者/聪明钱/KOL/专业投资者持仓分布 + 开发者持仓变化追踪
  *
  * 流动性数据:
  *   - DEX 流动性 > 0 时使用 DexScreener 数据
@@ -28,12 +30,15 @@
  * 精筛排除 (钱包行为):
  *   - 开发者减仓/清仓
  *   - 开发者撤流动性 (减池子)
- *   - 聪明钱减仓/清仓
  *
  * 精筛加分 (钱包行为):
  *   - 开发者加仓
  *   - 开发者加流动性 (加池子)
- *   - 聪明钱加仓
+ *   - 币安聪明钱买入信号 (smartMoneyCount 越多加分越高, 最多+3)
+ *   - 币安敏感事件 (鲸鱼买入等)
+ *   - 币安标注: 聪明钱/KOL/专业投资者持仓
+ *   - 币安开发者持仓变化追踪 (两轮扫描对比 devHoldingPercent)
+ *   - 仿盘检测: 本地队列统计同名代币, ≥3 个标记加分
  *
  * 状态持久化: data/queue.json
  */
@@ -115,6 +120,8 @@ const DS_BASE = "https://api.dexscreener.com";
 const GT_BASE = "https://api.geckoterminal.com/api/v2";
 const BSC_RPC = "https://bsc-rpc.publicnode.com/";
 const BSCSCAN_API = "https://api.etherscan.io/v2/api";
+const BINANCE_SMART_SIGNAL = "https://web3.binance.com/bapi/defi/v1/public/wallet-direct/buw/wallet/web/signal/smart-money/ai";
+const BINANCE_TOKEN_DYNAMIC = "https://web3.binance.com/bapi/defi/v4/public/wallet-direct/buw/wallet/market/token/dynamic/info/ai";
 const BSCSCAN_API_KEY = localConfig.bscscanApiKey || "";
 
 const FOUR_MEME_CONTRACT = "0x5c952063c7fc8610ffdb798152d69f0b9550762b";
@@ -133,11 +140,6 @@ const KNOWN_EXCLUDE_ADDRESSES = new Set([
   "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d", // USDC
   FOUR_MEME_CONTRACT.toLowerCase(),
 ]);
-
-// 聪明钱自动发现配置
-const SMART_MONEY_CACHE_TTL = 3600_000;  // 1小时缓存
-const SMART_MONEY_MIN_CROSS_FREQ = localConfig.smartMoneyCrossFreq || 2;
-let smartMoneyCache = { ts: 0, addresses: new Set() };
 
 // BscScan 可用性追踪 — 连续失败超过阈值则跳过后续调用
 let bscScanConsecFails = 0;
@@ -701,18 +703,53 @@ async function eliminationCheck(queue, nowMs) {
 
   if (ageFiltered.length === 0) return { survivors, eliminated };
 
-  // 2. DexScreener + RPC 持币数 + four.meme detail 三者并行
-  const addrs = ageFiltered.map(t => t.address);
-  const tokenInfosForRpc = ageFiltered.map(t => ({ address: t.address, block: t.block || 0, createdAt: t.createdAt || 0 }));
+  // 1b. 本地预淘汰: 用已有数据快速剔除明显垃圾币 (零 API 调用)
+  const preFiltered = [];
+  for (const t of ageFiltered) {
+    const ageHours = (nowMs - t.createdAt) / 3600000;
+    let elimReason = null;
 
-  console.log(`[淘汰] 并行查询 ${ageFiltered.length} 个代币 (DexScreener + RPC持币数 + detail)...`);
+    // 币龄>5min 最高持币数 < 3
+    if (ageHours > ELIM_TINY_AGE_MIN && (t.peakHolders || 0) < ELIM_TINY_PEAK_HOLDERS) {
+      elimReason = `币龄${ageHours.toFixed(1)}h 最高持币仅${t.peakHolders || 0}`;
+    }
+    // 币龄>15min 最高持币数 < 5
+    if (!elimReason && ageHours > ELIM_EARLY_AGE_MIN && (t.peakHolders || 0) < ELIM_EARLY_PEAK_HOLDERS) {
+      elimReason = `币龄${ageHours.toFixed(1)}h 最高持币仅${t.peakHolders || 0}`;
+    }
+    // 币龄>1h 最高持币数 < 10
+    if (!elimReason && ageHours > ELIM_MID_AGE_HOURS && (t.peakHolders || 0) < ELIM_MID_PEAK_HOLDERS) {
+      elimReason = `币龄${ageHours.toFixed(1)}h 最高持币仅${t.peakHolders || 0}`;
+    }
 
-  // detail 查询函数 (并发)
+    if (elimReason) {
+      eliminated.push({ ...t, eliminatedAt: nowMs, elimReason });
+    } else {
+      preFiltered.push(t);
+    }
+  }
+  if (ageFiltered.length - preFiltered.length > 0) {
+    console.log(`[淘汰] 本地预淘汰: ${ageFiltered.length - preFiltered.length} 个 (持币数不足)`);
+  }
+
+  if (preFiltered.length === 0) return { survivors, eliminated };
+
+  // 2. DexScreener + RPC 持币数 + four.meme detail + 币安动态 并行查询
+  const addrs = preFiltered.map(t => t.address);
+  const tokenInfosForRpc = preFiltered.map(t => ({ address: t.address, block: t.block || 0, createdAt: t.createdAt || 0 }));
+
+  // 新入队代币 (本轮刚加入, addedAt 接近 nowMs) 不需要再查 detail, 入场筛已经查过
+  const needDetailAddrs = preFiltered.filter(t => nowMs - (t.addedAt || 0) > 60000);
+
+  console.log(`[淘汰] 并行查询 ${preFiltered.length} 个代币 (DS + RPC + detail${needDetailAddrs.length < preFiltered.length ? `(仅${needDetailAddrs.length}个)` : ''} + 币安动态)...`);
+
+  // detail 查询函数 (并发, 跳过本轮新入队的代币)
   async function fetchAllDetails() {
     const detailMap = new Map();
+    if (needDetailAddrs.length === 0) return detailMap;
     const CONCURRENCY = 10;
-    for (let i = 0; i < ageFiltered.length; i += CONCURRENCY) {
-      const batch = ageFiltered.slice(i, i + CONCURRENCY);
+    for (let i = 0; i < needDetailAddrs.length; i += CONCURRENCY) {
+      const batch = needDetailAddrs.slice(i, i + CONCURRENCY);
       const results = await Promise.all(batch.map(async (t) => {
         const d = await fetchTokenDetail(t.address);
         return { address: t.address, detail: d };
@@ -724,23 +761,36 @@ async function eliminationCheck(queue, nowMs) {
     return detailMap;
   }
 
+  // 先并行: DexScreener(快) + RPC + detail
   const [dsData, rpcHolders, detailMap] = await Promise.all([
     dsBatchPrices(addrs),
     rpcHolderCounts(tokenInfosForRpc),
     fetchAllDetails(),
   ]);
 
+  // 币安动态: 只查有潜力的代币 (DexScreener 有数据 或 持币数 ≥ 10 的)
+  const bnCandidateAddrs = preFiltered
+    .filter(t => dsData.has(t.address) || (t.peakHolders || 0) >= 10)
+    .map(t => t.address);
+  let bnDynamic = new Map();
+  if (bnCandidateAddrs.length > 0) {
+    console.log(`[币安动态] 查询 ${bnCandidateAddrs.length}/${preFiltered.length} 个有潜力代币`);
+    bnDynamic = await fetchBinanceTokenDynamic(bnCandidateAddrs);
+  }
+
   // 4. 逐个检查淘汰条件
-  for (const t of ageFiltered) {
+  for (const t of preFiltered) {
     const ds = dsData.get(t.address);
     const detail = detailMap.get(t.address);
+    const bn = bnDynamic.get(t.address.toLowerCase()) || {};
     const ageHours = (nowMs - t.createdAt) / 3600000;
 
-    // 更新动态数据
-    const currentPrice = ds?.price || detail?.price || t.price || 0;
+    // 更新动态数据 (多源取最优: DexScreener > 币安 > detail > 队列缓存)
+    const currentPrice = ds?.price || bn.price || detail?.price || t.price || 0;
     const rpcHolder = rpcHolders.get(t.address);
-    const currentHolders = rpcHolder != null ? rpcHolder : (detail?.holders || t.holders || 0);
-    const currentLiq = ds?.liquidity || detail?.liquidity || t.liquidity || 0;
+    const bnHolders = bn.holders || 0;
+    const currentHolders = rpcHolder != null ? rpcHolder : (bnHolders > 0 ? bnHolders : (detail?.holders || t.holders || 0));
+    const currentLiq = ds?.liquidity || bn.liquidity || detail?.liquidity || t.liquidity || 0;
     const currentProgress = detail?.progress || t.progress || 0;
 
     t.price = currentPrice;
@@ -757,6 +807,19 @@ async function eliminationCheck(queue, nowMs) {
     if (ds) {
       t.name = ds.name || t.name;
       t.symbol = ds.symbol || t.symbol;
+    }
+
+    // 币安动态数据 (持仓分布)
+    if (bn && bn.price) {
+      const prevDevPct = t.devHoldPct ?? -1;
+      t.devHoldPct = bn.devHoldPct || 0;
+      t.smartMoneyHolders = bn.smartMoneyHolders || 0;
+      t.smartMoneyHoldPct = bn.smartMoneyHoldPct || 0;
+      t.kolHolders = bn.kolHolders || 0;
+      t.proHolders = bn.proHolders || 0;
+      t.top10Pct = bn.top10Pct || 0;
+      t.volume1h = bn.volume1h || 0;
+      if (prevDevPct >= 0) t.prevDevHoldPct = prevDevPct;
     }
 
     // 更新峰值
@@ -819,7 +882,7 @@ async function eliminationCheck(queue, nowMs) {
     }
   }
 
-  const elimCount = eliminated.length - (queue.length - ageFiltered.length); // 不含币龄淘汰
+  const elimCount = eliminated.length - (queue.length - preFiltered.length); // 不含币龄+预淘汰
   if (elimCount > 0) {
     console.log(`[淘汰] 条件淘汰: ${elimCount} 个`);
     for (const e of eliminated.slice(-elimCount)) {
@@ -879,19 +942,6 @@ async function bscScanTokenTxByAddress(tokenAddress, address) {
 }
 
 /**
- * BscScan 查代币全量转账记录 (用于聪明钱分析)
- */
-async function bscScanTokenTxAll(tokenAddress) {
-  const d = await bscScanGet({
-    module: "account", action: "tokentx",
-    contractaddress: tokenAddress,
-    page: 1, offset: 200, sort: "desc",
-  });
-  if (d && d.status === "1" && Array.isArray(d.result)) return d.result;
-  return [];
-}
-
-/**
  * BscScan 查 Top Holders 列表
  */
 async function bscScanTopHolders(tokenAddress, offset = 50) {
@@ -902,168 +952,6 @@ async function bscScanTopHolders(tokenAddress, offset = 50) {
   });
   if (d && d.status === "1" && Array.isArray(d.result)) return d.result;
   return [];
-}
-
-// ===================================================================
-//  聪明钱自动发现 — Top Holders 交叉分析
-// ===================================================================
-
-/**
- * 从 GeckoTerminal BSC trending pools 获取近期涨幅大的已上 DEX 代币
- * 替代 four.meme HOT 列表 — 已上 DEX 的代币有真实交易, Top Holders 交叉分析更有效
- */
-async function fetchSmartMoneySourceTokens(limit = 10) {
-  try {
-    const res = await gtRequest(`${GT_BASE}/networks/bsc/trending_pools`);
-    if (!res || !res.data) return [];
-    const pools = res.data;
-    // 筛选: 24h 涨幅 > 10% 且有足够交易量的池子
-    const seen = new Set();
-    const tokens = [];
-    for (const pool of pools) {
-      const attrs = pool.attributes || {};
-      const h24Change = parseFloat(attrs.price_change_percentage?.h24 || 0);
-      const h24Vol = parseFloat(attrs.volume_usd?.h24 || 0);
-      if (h24Change < 10 || h24Vol < 50000) continue;
-      // 提取 base token 地址
-      const baseTokenId = pool.relationships?.base_token?.data?.id || "";
-      const addr = baseTokenId.replace("bsc_", "").toLowerCase();
-      if (!addr || addr.length !== 42 || seen.has(addr)) continue;
-      // 排除稳定币和 WBNB
-      if (KNOWN_EXCLUDE_ADDRESSES.has(addr)) continue;
-      seen.add(addr);
-      tokens.push(addr);
-      if (tokens.length >= limit) break;
-    }
-    if (tokens.length > 0) {
-      console.log(`[聪明钱] GeckoTerminal trending: ${tokens.length} 个涨幅代币`);
-    }
-    return tokens;
-  } catch (e) {
-    console.warn(`[聪明钱] GeckoTerminal trending 获取失败: ${e.message}`);
-    return [];
-  }
-}
-
-/**
- * RPC 查 Top Holders — 通过 Transfer 事件统计净持仓, 取 Top N
- * 替代 BscScan tokenholderlist (PRO 端点)
- */
-async function rpcTopHolders(tokenAddress, topN = 50, fromBlock = 0) {
-  try {
-    let fb;
-    if (fromBlock > 0) {
-      fb = "0x" + Math.max(0, fromBlock - 1).toString(16);
-    } else {
-      // 查最近 100000 块 (~3.5天)
-      const blockRes = await rpcCall("eth_blockNumber", []);
-      const latest = parseInt(blockRes.result, 16);
-      fb = "0x" + Math.max(0, latest - 100000).toString(16);
-    }
-    const res = await Promise.race([
-      rpcCall("eth_getLogs", [{
-        address: tokenAddress,
-        fromBlock: fb,
-        toBlock: "latest",
-        topics: [ERC20_TRANSFER_TOPIC],
-      }]),
-      sleep(15000).then(() => ({ error: { message: "timeout" } })),
-    ]);
-    if (res.error) return [];
-    const logs = res.result || [];
-    const balances = new Map(); // addr -> net balance (简化: 用转入-转出次数近似)
-    for (const log of logs) {
-      if (!log.topics || log.topics.length < 3) continue;
-      const from = ("0x" + log.topics[1].slice(26)).toLowerCase();
-      const to = ("0x" + log.topics[2].slice(26)).toLowerCase();
-      // 用转账金额更准确
-      const value = log.data ? BigInt(log.data) : 0n;
-      if (!BURN_ADDRESSES.has(from) && !KNOWN_EXCLUDE_ADDRESSES.has(from)) {
-        balances.set(from, (balances.get(from) || 0n) - value);
-      }
-      if (!BURN_ADDRESSES.has(to) && !KNOWN_EXCLUDE_ADDRESSES.has(to)) {
-        balances.set(to, (balances.get(to) || 0n) + value);
-      }
-    }
-    // 排序取 Top N (余额 > 0 的)
-    return [...balances.entries()]
-      .filter(([, bal]) => bal > 0n)
-      .sort((a, b) => (b[1] > a[1] ? 1 : b[1] < a[1] ? -1 : 0))
-      .slice(0, topN)
-      .map(([addr]) => addr);
-  } catch (e) {
-    return [];
-  }
-}
-
-/**
- * 聪明钱自动发现: Top Holders 交叉分析
- * 逻辑: 获取多个热门代币的 Top 50 Holders, 在 ≥2 个代币中都是大户的地址 → 聪明钱
- * 数据源: RPC Transfer 事件 (替代 BscScan PRO 端点)
- */
-async function discoverSmartMoneyFromTopHolders() {
-  const hotTokens = await fetchSmartMoneySourceTokens(10);
-  if (hotTokens.length === 0) return new Set();
-
-  console.log(`[聪明钱] 分析 ${hotTokens.length} 个热门代币的 Top Holders (RPC)...`);
-  const addrFreq = new Map();
-
-  const CONCURRENCY = 3;
-  for (let i = 0; i < hotTokens.length; i += CONCURRENCY) {
-    const batch = hotTokens.slice(i, i + CONCURRENCY);
-    const results = await Promise.all(batch.map(addr => rpcTopHolders(addr, 50)));
-    for (const holders of results) {
-      for (const addr of holders) {
-        addrFreq.set(addr, (addrFreq.get(addr) || 0) + 1);
-      }
-    }
-    if (i + CONCURRENCY < hotTokens.length) await sleep(200);
-  }
-
-  const discovered = new Set();
-  for (const [addr, freq] of addrFreq) {
-    if (freq >= SMART_MONEY_MIN_CROSS_FREQ) {
-      discovered.add(addr);
-    }
-  }
-
-  if (discovered.size > 0) {
-    console.log(`[聪明钱] Top Holders 交叉分析发现 ${discovered.size} 个地址 (出现≥${SMART_MONEY_MIN_CROSS_FREQ}次)`);
-  }
-  return discovered;
-}
-
-/**
- * 加载聪明钱地址 (带缓存, 多源合并)
- * 来源: 1. config.local.json 手动配置  2. Top Holders 交叉分析自动发现
- */
-async function loadSmartMoneyAddresses() {
-  const now = Date.now();
-  if (now - smartMoneyCache.ts < SMART_MONEY_CACHE_TTL && smartMoneyCache.addresses.size > 0) {
-    return smartMoneyCache.addresses;
-  }
-
-  const addresses = new Set();
-
-  // 来源 1: 手动配置
-  for (const addr of (localConfig.smartMoneyAddrs || [])) {
-    const a = (addr || "").trim().toLowerCase();
-    if (a && a.length === 42 && !KNOWN_EXCLUDE_ADDRESSES.has(a)) {
-      addresses.add(a);
-    }
-  }
-  const manualCount = addresses.size;
-
-  // 来源 2: Top Holders 交叉分析自动发现
-  const discovered = await discoverSmartMoneyFromTopHolders();
-  for (const a of discovered) addresses.add(a);
-
-  // 排除已知非聪明钱地址
-  for (const ex of KNOWN_EXCLUDE_ADDRESSES) addresses.delete(ex);
-
-  console.log(`[聪明钱] 地址总计: ${addresses.size} 个 (手动 ${manualCount}, 自动发现 ${discovered.size})`);
-  smartMoneyCache = { ts: now, addresses };
-  return addresses;
 }
 
 // ===================================================================
@@ -1172,62 +1060,138 @@ async function analyzeDeveloperBehavior(tokenAddress, creatorAddress) {
 }
 
 // ===================================================================
-//  聪明钱行为分析
+//  币安 Web3 聪明钱信号
 // ===================================================================
+let binanceSignalCache = { ts: 0, signals: new Map() };
+const BINANCE_SIGNAL_CACHE_TTL = 300_000; // 5 分钟缓存
 
 /**
- * 分析聪明钱对该代币的链上行为 (参考 token_trading 的 analyze_smart_money_behavior)
- * 改进: DEX Router 精确匹配买卖方向, 按地址数计数
+ * 从币安 Web3 钱包 API 获取 BSC 聪明钱信号
+ * 返回 Map<tokenAddressLower, signalData>
  */
-async function analyzeSmartMoneyBehavior(tokenAddress, smartAddresses) {
-  const result = {
-    hasBuy: false, hasSell: false,
-    buyCount: 0, sellCount: 0,
-    details: [], bonus: 0, exclude: false,
+async function fetchBinanceSmartSignals() {
+  const now = Date.now();
+  if (now - binanceSignalCache.ts < BINANCE_SIGNAL_CACHE_TTL && binanceSignalCache.signals.size > 0) {
+    return binanceSignalCache.signals;
+  }
+
+  const signalMap = new Map();
+
+  try {
+    for (let page = 1; page <= 3; page++) {
+      const resp = await fetchJSON(BINANCE_SMART_SIGNAL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept-Encoding": "identity",
+          "User-Agent": "binance-web3/1.1 (Skill)",
+        },
+        body: JSON.stringify({ smartSignalType: "", page, pageSize: 100, chainId: "56" }),
+        timeout: 15000,
+      });
+
+      if (resp.status !== 200 || !resp.data) break;
+      const data = resp.data;
+      if (data.code !== "000000" || !data.data) break;
+
+      const items = data.data;
+      for (const item of items) {
+        const addr = (item.contractAddress || "").toLowerCase();
+        if (!addr || addr.length !== 42) continue;
+
+        // 解析 tokenTag 中的敏感事件
+        const tagEvents = [];
+        const tokenTag = item.tokenTag || {};
+        for (const evt of (tokenTag["Sensitive Events"] || [])) {
+          if (evt.tagName) tagEvents.push(evt.tagName);
+        }
+
+        const signal = {
+          direction: item.direction || "",
+          smartMoneyCount: item.smartMoneyCount || 0,
+          exitRate: item.exitRate || 0,
+          maxGain: item.maxGain || "0",
+          status: item.status || "",
+          alertPrice: item.alertPrice || "0",
+          currentPrice: item.currentPrice || "0",
+          totalTokenValue: item.totalTokenValue || "0",
+          signalTriggerTime: item.signalTriggerTime || 0,
+          ticker: item.ticker || "",
+          tagEvents,
+        };
+
+        // 同一代币保留 smartMoneyCount 最大的
+        const existing = signalMap.get(addr);
+        if (!existing || signal.smartMoneyCount > existing.smartMoneyCount) {
+          signalMap.set(addr, signal);
+        }
+      }
+
+      if (items.length < 100) break;
+      await sleep(300);
+    }
+
+    if (signalMap.size > 0) {
+      console.log(`${_ts()} [币安信号] 获取 ${signalMap.size} 个 BSC 聪明钱信号`);
+    }
+  } catch (e) {
+    console.log(`${_ts()} [币安信号] 获取失败: ${e.message}`);
+  }
+
+  binanceSignalCache = { ts: now, signals: signalMap };
+  return signalMap;
+}
+
+/**
+ * 从币安 Web3 Token Dynamic Data API 批量获取代币动态数据
+ * 返回 Map<tokenAddressLower, dynamicData>
+ */
+async function fetchBinanceTokenDynamic(addresses) {
+  const result = new Map();
+  if (!addresses || addresses.length === 0) return result;
+
+  const BN_HEADERS = {
+    "Accept-Encoding": "identity",
+    "User-Agent": "binance-web3/1.1 (Skill)",
   };
-  if (!smartAddresses || smartAddresses.size === 0 || !BSCSCAN_API_KEY) return result;
 
-  // 查该代币的全量转账记录
-  const allTransfers = await bscScanTokenTxAll(tokenAddress);
-  if (allTransfers.length === 0) return result;
+  for (let i = 0; i < addresses.length; i++) {
+    const addr = addresses[i];
+    try {
+      const url = `${BINANCE_TOKEN_DYNAMIC}?chainId=56&contractAddress=${addr}`;
+      const resp = await fetchJSON(url, { headers: BN_HEADERS, timeout: 10000 });
+      if (resp.status !== 200 || !resp.data) continue;
+      const body = resp.data;
+      if (body.code !== "000000" || !body.data) continue;
 
-  const buyers = new Set();
-  const sellers = new Set();
+      const d = body.data;
+      result.set(addr.toLowerCase(), {
+        price: parseFloat(d.price || 0),
+        holders: parseInt(d.holders || 0),
+        liquidity: parseFloat(d.liquidity || 0),
+        marketCap: parseFloat(d.marketCap || 0),
+        volume24h: parseFloat(d.volume24h || 0),
+        volume1h: parseFloat(d.volume1h || 0),
+        percentChange1h: parseFloat(d.percentChange1h || 0),
+        percentChange24h: parseFloat(d.percentChange24h || 0),
+        top10Pct: parseFloat(d.top10HoldersPercentage || 0),
+        devHoldPct: parseFloat(d.devHoldingPercent || 0),
+        smartMoneyHolders: parseInt(d.smartMoneyHolders || 0),
+        smartMoneyHoldPct: parseFloat(d.smartMoneyHoldingPercent || 0),
+        kolHolders: parseInt(d.kolHolders || 0),
+        kolHoldPct: parseFloat(d.kolHoldingPercent || 0),
+        proHolders: parseInt(d.proHolders || 0),
+        proHoldPct: parseFloat(d.proHoldingPercent || 0),
+      });
+    } catch (e) { /* skip */ }
 
-  for (const tx of allTransfers) {
-    const from = (tx.from || "").toLowerCase();
-    const to = (tx.to || "").toLowerCase();
-    const value = parseInt(tx.value || "0", 10);
-    if (value <= 0) continue;
-
-    // 聪明钱买入: 聪明钱是接收方, 来源是 DEX Router 或零地址
-    if (smartAddresses.has(to)) {
-      if (KNOWN_DEX_ROUTERS.has(from) || from === ZERO_ADDRESS) {
-        buyers.add(to);
-      }
-    }
-    // 聪明钱卖出: 聪明钱是发送方, 目标是 DEX Router
-    if (smartAddresses.has(from)) {
-      if (KNOWN_DEX_ROUTERS.has(to)) {
-        sellers.add(from);
-      }
-    }
+    // 限流: ~5 req/s
+    if (i < addresses.length - 1) await sleep(250);
   }
 
-  result.buyCount = buyers.size;
-  result.sellCount = sellers.size;
-
-  if (buyers.size > 0) {
-    result.hasBuy = true;
-    result.details.push(`聪明钱加仓 (${buyers.size}个地址)`);
-    result.bonus += buyers.size; // 每个聪明钱加仓 +1 分
+  if (result.size > 0) {
+    console.log(`${_ts()} [币安动态] 获取 ${result.size}/${addresses.length} 个代币数据`);
   }
-  if (sellers.size > 0) {
-    result.hasSell = true;
-    result.details.push(`聪明钱减仓 (${sellers.size}个地址)`);
-    result.exclude = true;
-  }
-
   return result;
 }
 
@@ -1238,11 +1202,11 @@ async function analyzeSmartMoneyBehavior(tokenAddress, smartAddresses) {
 /**
  * 批量分析钱包行为 (带并发控制)
  * 返回 Map<address, { excluded, excludeReason, signals, bonus, details }>
+ * binanceSignals: Map<tokenAddress, signalData> 币安聪明钱信号
  */
-async function batchWalletAnalysis(tokens, smartAddresses) {
+async function batchWalletAnalysis(tokens, binanceSignals = new Map()) {
   const CONCURRENCY = 8; // bscScanLimiter 控制速率
   const resultMap = new Map();
-  const hasSmartMoney = smartAddresses && smartAddresses.size > 0;
 
   for (let i = 0; i < tokens.length; i += CONCURRENCY) {
     const batch = tokens.slice(i, i + CONCURRENCY);
@@ -1250,27 +1214,81 @@ async function batchWalletAnalysis(tokens, smartAddresses) {
       // 分析开发者行为
       const dev = await analyzeDeveloperBehavior(t.address, t.creator);
 
-      // 分析聪明钱行为 (无聪明钱地址时跳过, 省一次 API 调用)
-      const sm = hasSmartMoney
-        ? await analyzeSmartMoneyBehavior(t.address, smartAddresses)
-        : { hasBuy: false, hasSell: false, buyCount: 0, sellCount: 0, details: [], bonus: 0, exclude: false };
-
       // 合并结果
-      const allDetails = [...dev.details, ...sm.details];
-      const totalBonus = dev.bonus + sm.bonus;
+      const allDetails = [...dev.details];
+      let totalBonus = dev.bonus;
       const signals = [];
       if (dev.hasBuy) signals.push("开发者加仓");
       if (dev.hasLpAdd) signals.push("开发者加池子");
-      if (sm.hasBuy) signals.push("聪明钱加仓");
+
+      // 合并币安聪明钱信号
+      const bn = binanceSignals.get(t.address.toLowerCase());
+      if (bn) {
+        const { direction, smartMoneyCount: smCount, status, maxGain, exitRate, tagEvents } = bn;
+        if (direction === "buy") {
+          let detailStr = `币安聪明钱买入 (${smCount}个地址`;
+          if (status === "active") detailStr += ", 活跃";
+          if (maxGain && parseFloat(maxGain) > 0) detailStr += `, 最高涨${parseFloat(maxGain).toFixed(1)}%`;
+          detailStr += ")";
+          allDetails.push(detailStr);
+          signals.push("币安聪明钱买入");
+          totalBonus += Math.min(smCount, 3);
+        } else if (direction === "sell") {
+          allDetails.push(`币安聪明钱卖出 (${smCount}个地址, 退出率${exitRate}%)`);
+          signals.push("币安聪明钱卖出");
+        }
+        for (const evt of tagEvents) {
+          if (!allDetails.includes(evt)) {
+            allDetails.push(evt);
+            if (evt.includes("Add") || evt.includes("Buy")) totalBonus += 1;
+            else if (evt.includes("Reduce") || evt.includes("Sell")) signals.push(evt);
+          }
+        }
+      }
+
+      // 币安动态数据: 开发者持仓变化 + 聪明钱/KOL/专业投资者持仓
+      const devPct = t.devHoldPct ?? -1;
+      const prevDevPct = t.prevDevHoldPct ?? -1;
+      const smHoldersBn = t.smartMoneyHolders || 0;
+      const kolHoldersCount = t.kolHolders || 0;
+      const proHoldersCount = t.proHolders || 0;
+      let bnDevExclude = false, bnDevExcludeReason = "";
+
+      if (prevDevPct >= 0 && devPct >= 0) {
+        if (prevDevPct > 0 && devPct === 0) {
+          allDetails.push(`开发者清仓 (持仓${prevDevPct.toFixed(2)}%→0%)`);
+          bnDevExclude = true;
+          bnDevExcludeReason = `开发者清仓 (币安: ${prevDevPct.toFixed(2)}%→0%)`;
+        } else if (devPct < prevDevPct * 0.5 && prevDevPct > 1) {
+          allDetails.push(`开发者大幅减仓 (持仓${prevDevPct.toFixed(2)}%→${devPct.toFixed(2)}%)`);
+        } else if (devPct > prevDevPct * 1.5 && devPct > 0.1) {
+          allDetails.push(`开发者加仓 (持仓${prevDevPct.toFixed(2)}%→${devPct.toFixed(2)}%)`);
+          if (!signals.includes("开发者加仓")) signals.push("开发者加仓");
+          totalBonus += 1;
+        }
+      }
+
+      if (smHoldersBn > 0) {
+        allDetails.push(`币安聪明钱持仓 (${smHoldersBn}个地址)`);
+        if (!signals.includes("币安聪明钱买入")) totalBonus += 1;
+      }
+      if (kolHoldersCount > 0) {
+        allDetails.push(`KOL持仓 (${kolHoldersCount}个)`);
+        totalBonus += 1;
+      }
+      if (proHoldersCount > 0) {
+        allDetails.push(`专业投资者持仓 (${proHoldersCount}个)`);
+        totalBonus += 1;
+      }
 
       let excluded = false, excludeReason = "";
       if (dev.exclude) {
         excluded = true;
         excludeReason = dev.details.join(", ");
       }
-      if (sm.exclude) {
+      if (bnDevExclude && !dev.exclude) {
         excluded = true;
-        excludeReason = (excludeReason ? excludeReason + ", " : "") + sm.details.join(", ");
+        excludeReason = (excludeReason ? excludeReason + ", " : "") + bnDevExcludeReason;
       }
 
       return {
@@ -1436,60 +1454,75 @@ async function qualityFilter(candidates, nowMs, walletMap) {
 }
 
 // ===================================================================
-//  热点匹配 (保留 v1 逻辑)
+//  仿盘检测 — 本地队列统计同名/近似名代币
 // ===================================================================
-const HOTSPOT_CACHE_TTL = 900_000;
-let hotspotCache = { ts: 0, keywords: [] };
 
 function normalize(text) {
   return text.toLowerCase().trim().replace(/[_\-./·・\s]+/g, " ");
 }
 
-async function fetchWeiboHot() {
-  try {
-    const res = await fetchJSON("https://weibo.com/ajax/side/hotSearch", {
-      headers: { "User-Agent": "Mozilla/5.0", Referer: "https://weibo.com/", "X-Requested-With": "XMLHttpRequest", Accept: "application/json" },
-      timeout: 10000,
-    });
-    if (!res.data || !res.data.data) return [];
-    const items = res.data.data.realtime || [];
-    return items.filter(i => (i.word || "").trim().length >= 2).map((i, idx) => ({ word: i.word.trim(), rank: idx, source: "weibo" }));
-  } catch (e) { return []; }
-}
+function detectCopycats(tokens, allKnown) {
+  const result = new Map(); // address -> {count, isCopycat}
+  if (!tokens.length || !allKnown.length) return result;
 
-async function fetchAllHotspots() {
-  const now = Date.now();
-  if (now - hotspotCache.ts < HOTSPOT_CACHE_TTL && hotspotCache.keywords.length > 0) return hotspotCache.keywords;
-  const all = await fetchWeiboHot();
-  // 简化: 只用微博热搜, 省掉 Google Trends 和 Twitter (节省时间)
-  console.log(`[HOTSPOT] 热点: ${all.length} 个关键词`);
-  hotspotCache = { ts: now, keywords: all };
-  return all;
-}
+  // 包含匹配最小长度: 中文2字符已有辨识度, 英文需要4字符避免 "AI"/"CZ" 误匹配
+  function minLen(s) { return /[^\x00-\x7F]/.test(s) ? 2 : 4; }
 
-function hotspotMatch(token, hotspots, descr = "") {
-  const name = normalize(token.name || "");
-  const short = normalize(token.symbol || "");
-  const desc = normalize(descr);
-  let score = 0;
-  const matched = [];
-  const seenWords = new Set();
-  for (const h of hotspots) {
-    const wordLower = normalize(h.word);
-    if (seenWords.has(wordLower)) continue;
-    if (wordLower.length <= 3) {
-      if (wordLower !== name && wordLower !== short) continue;
-    } else {
-      let found = name.includes(wordLower) || short.includes(wordLower) || (desc && desc.includes(wordLower));
-      if (!found && name.length >= 2) found = wordLower.includes(name) || wordLower.includes(short);
-      if (!found) continue;
+  // 统一索引: keyword -> Set<address>
+  const keywordIndex = new Map();
+  for (const t of allKnown) {
+    const addr = (t.address || "").toLowerCase();
+    if (!addr) continue;
+    for (const val of [t.symbol, t.name]) {
+      const key = normalize(val || "");
+      if (key && key.length >= 2) {
+        if (!keywordIndex.has(key)) keywordIndex.set(key, new Set());
+        keywordIndex.get(key).add(addr);
+      }
     }
-    seenWords.add(wordLower);
-    const rankWeight = Math.max(0.5, 1.0 - h.rank * 0.01);
-    score += rankWeight * 1.2;
-    matched.push(`${h.word}(${h.source})`);
   }
-  return { score, matched, isHot: matched.length > 0 };
+
+  const allKeys = [...keywordIndex.keys()];
+
+  for (const t of tokens) {
+    const addr = (t.address || "").toLowerCase();
+    const related = new Set();
+
+    // 收集该代币的所有关键词
+    const myKeys = new Set();
+    for (const val of [t.symbol, t.name]) {
+      const key = normalize(val || "");
+      if (key && key.length >= 2) myKeys.add(key);
+    }
+
+    for (const myKey of myKeys) {
+      // 精确匹配
+      for (const a of (keywordIndex.get(myKey) || [])) related.add(a);
+
+      // 包含匹配
+      for (const idxKey of allKeys) {
+        if (idxKey === myKey) continue;
+        // idxKey 是短词, 被 myKey 包含
+        if (idxKey.length >= minLen(idxKey) && myKey.includes(idxKey)) {
+          for (const a of keywordIndex.get(idxKey)) related.add(a);
+        }
+        // myKey 是短词, 被 idxKey 包含
+        if (myKey.length >= minLen(myKey) && idxKey.includes(myKey)) {
+          for (const a of keywordIndex.get(idxKey)) related.add(a);
+        }
+      }
+    }
+
+    related.delete(addr);
+    const count = related.size;
+    result.set(t.address, { count, isCopycat: count >= 3 });
+  }
+
+  const ccCount = [...result.values()].filter(v => v.isCopycat).length;
+  if (ccCount > 0) {
+    console.log(`${_ts()} [仿盘] ${ccCount} 个有大量仿盘 (≥3)`);
+  }
+  return result;
 }
 
 // ===================================================================
@@ -1555,39 +1588,88 @@ async function main() {
   const { survivors, eliminated } = await eliminationCheck(queueState.tokens, nowMs);
   queueState.tokens = survivors;
   queueState.eliminated.push(...eliminated.map(e => ({
-    address: e.address, name: e.name, elimReason: e.elimReason,
+    address: e.address, name: e.name, symbol: e.symbol, elimReason: e.elimReason,
     eliminatedAt: e.eliminatedAt, createdAt: e.createdAt,
   })));
 
   console.log(`[QUEUE] 淘汰后: ${survivors.length} 个存活, ${eliminated.length} 个淘汰`);
 
-  // Step 4: 钱包分析 + 精筛 + 热点匹配
+  // Step 4: 钱包分析 + 精筛 + 仿盘检测
   console.log("\n--- Step 4: 钱包分析 + 精筛 ---");
 
-  // 钱包行为分析 (开发者+聪明钱) 与 热点获取 并行
+  // 钱包行为分析 (开发者+聪明钱+币安信号)
   let walletMap = new Map();
-  let hotspots = [];
-  const hotspotPromise = fetchAllHotspots(); // 提前启动热点获取
+
+  // 币安聪明钱信号 (不依赖 BSCScan, 独立获取)
+  let binanceSignals = new Map();
+  if (survivors.length > 0) {
+    binanceSignals = await fetchBinanceSmartSignals();
+    const bnMatch = survivors.filter(t => binanceSignals.has(t.address.toLowerCase())).length;
+    if (binanceSignals.size > 0) {
+      console.log(`[币安信号] ${binanceSignals.size} 个信号, 命中队列 ${bnMatch} 个`);
+    }
+  }
 
   if (BSCSCAN_API_KEY && survivors.length > 0) {
-    // 加载聪明钱地址 (手动配置 + 自动发现)
-    const smartAddresses = await loadSmartMoneyAddresses();
-    console.log(`[钱包] 分析 ${survivors.length} 个代币的开发者/聪明钱行为...`);
-    walletMap = await batchWalletAnalysis(survivors, smartAddresses);
+    console.log(`[钱包] 分析 ${survivors.length} 个代币的开发者行为...`);
+    walletMap = await batchWalletAnalysis(survivors, binanceSignals);
     const excludedCount = [...walletMap.values()].filter(w => w.excluded).length;
     const signalCount = [...walletMap.values()].filter(w => w.signals.length > 0).length;
     console.log(`[钱包] 排除: ${excludedCount}, 有加分信号: ${signalCount}`);
+  } else if (survivors.length > 0 && binanceSignals.size > 0) {
+    // 即使没有 BSCScan key, 也用币安信号做基础分析
+    for (const t of survivors) {
+      const addr = t.address.toLowerCase();
+      const bn = binanceSignals.get(addr);
+      if (bn) {
+        const { direction, smartMoneyCount: smCount, status, maxGain, exitRate } = bn;
+        const details = [];
+        const signals = [];
+        let bonus = 0;
+        if (direction === "buy") {
+          let detailStr = `币安聪明钱买入 (${smCount}个地址`;
+          if (status === "active") detailStr += ", 活跃";
+          if (maxGain && parseFloat(maxGain) > 0) detailStr += `, 最高涨${parseFloat(maxGain).toFixed(1)}%`;
+          detailStr += ")";
+          details.push(detailStr);
+          signals.push("币安聪明钱买入");
+          bonus = Math.min(smCount, 3);
+        } else if (direction === "sell") {
+          details.push(`币安聪明钱卖出 (${smCount}个地址, 退出率${exitRate}%)`);
+          signals.push("币安聪明钱卖出");
+        }
+        walletMap.set(addr, { excluded: false, excludeReason: "", signals, bonus, details });
+      }
+    }
   }
 
-  // 等待热点数据 (大概率已经完成)
-  hotspots = await hotspotPromise;
+  // 仿盘检测 (本地队列统计, 零 API 调用, 对所有代币打标记)
+  const allKnown = [...queueState.tokens, ...queueState.eliminated];
+  const allToCheck = [...survivors, ...eliminated, ...rejectedAtEntry.map(r => r.token)];
+  const copycatMap = detectCopycats(allToCheck, allKnown);
+  for (const t of survivors) {
+    const cc = copycatMap.get(t.address);
+    if (cc) {
+      t.copycat = cc;
+      if (cc.isCopycat) {
+        const wa = walletMap.get(t.address) || { excluded: false, excludeReason: "", signals: [], bonus: 0, details: [] };
+        wa.signals.push(`大量仿盘(${cc.count}个)`);
+        wa.details.push(`仿盘 ${cc.count} 个`);
+        wa.bonus += 2;
+        walletMap.set(t.address, wa);
+      }
+    }
+  }
+  for (const t of eliminated) {
+    const cc = copycatMap.get(t.address);
+    if (cc) t.copycat = cc;
+  }
+  for (const r of rejectedAtEntry) {
+    const cc = copycatMap.get(r.token.address);
+    if (cc) r.token.copycat = cc;
+  }
 
   const qualityResults = await qualityFilter(survivors, nowMs, walletMap);
-
-  // 热点匹配
-  for (const t of qualityResults) {
-    t.hotNews = hotspotMatch(t, hotspots, t.descr || "");
-  }
 
   // 按持币数排序
   qualityResults.sort((a, b) => (b.holders || 0) - (a.holders || 0));
@@ -1619,15 +1701,19 @@ async function main() {
         age_hours: +(Math.max(0, (nowMs - t.createdAt) / 3600000)).toFixed(2),
         social_count: t.socialCount || 0,
         social_links: t.socialLinks || {},
-        hot_news: t.hotNews?.isHot || false,
-        hot_score: t.hotNews?.score || 0,
-        hot_keywords: t.hotNews?.matched || [],
+        copycat_count: t.copycat?.count || 0,
+        is_copycat: t.copycat?.isCopycat || false,
         day1_vol: t.day1Vol || 0,
         progress: t.progress || 0,
         liquidity: t.liquidity || 0,
         raised_amount: t.raisedAmount || 0,
         market_cap: t.marketCap || 0,
         wallet_signals: t.walletSignals || [],
+        dev_hold_pct: t.devHoldPct || 0,
+        smart_money_holders: t.smartMoneyHolders || 0,
+        kol_holders: t.kolHolders || 0,
+        pro_holders: t.proHolders || 0,
+        top10_pct: t.top10Pct || 0,
       };
     }),
     // 队列快照: 存活代币 + 本轮淘汰代币
@@ -1649,6 +1735,13 @@ async function main() {
       social_links: t.socialLinks || {},
       age_hours: +(Math.max(0, (nowMs - t.createdAt) / 3600000)).toFixed(2),
       consec_drops: t.consecDrops || 0,
+      dev_hold_pct: t.devHoldPct || 0,
+      smart_money_holders: t.smartMoneyHolders || 0,
+      kol_holders: t.kolHolders || 0,
+      pro_holders: t.proHolders || 0,
+      top10_pct: t.top10Pct || 0,
+      copycat_count: t.copycat?.count || 0,
+      is_copycat: t.copycat?.isCopycat || false,
     })),
     eliminatedThisRound: eliminated.map(t => ({
       address: t.address,
@@ -1661,6 +1754,8 @@ async function main() {
       reason: t.elimReason || "",
       social_count: t.socialCount || 0,
       age_hours: +(Math.max(0, (nowMs - (t.createdAt || 0)) / 3600000)).toFixed(2),
+      copycat_count: t.copycat?.count || 0,
+      is_copycat: t.copycat?.isCopycat || false,
     })),
     rejectedAtEntry: rejectedAtEntry.map(({ token: t, detail, reason }) => ({
       address: t.address,
@@ -1674,6 +1769,8 @@ async function main() {
       social_links: (detail && detail.socialLinks) || {},
       progress: (detail && detail.progress) || 0,
       age_hours: +(Math.max(0, (nowMs - (t.createdAt || 0)) / 3600000)).toFixed(2),
+      copycat_count: t.copycat?.count || 0,
+      is_copycat: t.copycat?.isCopycat || false,
     })),
   };
 

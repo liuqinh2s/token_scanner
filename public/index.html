@@ -415,19 +415,9 @@
       color: #fff;
     }
 
-    /* 热点标签 */
-    .tag-hot-weibo {
+    /* 仿盘标签 */
+    .tag-copycat {
       background: #ff4d4f;
-      color: #fff;
-    }
-
-    .tag-hot-twitter {
-      background: #1d9bf0;
-      color: #fff;
-    }
-
-    .tag-hot-google {
-      background: #ea4335;
       color: #fff;
     }
 
@@ -587,7 +577,7 @@
         →
         钱包分析(开发者/聪明钱加减仓) → 精筛(价格/K线/底价区间)<br>
         价格数据: DexScreener + GeckoTerminal K线 · 持币数据: BscScan 链上 · 钱包行为: BscScan tokentx<br>
-        🔥 = 匹配实时热点 · 💰 = 开发者加仓 · 🏊 = 开发者加池子 · 🧠 = 聪明钱加仓
+        🔥 = 有大量仿盘 · 💰 = 开发者加仓 · 🏊 = 开发者加池子 · 🧠 = 聪明钱加仓
       </p>
     </header>
 
@@ -776,19 +766,6 @@
       return (hours / 24).toFixed(1) + '天';
     }
 
-    function parseHotKeyword(kw) {
-      const m = kw.match(/^(.+)\(([^)]+)\)$/);
-      if (!m) return { word: kw, source: '', url: '' };
-      const word = m[1], source = m[2];
-      const srcBase = source.split('/')[0];
-      const geo = source.split('/')[1] || '';
-      let url = '';
-      if (srcBase === 'weibo') url = 'https://s.weibo.com/weibo?q=' + encodeURIComponent(word);
-      else if (srcBase === 'twitter') url = 'https://x.com/search?q=' + encodeURIComponent(word);
-      else if (srcBase === 'google') url = 'https://trends.google.com/trending?geo=' + (geo || 'US') + '&q=' + encodeURIComponent(word);
-      return { word, source: srcBase, url };
-    }
-
     function buildAllTags(token) {
       let html = '';
       // 钱包行为标签
@@ -799,18 +776,9 @@
           html += `<span class="tag ${cls}" title="${esc(s)}">${icon} ${esc(s)}</span>`;
         }
       }
-      // 热点标签
-      if (token.hot_news && token.hot_keywords && token.hot_keywords.length > 0) {
-        for (const kw of token.hot_keywords) {
-          const { word, source, url } = parseHotKeyword(kw);
-          const cls = source === 'twitter' ? 'tag-hot-twitter' : source === 'google' ? 'tag-hot-google' : 'tag-hot-weibo';
-          const icon = source === 'twitter' ? '𝕏' : source === 'google' ? 'G' : '🔥';
-          if (url) {
-            html += `<a class="tag ${cls}" href="${esc(url)}" target="_blank" rel="noopener" title="${esc(kw)}">${icon} ${esc(word)}</a>`;
-          } else {
-            html += `<span class="tag ${cls}" title="${esc(kw)}">${icon} ${esc(word)}</span>`;
-          }
-        }
+      // 仿盘标签
+      if (token.is_copycat && token.copycat_count > 0) {
+        html += `<span class="tag tag-copycat" title="有 ${token.copycat_count} 个同名仿盘">🔥 仿盘${token.copycat_count}个</span>`;
       }
       // 社交媒体标签
       const sl = token.social_links;
@@ -937,6 +905,7 @@
       tbody.innerHTML = items.map((t, i) => {
         const addr = t.address || '';
         const socialHtml = buildSocialOnly(t.social_links);
+        const tagsHtml = buildAllTags(t);
         const pctProgress = ((t.progress || 0) * 100).toFixed(1);
         return `<tr>
           <td>${i + 1}</td>
@@ -954,7 +923,7 @@
           <td><div class="price-info" style="color:#5a6a80">${fmtPrice(t.peak_price)}</div></td>
           <td><div class="price-info">${fmtLiq(t)}</div></td>
           <td><div style="display:flex;align-items:center;gap:4px"><div class="queue-progress" style="width:50px;height:12px;border-radius:3px"><div class="queue-progress-inner" style="width:${Math.min(parseFloat(pctProgress), 100)}%;border-radius:3px"></div></div><span style="font-size:10px">${pctProgress}%</span></div></td>
-          <td>${socialHtml}</td>
+          <td>${tagsHtml || socialHtml}</td>
           <td>${fmtAge(t.age_hours)}</td>
         </tr>`;
       }).join('');
@@ -963,7 +932,7 @@
       queueCardList.innerHTML = items.map((t, i) => {
         const addr = t.address || '';
         const shortAddr = addr.length > 16 ? addr.slice(0, 8) + '...' + addr.slice(-6) : addr;
-        const socialHtml = buildSocialOnly(t.social_links);
+        const tagsHtml = buildAllTags(t);
         const pctProgress = ((t.progress || 0) * 100).toFixed(1);
         return `<div class="token-card">
           <div class="card-top">
@@ -983,7 +952,7 @@
             <span>${fmtLiq(t)}</span>
             <span>进度:${pctProgress}%</span>
           </div>
-          <div class="card-social">${socialHtml}</div>
+          ${tagsHtml ? '<div class="card-social">' + tagsHtml + '</div>' : ''}
           <div class="card-meta">
             <span>#${i + 1} · 币龄 ${fmtAge(t.age_hours)}</span>
             ${t.peak_holders ? '<span>峰值持币 ' + t.peak_holders + '</span>' : ''}
@@ -1031,6 +1000,7 @@
       elimCardList.innerHTML = items.map((t, i) => {
         const addr = t.address || '';
         const shortAddr = addr.length > 16 ? addr.slice(0, 8) + '...' + addr.slice(-6) : addr;
+        const tagsHtml = buildAllTags(t);
         return `<div class="token-card">
           <div class="card-top">
             <span><span class="card-name">${esc(t.name || '--')}</span><span class="card-symbol">${esc(t.symbol || '--')}</span></span>
@@ -1047,6 +1017,7 @@
             <span>现:${fmtPrice(t.price)}</span>
             <span>峰:${fmtPrice(t.peak_price)}</span>
           </div>
+          ${tagsHtml ? '<div class="card-social">' + tagsHtml + '</div>' : ''}
           <div style="margin-top:6px"><span class="elim-reason">${esc(t.reason || '--')}</span></div>
           <div class="card-meta">
             <span>#${i + 1} · 币龄 ${fmtAge(t.age_hours)}</span>
@@ -1096,7 +1067,7 @@
       rejectedCardList.innerHTML = items.map((t, i) => {
         const addr = t.address || '';
         const shortAddr = addr.length > 16 ? addr.slice(0, 8) + '...' + addr.slice(-6) : addr;
-        const socialHtml = buildSocialOnly(t.social_links);
+        const tagsHtml = buildAllTags(t);
         return `<div class="token-card">
           <div class="card-top">
             <span><span class="card-name">${esc(t.name || '--')}</span><span class="card-symbol">${esc(t.symbol || '--')}</span></span>
@@ -1110,7 +1081,7 @@
             <a class="binance-link" href="https://web3.binance.com/zh-CN/token/bsc/${addr}" target="_blank" rel="noopener">币安</a>
           </div>
           <div style="margin-top:6px"><span class="elim-reason">${esc(t.reason || '--')}</span></div>
-          <div class="card-social">${socialHtml}</div>
+          ${tagsHtml ? '<div class="card-social">' + tagsHtml + '</div>' : ''}
           <div class="card-meta">
             <span>#${i + 1} · 币龄 ${fmtAge(t.age_hours)}</span>
           </div>
@@ -1213,8 +1184,8 @@
             address: t.a, name: t.n, symbol: t.s, holders: t.h,
             created_at: t.c, price: t.p, max_price: t.mp || t.pp, high_2h: t.h2,
             price_ratio: t.pr, age_hours: t.ah, social_count: t.sc,
-            social_links: t.sl, hot_news: t.hn, hot_score: t.hs,
-            hot_keywords: t.hk, total_supply: t.ts, day1_vol: t.dv,
+            social_links: t.sl, copycat_count: t.cc || 0,
+            is_copycat: t.ic || false, total_supply: t.ts, day1_vol: t.dv,
             progress: t.pg, liquidity: t.lq || 0, raised_amount: t.ra || 0,
             market_cap: t.mc || 0, wallet_signals: t.ws || [], _scanTime: t.st,
             _source: t.src || 'filtered',
