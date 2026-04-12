@@ -39,10 +39,13 @@ v6 架构: 极速扫描 (1 分钟一轮)
 精筛条件 (两档):
   快档 (币龄 ≤ 5min):
   - 持币地址数 ≥ 10
-  - 当前价 < $0.000004
+  - 当前价 < $0.000006
   慢档 (币龄 > 5min 且 ≤ 15min):
   - 持币地址数 ≥ 20
-  - 当前价 < $0.000006
+  - 当前价 < $0.000008
+  通用趋势条件 (两档共用):
+  - 持币地址数近 2 轮扫描递增 (首轮入队豁免)
+  - 价格近 2 轮扫描递增 (首轮入队豁免)
 """
 
 from __future__ import annotations
@@ -156,10 +159,10 @@ SCAN_INTERVAL_MIN = 15                 # GitHub Actions cron 间隔 (分钟)
 TOTAL_SUPPLY = 1_000_000_000           # 10亿
 QUALITY_MAX_AGE_MIN = 5                # 精筛(快档): 币龄 ≤ 5 分钟
 QUALITY_MIN_HOLDERS = 10               # 精筛(快档): 持币地址数 ≥ 10
-QUALITY_MAX_PRICE = 0.000004           # 精筛(快档): 当前价 < $0.000004
+QUALITY_MAX_PRICE = 0.000006           # 精筛(快档): 当前价 < $0.000006
 QUALITY_SLOW_MAX_AGE_MIN = 15          # 精筛(慢档): 币龄 ≤ 15 分钟
 QUALITY_SLOW_MIN_HOLDERS = 20          # 精筛(慢档): 持币地址数 ≥ 20
-QUALITY_SLOW_MAX_PRICE = 0.000006      # 精筛(慢档): 当前价 < $0.000006
+QUALITY_SLOW_MAX_PRICE = 0.000008      # 精筛(慢档): 当前价 < $0.000008
 COPYCAT_MARK_MIN = 3                   # 仿盘数 ≥3 标记
 MIN_SOCIAL_COUNT = 1                   # 最少关联社交媒体数
 
@@ -1732,6 +1735,11 @@ def elimination_check(queue: list[dict], now_ms: int,
         t["peakHolders"] = max(t.get("peakHolders", 0), current_holders)
         t["peakLiquidity"] = max(t.get("peakLiquidity", 0), current_liq)
 
+        # 记录价格历史 (只保留最近 5 轮, 与 holdersHistory 对齐)
+        price_hist = t.get("priceHistory", [])
+        price_hist.append(current_price)
+        t["priceHistory"] = price_hist[-5:]
+
         # 连续下跌计数
         last_price = t.get("lastPrice", 0)
         if last_price > 0 and current_price < last_price:
@@ -1809,13 +1817,16 @@ def elimination_check(queue: list[dict], now_ms: int,
 # ===================================================================
 def quality_filter(candidates: list[dict], now_ms: int) -> list[dict]:
     """
-    精筛: 两档条件
+    精筛: 两档条件 + 趋势确认
     快档 (币龄 ≤ 5min):
       - 持币地址数 ≥ 10
-      - 当前价 < $0.000004
+      - 当前价 < $0.000006
     慢档 (币龄 > 5min 且 ≤ 15min):
       - 持币地址数 ≥ 20
-      - 当前价 < $0.000006
+      - 当前价 < $0.000008
+    通用趋势条件 (两档共用):
+      - 持币地址数近 2 轮扫描递增 (首轮入队代币豁免)
+      - 价格近 2 轮扫描递增 (首轮入队代币豁免)
     """
     results = []
     fast_max_ms = QUALITY_MAX_AGE_MIN * 60 * 1000
@@ -1846,6 +1857,16 @@ def quality_filter(candidates: list[dict], now_ms: int) -> list[dict]:
             tier = "慢档"
         else:
             # 币龄 > 15 分钟, 不通过
+            continue
+
+        # 趋势条件: 持币地址数近 2 轮递增 (历史不足 2 轮则豁免)
+        h_hist = t.get("holdersHistory", [])
+        if len(h_hist) >= 2 and h_hist[-1] <= h_hist[-2]:
+            continue
+
+        # 趋势条件: 价格近 2 轮递增 (历史不足 2 轮则豁免)
+        p_hist = t.get("priceHistory", [])
+        if len(p_hist) >= 2 and p_hist[-1] <= p_hist[-2]:
             continue
 
         results.append(t)
@@ -1951,6 +1972,7 @@ def main():
                 "day1Vol": detail.get("day1Vol", 0),
                 "consecDrops": 0,
                 "lastPrice": detail["price"],
+                "priceHistory": [detail["price"]],
             })
 
     log.info("入队后: %d 个代币", len(queue_state["tokens"]))
