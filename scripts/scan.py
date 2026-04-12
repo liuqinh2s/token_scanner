@@ -14,8 +14,8 @@ BSC Token Scanner v5 — 链上发现 + 队列淘汰制 (Python 版, GitHub Acti
   - 日志仅输出到 stdout
 
 每轮扫描:
-  1. 链上发现 (~1s): BSC RPC eth_getLogs → four.meme TokenCreated 事件 (多版本合约) → 新代币地址
-  2. 入场筛 (~35s): four.meme Detail API → 淘汰无社交 / 总量≠10亿
+  1. 链上发现 (~1s): BSC RPC eth_getLogs → four.meme V1 合约 TokenCreated 事件 (新旧两种 topic) → 新代币地址
+  2. 入场筛 (~35s): four.meme Detail API → 淘汰无社交 / 总量≠10亿 / 币龄>48h
   3. 淘汰检查 (~15s): DexScreener 批量查价 + Detail API 查持币数 → 永久淘汰弃盘币
   4. 钱包行为分析 (~20s): BscScan tokentx → 开发者行为分析
      + 币安Web3聪明钱信号 → 交叉验证 + 额外加分
@@ -125,17 +125,21 @@ GMGN_API = "https://openapi.gmgn.ai"
 GMGN_API_KEY = "gmgn_solbscbaseethmonadtron"  # 免费 demo key
 SMART_MONEY_FILE = DATA_DIR / "smart_money.json"
 
-# four.meme 合约地址 (用于链上事件发现, 支持多版本合约)
-FOUR_MEME_CONTRACT = "0x5c952063c7fc8610ffdb798152d69f0b9550762b"       # 旧版工厂
-FOUR_MEME_CONTRACT_V2 = "0xd36b6d646ac6e23672e9eedec558164c7f2d6deb"    # 新版工厂 (2025-2026)
-TOKEN_CREATE_TOPIC = "0x396d5e902b675b032348d3d2e9517ee8f0c4a926603fbc075d3d282ff00cad20"      # 旧版 TokenCreate
-TOKEN_CREATE_TOPIC_V2 = "0x20efd6d5195b7b50273f01cd79a27989255356f9f13293edc53ee142accfdb75"   # 新版事件
+# four.meme 合约地址 (来源: four-flap-meme-sdk v1.9.48)
+# TokenManagerOriginal: 0x5c952063c7fc8610FFDB798152D69F0B9550762b (当前唯一活跃合约)
+# TokenManagerV1:       0xf7F823d0E790219dBf727bDb971837574655fCB0 (已废弃, 无事件)
+# TokenManagerV2:       0x342399a59943B5815849657Aa0e06D7058D9d5C6 (已废弃, 无事件)
+# TokenManagerHelper3:  0xF251F83e40a78868FcfA3FA4599Dad6494E46034 (查询辅助合约)
+FOUR_MEME_CONTRACT = "0x5c952063c7fc8610ffdb798152d69f0b9550762b"       # TokenManagerOriginal (所有 TokenCreate 事件都在此合约上)
+TOKEN_CREATE_TOPIC = "0x396d5e902b675b032348d3d2e9517ee8f0c4a926603fbc075d3d282ff00cad20"      # 旧版 TokenCreate (12 words, 含名称/符号/时间戳, 少量使用)
+TOKEN_CREATE_TOPIC_V3 = "0x0a5575b3648bae2210cee56bf33254cc1ddfbc7bf637c0af2ac18b14fb1bae19"  # 新版 TokenCreate (8 words, 无名称/时间戳, 当前主力)
 ERC20_TRANSFER_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
 
-# 所有 four.meme 工厂合约 + 对应事件 (新增合约时只需在此追加)
+# 所有 TokenCreate 事件监听配置 (新增事件只需在此追加)
+# 注意: 0x7db52723... 是买卖事件 (同一代币多次出现), 不要监听
 FOUR_MEME_FACTORIES = [
-    (FOUR_MEME_CONTRACT, TOKEN_CREATE_TOPIC),
-    (FOUR_MEME_CONTRACT_V2, TOKEN_CREATE_TOPIC_V2),
+    (FOUR_MEME_CONTRACT, TOKEN_CREATE_TOPIC),       # 旧版 TokenCreate
+    (FOUR_MEME_CONTRACT, TOKEN_CREATE_TOPIC_V3),    # 新版 TokenCreate (同一合约, 不同 topic)
 ]
 
 FM_HEADERS = {
@@ -214,7 +218,7 @@ KNOWN_EXCLUDE_ADDRESSES = {
     "0xe9e7cea3dedca5984780bafc599bd69add087d56",  # BUSD
     "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",  # USDC
     FOUR_MEME_CONTRACT.lower(),
-    FOUR_MEME_CONTRACT_V2.lower(),
+    "0xd36b6d646ac6e23672e9eedec558164c7f2d6deb",  # four.meme 交易代理合约 (非工厂)
 }
 
 
@@ -401,6 +405,10 @@ def fm_detail(address: str) -> dict | None:
             social_links["telegram"] = raw["telegramUrl"]
         if raw.get("webUrl"):
             social_links["website"] = raw["webUrl"]
+        # 提取创建时间 (毫秒): 优先 launchTime, 回退 createTime / createdAt
+        launch_ts = int(raw.get("launchTime", 0) or 0)
+        if launch_ts <= 0:
+            launch_ts = int(raw.get("createTime", 0) or raw.get("createdAt", 0) or 0)
         return {
             "holders": int(tp.get("holderCount", 0) or 0),
             "price": float(tp.get("price", 0) or 0),
@@ -413,6 +421,7 @@ def fm_detail(address: str) -> dict | None:
             "progress": float(raw.get("progress", 0) or 0),
             "day1Vol": float(tp.get("day1Vol", 0) or raw.get("day1Vol", 0) or 0),
             "liquidity": float(tp.get("liquidity", 0) or 0),
+            "launchTime": launch_ts,
         }
     except Exception as e:
         log.debug("fm_detail [%s]: %s", address[:20], e)
@@ -460,54 +469,68 @@ def _rpc_call(method: str, params: list) -> dict | None:
 def _parse_token_from_log(log_entry: dict) -> dict | None:
     """
     从 eth_getLogs 返回的单条日志中解析代币信息。
-    兼容新旧合约的 data 结构, 解析失败的字段留空 (后续 detail API 补全)。
+    支持两种事件格式:
+      旧版 (12 words): word[0]=creator, word[1]=token, word[6]=timestamp, word[8+]=name/symbol
+      新版 (8 words):  word[0]=token, word[1]=creator, 无时间戳/名称 (需 detail API 补全)
     """
     try:
         data = log_entry["data"][2:]  # 去掉 0x 前缀
         if len(data) < 128:
             return None
 
-        # 尝试从 data 中提取 token 地址 (word[1], offset 88:128)
-        token_addr = ("0x" + data[88:128]).lower()
+        n_words = len(data) // 64
+
+        # 根据 data 长度区分新旧版本
+        if n_words >= 10:
+            # 旧版 (12 words): word[0]=creator, word[1]=token
+            token_addr = ("0x" + data[88:128]).lower()
+            creator_addr = ("0x" + data[24:64]).lower()
+
+            # 创建时间戳 — word[6] 位置
+            create_ts = 0
+            TS_MIN, TS_MAX = 1577808000, 1893456000
+            for word_idx in (6, 5, 7, 4):
+                try:
+                    offset = word_idx * 64
+                    if len(data) >= offset + 64:
+                        val = int(data[offset:offset + 64], 16)
+                        if TS_MIN <= val <= TS_MAX:
+                            create_ts = val
+                            break
+                except Exception:
+                    continue
+
+            # 解码名称和符号
+            name, symbol = "", ""
+            try:
+                if len(data) >= 576:
+                    name_len = int(data[512:576], 16)  # word[8]
+                    if 0 < name_len < 200:
+                        name = bytes.fromhex(data[576:576 + name_len * 2]).decode("utf-8", errors="replace")
+                    name_words = max(1, (name_len + 31) // 32)
+                    sym_len_offset = (9 + name_words) * 64
+                    if sym_len_offset + 64 <= len(data):
+                        sym_len = int(data[sym_len_offset:sym_len_offset + 64], 16)
+                        if 0 < sym_len < 100:
+                            symbol = bytes.fromhex(
+                                data[sym_len_offset + 64:sym_len_offset + 64 + sym_len * 2]
+                            ).decode("utf-8", errors="replace")
+            except Exception:
+                pass
+
+        elif n_words == 8:
+            # 新版 (8 words): word[0]=token, word[1]=creator, 无时间戳/名称
+            token_addr = ("0x" + data[24:64]).lower()
+            creator_addr = ("0x" + data[88:128]).lower()
+            create_ts = 0  # 新版事件无时间戳, 由区块时间戳补全
+            name, symbol = "", ""  # 新版事件无名称, 由 detail API 补全
+
+        else:
+            return None
+
         # 只保留 four.meme 代币 (后缀 4444 或 ffff)
         if not token_addr.endswith("4444") and not token_addr.endswith("ffff"):
             return None
-
-        # creator 地址 (word[0] 的低 20 字节, offset 24:64)
-        creator_addr = ("0x" + data[24:64]).lower() if len(data) >= 64 else ""
-
-        # 创建时间戳 — 不同合约版本时间戳位置不同, 依次尝试多个 word 位置
-        # 合理范围: 2020-01-01 ~ 2030-01-01 (Unix 秒)
-        create_ts = 0
-        TS_MIN, TS_MAX = 1577808000, 1893456000
-        for word_idx in (6, 5, 7, 4):
-            try:
-                offset = word_idx * 64
-                if len(data) >= offset + 64:
-                    val = int(data[offset:offset + 64], 16)
-                    if TS_MIN <= val <= TS_MAX:
-                        create_ts = val
-                        break
-            except Exception:
-                continue
-
-        # 解码名称和符号 — 容错, 失败不影响入队
-        name, symbol = "", ""
-        try:
-            if len(data) >= 576:
-                name_len = int(data[512:576], 16)  # word[8]
-                if 0 < name_len < 200:
-                    name = bytes.fromhex(data[576:576 + name_len * 2]).decode("utf-8", errors="replace")
-                name_words = max(1, (name_len + 31) // 32)
-                sym_len_offset = (9 + name_words) * 64
-                if sym_len_offset + 64 <= len(data):
-                    sym_len = int(data[sym_len_offset:sym_len_offset + 64], 16)
-                    if 0 < sym_len < 100:
-                        symbol = bytes.fromhex(
-                            data[sym_len_offset + 64:sym_len_offset + 64 + sym_len * 2]
-                        ).decode("utf-8", errors="replace")
-        except Exception:
-            pass  # 解码失败, 后续从 detail API 获取
 
         return {
             "address": token_addr,
@@ -601,11 +624,16 @@ def discover_on_chain(from_block: int) -> tuple[list[dict], int]:
                 if ts > 0:
                     block_ts_map[bn] = ts
             time.sleep(0.05)
+        now_sec = int(time.time())
         for t in need_block_ts:
             ts = block_ts_map.get(t["block"], 0)
             if ts > 0:
                 t["createdAt"] = ts * 1000
                 log.info("  补全 %s 创建时间: %d", t.get("name") or t["address"][:16], ts)
+            else:
+                # 兜底: 区块时间戳也查不到, 用当前时间代替 (至少不会算成 1970 年)
+                t["createdAt"] = now_sec * 1000
+                log.warning("  补全失败 %s, 使用当前时间兜底", t.get("name") or t["address"][:16])
 
     return tokens, latest_block
 
@@ -1494,7 +1522,8 @@ def calc_min_price_all(candles: list[list]) -> float | None:
 def admission_filter(new_tokens: list[dict],
                      existing_addrs: set[str]) -> tuple[list[dict], list[dict]]:
     """
-    入场筛: 对新发现的代币调 detail API, 淘汰无社交/总量≠10亿
+    入场筛: 对新发现的代币调 detail API, 淘汰无社交/总量≠10亿/币龄过大
+    同时用 detail API 的 launchTime 修正链上解析可能不准的 createdAt
     返回: (admitted, rejected)
       admitted: [{"token": ..., "detail": ...}]
       rejected: [{"token": ..., "detail": ..., "reason": "..."}]
@@ -1509,6 +1538,8 @@ def admission_filter(new_tokens: list[dict],
     log.info("入场筛: 对 %d 个新代币调 detail API...", len(fresh))
 
     batch_size = 5
+    now_ms = int(time.time() * 1000)
+    max_age_ms = MAX_AGE_HOURS * 3600 * 1000
     for i in range(0, len(fresh), batch_size):
         batch = fresh[i:i + batch_size]
         for t in batch:
@@ -1516,6 +1547,18 @@ def admission_filter(new_tokens: list[dict],
             if not detail:
                 rejected.append({"token": t, "detail": None, "reason": "detail API 无数据"})
                 continue
+
+            # 用 detail API 的 launchTime 修正 createdAt (链上解析可能不准)
+            if detail.get("launchTime") and detail["launchTime"] > 0:
+                t["createdAt"] = detail["launchTime"]
+
+            # 入场条件: 币龄不超过 MAX_AGE_HOURS
+            token_age_ms = now_ms - t.get("createdAt", 0)
+            if t.get("createdAt", 0) <= 0 or token_age_ms > max_age_ms:
+                age_desc = f"币龄{token_age_ms / 3600000:.1f}h" if t.get("createdAt", 0) > 0 else "创建时间未知"
+                rejected.append({"token": t, "detail": detail, "reason": f"币龄过大 ({age_desc})"})
+                continue
+
             # 入场条件: 社交 ≥ 1, 总供应量 = 10亿
             reasons = []
             if detail["socialCount"] < MIN_SOCIAL_COUNT:
