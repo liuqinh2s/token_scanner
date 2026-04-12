@@ -34,7 +34,7 @@
       "top10Pct": 14.514138951953413,
       "volume1h": 7.056434310512541,
       "copycat": {
-        "count": 0,
+        "count": 1,
         "isCopycat": false
       },
       "prevDevHoldPct": 0.0,
@@ -46,7 +46,7 @@
         76
       ],
       "priceHistory": [
-        5.248e-06,
+        5.073e-06,
         5.073e-06,
         5.073e-06,
         5.073e-06,
@@ -254,15 +254,15 @@
       "prevDevHoldPct": 0.0,
       "holdersHistory": [
         138,
-        138,
         135,
+        136,
         136,
         136
       ],
       "priceHistory": [
-        5.973e-06,
         5.97e-06,
         5.871e-06,
+        5.785e-06,
         5.785e-06,
         5.785e-06
       ]
@@ -281,18 +281,18 @@
         "twitter": "https://x.com/404BSC/status/2042873055580688785"
       },
       "descr": "最近超火 听着像骂人的歌",
-      "price": 6.647e-06,
+      "price": 6.608e-06,
       "peakPrice": 5.37802324444998e-05,
       "holders": 160,
       "peakHolders": 305,
-      "liquidity": 7682.17,
+      "liquidity": 7653.86,
       "peakLiquidity": 15193.88,
       "raisedAmount": 18.0,
       "marketCap": 8623.26721318376,
       "progress": 1.0,
       "day1Vol": 0,
-      "consecDrops": 1,
-      "lastPrice": 6.647e-06,
+      "consecDrops": 2,
+      "lastPrice": 6.608e-06,
       "devHoldPct": 0.0,
       "smartMoneyHolders": 3,
       "smartMoneyHoldPct": 8.462741,
@@ -314,10 +314,10 @@
       ],
       "priceHistory": [
         6.785e-06,
-        6.785e-06,
         6.965e-06,
         6.965e-06,
-        6.647e-06
+        6.647e-06,
+        6.608e-06
       ]
     },
     {
@@ -344,7 +344,7 @@
       "marketCap": 6901.605826627,
       "progress": 0.2023237329,
       "day1Vol": 0,
-      "consecDrops": 1,
+      "consecDrops": 0,
       "lastPrice": 5.305e-06,
       "devHoldPct": 0.0,
       "smartMoneyHolders": 0,
@@ -359,17 +359,17 @@
       },
       "prevDevHoldPct": 0.0,
       "holdersHistory": [
-        52,
         51,
         51,
         53,
+        52,
         52
       ],
       "priceHistory": [
-        5.192e-06,
         5.188e-06,
         5.188e-06,
         5.328e-06,
+        5.305e-06,
         5.305e-06
       ]
     },
@@ -440,18 +440,18 @@
         "twitter": "https://x.com/i/status/2042298803366023192"
       },
       "descr": "币安人生有声书",
-      "price": 3.903e-05,
+      "price": 3.943e-05,
       "peakPrice": 0.0001656,
       "holders": 584,
       "peakHolders": 887,
-      "liquidity": 20060.87,
+      "liquidity": 20162.28,
       "peakLiquidity": 40393.6,
       "raisedAmount": 18.0,
       "marketCap": 43253.63016203216,
       "progress": 1.0,
       "day1Vol": 0,
-      "consecDrops": 1,
-      "lastPrice": 3.903e-05,
+      "consecDrops": 0,
+      "lastPrice": 3.943e-05,
       "devHoldPct": 0.0,
       "smartMoneyHolders": 9,
       "smartMoneyHoldPct": 4.416538,
@@ -472,11 +472,11 @@
         584
       ],
       "priceHistory": [
-        3.755e-05,
         3.789e-05,
         3.851e-05,
         3.931e-05,
-        3.903e-05
+        3.903e-05,
+        3.943e-05
       ]
     },
     {
@@ -520,14 +520,14 @@
       "holdersHistory": [
         132,
         132,
-        132,
+        130,
         130,
         130
       ],
       "priceHistory": [
-        5.854e-06,
         5.749e-06,
         5.749e-06,
+        5.451e-06,
         5.451e-06,
         5.451e-06
       ]
@@ -574,14 +574,14 @@
       "holdersHistory": [
         40,
         40,
-        40,
+        38,
         38,
         38
       ],
       "priceHistory": [
         5.509e-06,
         5.509e-06,
-        5.509e-06,
+        5.15e-06,
         5.15e-06,
         5.15e-06
       ]
@@ -610,7 +610,7 @@
       "marketCap": 7.637626141,
       "progress": 0.0815353769,
       "day1Vol": 0,
-      "consecDrops": 1,
+      "consecDrops": 0,
       "lastPrice": 3.856e-06,
       "devHoldPct": 0.0,
       "smartMoneyHolders": 0,
@@ -628,68 +628,15 @@
         37,
         37,
         37,
-        37,
+        35,
         35
       ],
       "priceHistory": [
-        3.87e-06,
         3.938e-06,
         3.941e-06,
         3.941e-06,
+        3.856e-06,
         3.856e-06
-      ]
-    },
-    {
-      "address": "0xda4a58b94fac5ebe0d933883e3ed96f6bedf4444",
-      "creator": "0x64c5260c9d2f842254db163ac034c61849caa0af",
-      "block": 91908681,
-      "name": "LPM 1.0",
-      "symbol": "LPM1.0",
-      "createdAt": 1775909280000,
-      "addedAt": 1775909715425,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "twitter": "https://x.com/i/status/2042937710353289340"
-      },
-      "descr": "LPM 1.0",
-      "price": 3.915e-06,
-      "peakPrice": 6.02e-06,
-      "holders": 5,
-      "peakHolders": 14,
-      "liquidity": 466.83652703582396,
-      "peakLiquidity": 2198.3001724950577,
-      "raisedAmount": 0.38620391372928403,
-      "marketCap": 6.48153163,
-      "progress": 0.0791479437,
-      "day1Vol": 0,
-      "consecDrops": 0,
-      "lastPrice": 3.915e-06,
-      "devHoldPct": 0.0,
-      "smartMoneyHolders": 0,
-      "smartMoneyHoldPct": 0.0,
-      "kolHolders": 1,
-      "proHolders": 1,
-      "top10Pct": 6.331835488285714,
-      "volume1h": 0.0,
-      "copycat": {
-        "count": 1,
-        "isCopycat": false
-      },
-      "prevDevHoldPct": 0.0,
-      "holdersHistory": [
-        5,
-        5,
-        5,
-        5,
-        5
-      ],
-      "priceHistory": [
-        3.915e-06,
-        3.915e-06,
-        3.915e-06,
-        3.915e-06,
-        3.915e-06
       ]
     },
     {
@@ -794,7 +741,7 @@
       "priceHistory": [
         3.826e-06,
         3.826e-06,
-        3.826e-06,
+        3.826530612244e-06,
         3.826530612244e-06,
         3.826530612244e-06
       ]
@@ -886,7 +833,7 @@
       "top10Pct": 6.680553824057988,
       "volume1h": 0.0,
       "copycat": {
-        "count": 1,
+        "count": 2,
         "isCopycat": false
       },
       "prevDevHoldPct": 0.0,
@@ -973,18 +920,18 @@
         "twitter": "https://x.com/binanceanimer/status/2042959592074998084?s=46"
       },
       "descr": "CZ币安人生漫画电影",
-      "price": 7.358e-06,
+      "price": 7.376e-06,
       "peakPrice": 2.70205117056938e-05,
-      "holders": 112,
+      "holders": 111,
       "peakHolders": 152,
       "liquidity": 4235.217571670179,
       "peakLiquidity": 10807.074556158363,
-      "raisedAmount": 2.9035348987935894,
+      "raisedAmount": 2.9133863839421044,
       "marketCap": 12.88308617,
-      "progress": 0.4298556701,
+      "progress": 0.4308460636,
       "day1Vol": 0,
-      "consecDrops": 1,
-      "lastPrice": 7.358e-06,
+      "consecDrops": 0,
+      "lastPrice": 7.376e-06,
       "devHoldPct": 0.0,
       "smartMoneyHolders": 0,
       "smartMoneyHoldPct": 0.0,
@@ -1001,15 +948,15 @@
         114,
         114,
         114,
-        114,
-        112
+        112,
+        111
       ],
       "priceHistory": [
         8.367e-06,
         8.367e-06,
         8.367e-06,
-        8.367e-06,
-        7.358e-06
+        7.358e-06,
+        7.376e-06
       ]
     },
     {
@@ -1027,18 +974,18 @@
         "website": "https://www.ord.io/124267933"
       },
       "descr": "Freedom on Bitcoin",
-      "price": 7.973e-06,
+      "price": 7.625e-06,
       "peakPrice": 5.37164287585374e-05,
       "holders": 304,
       "peakHolders": 549,
-      "liquidity": 8481.21,
+      "liquidity": 8289.97,
       "peakLiquidity": 21330.29,
       "raisedAmount": 18.0,
       "marketCap": 26149.39722716596,
       "progress": 1.0,
       "day1Vol": 0,
-      "consecDrops": 5,
-      "lastPrice": 7.973e-06,
+      "consecDrops": 6,
+      "lastPrice": 7.625e-06,
       "devHoldPct": 0.0,
       "smartMoneyHolders": 2,
       "smartMoneyHoldPct": 0.466603,
@@ -1059,11 +1006,11 @@
         304
       ],
       "priceHistory": [
-        8.641e-06,
         8.551e-06,
         8.432e-06,
         8.364e-06,
-        7.973e-06
+        7.973e-06,
+        7.625e-06
       ]
     },
     {
@@ -1100,21 +1047,21 @@
       "top10Pct": 9.458549362827464,
       "volume1h": 0.0,
       "copycat": {
-        "count": 5,
+        "count": 8,
         "isCopycat": true
       },
       "prevDevHoldPct": 0.0,
       "holdersHistory": [
         28,
         28,
-        28,
+        27,
         27,
         27
       ],
       "priceHistory": [
         4.099e-06,
         4.099e-06,
-        4.099e-06,
+        3.981e-06,
         3.981e-06,
         3.981e-06
       ]
@@ -1134,18 +1081,18 @@
         "website": "https://t.co/KYiSKNVEYK"
       },
       "descr": "胜率93%的AI",
-      "price": 4.629e-06,
+      "price": 4.707e-06,
       "peakPrice": 1.93233647996118e-05,
       "holders": 44,
       "peakHolders": 85,
       "liquidity": 2504.3877191289757,
       "peakLiquidity": 5764.279789371062,
-      "raisedAmount": 1.0287009925013118,
+      "raisedAmount": 1.089522983594694,
       "marketCap": 12.919275572,
-      "progress": 0.1919893813,
+      "progress": 0.2016358061,
       "day1Vol": 0,
-      "consecDrops": 2,
-      "lastPrice": 4.629e-06,
+      "consecDrops": 0,
+      "lastPrice": 4.707e-06,
       "devHoldPct": 0.0,
       "smartMoneyHolders": 0,
       "smartMoneyHoldPct": 0.0,
@@ -1159,18 +1106,18 @@
       },
       "prevDevHoldPct": 0.0,
       "holdersHistory": [
-        48,
         46,
         46,
         45,
+        44,
         44
       ],
       "priceHistory": [
-        4.699e-06,
         4.672e-06,
         4.672e-06,
         4.639e-06,
-        4.629e-06
+        4.629e-06,
+        4.707e-06
       ]
     },
     {
@@ -1187,18 +1134,18 @@
         "twitter": "https://x.com/i/status/2042986557586751561"
       },
       "descr": "韧性",
-      "price": 9.979e-06,
+      "price": 8.762e-06,
       "peakPrice": 2.12951814582151e-05,
-      "holders": 72,
+      "holders": 67,
       "peakHolders": 126,
       "liquidity": 4441.153902009205,
       "peakLiquidity": 8014.766930699577,
-      "raisedAmount": 4.393347887088867,
+      "raisedAmount": 3.927039177090033,
       "marketCap": 17.18392132,
-      "progress": 0.5586350733,
+      "progress": 0.5224154953,
       "day1Vol": 0,
-      "consecDrops": 0,
-      "lastPrice": 9.979e-06,
+      "consecDrops": 1,
+      "lastPrice": 8.762e-06,
       "devHoldPct": 0.0,
       "smartMoneyHolders": 1,
       "smartMoneyHoldPct": 4.836113,
@@ -1212,18 +1159,18 @@
       },
       "prevDevHoldPct": 0.0,
       "holdersHistory": [
-        71,
         70,
         68,
         73,
-        72
+        72,
+        67
       ],
       "priceHistory": [
-        9.501e-06,
         8.989e-06,
         8.81e-06,
         9.784e-06,
-        9.979e-06
+        9.979e-06,
+        8.762e-06
       ]
     },
     {
@@ -1241,18 +1188,18 @@
         "website": "https://bscscan.com/idm?addresses=0x75444e83f76732a52da73675d8db91b6d028119d&type=1"
       },
       "descr": "Freedom on BSC",
-      "price": 5.87e-06,
+      "price": 5.867e-06,
       "peakPrice": 5.494e-05,
       "holders": 201,
       "peakHolders": 407,
-      "liquidity": 7295.97,
+      "liquidity": 7291.83,
       "peakLiquidity": 21960.39,
       "raisedAmount": 18.0,
       "marketCap": 7794.42138651319,
       "progress": 1.0,
       "day1Vol": 0,
-      "consecDrops": 0,
-      "lastPrice": 5.87e-06,
+      "consecDrops": 1,
+      "lastPrice": 5.867e-06,
       "devHoldPct": 0.0,
       "smartMoneyHolders": 1,
       "smartMoneyHoldPct": 1.815741,
@@ -1273,11 +1220,11 @@
         201
       ],
       "priceHistory": [
-        6.144e-06,
         6.134e-06,
         6.134e-06,
         5.87e-06,
-        5.87e-06
+        5.87e-06,
+        5.867e-06
       ]
     },
     {
@@ -1424,16 +1371,16 @@
       "prevDevHoldPct": 0.0,
       "raisedAmount": 1.5809488240499365,
       "holdersHistory": [
-        83,
         82,
         82,
+        80,
         80,
         80
       ],
       "priceHistory": [
         5.72e-06,
         5.72e-06,
-        5.72e-06,
+        5.365e-06,
         5.365e-06,
         5.365e-06
       ]
@@ -1453,16 +1400,16 @@
         "website": "https://www.instagram.com/reel/DVpbey1icu4/"
       },
       "descr": "🪑",
-      "price": 4.365e-06,
+      "price": 4.324e-06,
       "peakPrice": 6.938e-06,
-      "holders": 19,
+      "holders": 17,
       "peakHolders": 33,
       "liquidity": 1611.3722125487109,
       "peakLiquidity": 3907.6356743220576,
-      "progress": 0.1572294485,
+      "progress": 0.1525085102,
       "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 4.365e-06,
+      "consecDrops": 1,
+      "lastPrice": 4.324e-06,
       "devHoldPct": 0.0,
       "smartMoneyHolders": 0,
       "smartMoneyHoldPct": 0.0,
@@ -1475,20 +1422,20 @@
         "isCopycat": false
       },
       "prevDevHoldPct": 0.0,
-      "raisedAmount": 0.81774632051734,
+      "raisedAmount": 0.7900459940455267,
       "holdersHistory": [
-        21,
         20,
         19,
         19,
-        19
+        19,
+        17
       ],
       "priceHistory": [
-        4.577e-06,
         4.571e-06,
         4.569e-06,
         4.365e-06,
-        4.365e-06
+        4.365e-06,
+        4.324e-06
       ]
     },
     {
@@ -1505,16 +1452,16 @@
         "twitter": "https://x.com/bigbullsnews/status/2043211883029971438"
       },
       "descr": "ASTRONAUTPEPE",
-      "price": 7.487e-06,
+      "price": 7.494e-06,
       "peakPrice": 2.1459943433576e-05,
-      "holders": 50,
+      "holders": 51,
       "peakHolders": 79,
       "liquidity": 3881.5876122376535,
       "peakLiquidity": 5590.063903495501,
       "progress": 0.4380417675,
       "day1Vol": 0.0,
-      "consecDrops": 1,
-      "lastPrice": 7.487e-06,
+      "consecDrops": 0,
+      "lastPrice": 7.494e-06,
       "devHoldPct": 0.0,
       "smartMoneyHolders": 0,
       "smartMoneyHoldPct": 0.0,
@@ -1532,15 +1479,15 @@
         52,
         52,
         52,
-        52,
-        50
+        50,
+        51
       ],
       "priceHistory": [
-        7.613e-06,
         7.61e-06,
         7.61e-06,
         8.2e-06,
-        7.487e-06
+        7.487e-06,
+        7.494e-06
       ]
     },
     {
@@ -1558,16 +1505,16 @@
         "website": "https://apps.apple.com/us/app/xchat/id6760873038"
       },
       "descr": "XChat口号",
-      "price": 5.678e-06,
+      "price": 5.532e-06,
       "peakPrice": 6.874e-06,
-      "holders": 24,
+      "holders": 23,
       "peakHolders": 31,
       "liquidity": 2343.2039390401824,
       "peakLiquidity": 3076.404105365649,
-      "progress": 0.3032636177,
+      "progress": 0.290582207,
       "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 5.678e-06,
+      "consecDrops": 1,
+      "lastPrice": 5.532e-06,
       "devHoldPct": 0.0,
       "smartMoneyHolders": 0,
       "smartMoneyHoldPct": 0.0,
@@ -1580,20 +1527,20 @@
         "isCopycat": true
       },
       "prevDevHoldPct": 0.0,
-      "raisedAmount": 1.798912063932012,
+      "raisedAmount": 1.7029073090839095,
       "holdersHistory": [
         25,
-        25,
         24,
         24,
-        24
+        24,
+        23
       ],
       "priceHistory": [
         5.823e-06,
-        5.823e-06,
         5.678e-06,
         5.678e-06,
-        5.678e-06
+        5.678e-06,
+        5.532e-06
       ]
     },
     {
@@ -1610,17 +1557,17 @@
         "twitter": "https://x.com/liuxiaoling933/article/2043223946846441675"
       },
       "descr": "于风浪见担当,于初心知温暖",
-      "price": 8.509e-06,
+      "price": 8.511e-06,
       "peakPrice": 2.00712722066565e-05,
-      "holders": 101,
+      "holders": 99,
       "peakHolders": 149,
       "liquidity": 5468.893282360837,
       "peakLiquidity": 8743.91839751729,
-      "raisedAmount": 3.590435560373891,
-      "progress": 0.4941185193,
+      "raisedAmount": 5.034331016616316,
+      "progress": 0.6034993512,
       "day1Vol": 0.0,
       "consecDrops": 0,
-      "lastPrice": 8.509e-06,
+      "lastPrice": 8.511e-06,
       "devHoldPct": 0.0,
       "smartMoneyHolders": 0,
       "smartMoneyHoldPct": 0.0,
@@ -1636,16 +1583,16 @@
       "holdersHistory": [
         97,
         97,
-        97,
         101,
-        101
+        101,
+        99
       ],
       "priceHistory": [
-        7.956e-06,
         8.017e-06,
         8.028e-06,
         8.509e-06,
-        8.509e-06
+        8.509e-06,
+        8.511e-06
       ]
     },
     {
@@ -1733,21 +1680,21 @@
       "top10Pct": 17.73908003845461,
       "volume1h": 2768.495504657163,
       "copycat": {
-        "count": 36,
+        "count": 37,
         "isCopycat": true
       },
       "prevDevHoldPct": 0.0,
       "holdersHistory": [
-        80,
         78,
         84,
+        78,
         78,
         78
       ],
       "priceHistory": [
-        6.622e-06,
         6.196e-06,
         8.294e-06,
+        7.003e-06,
         7.003e-06,
         7.003e-06
       ]
@@ -1852,7 +1799,7 @@
       "priceHistory": [
         6.292e-06,
         6.292e-06,
-        6.292e-06,
+        6.282e-06,
         6.282e-06,
         6.282e-06
       ]
@@ -1896,14 +1843,14 @@
       "prevDevHoldPct": 0.0,
       "holdersHistory": [
         3,
-        3,
+        2,
         2,
         2,
         2
       ],
       "priceHistory": [
         3.754e-06,
-        3.754e-06,
+        3.402e-06,
         3.402e-06,
         3.402e-06,
         3.402e-06
@@ -1923,17 +1870,17 @@
         "twitter": "https://x.com/cz_binance/status/2043042790934724786"
       },
       "descr": "free",
-      "price": 4.358e-05,
-      "peakPrice": 4.358e-05,
+      "price": 4.396e-05,
+      "peakPrice": 4.396e-05,
       "holders": 470,
       "peakHolders": 471,
       "liquidity": 17087.10089967505,
       "peakLiquidity": 17087.10089967505,
-      "raisedAmount": 15.916562546523673,
-      "progress": 0.9676868024,
+      "raisedAmount": 16.002937497018724,
+      "progress": 0.9691471283,
       "day1Vol": 0.0,
       "consecDrops": 0,
-      "lastPrice": 4.358e-05,
+      "lastPrice": 4.396e-05,
       "devHoldPct": 0.685584,
       "smartMoneyHolders": 0,
       "smartMoneyHoldPct": 0.0,
@@ -1942,23 +1889,23 @@
       "top10Pct": 28.04620911504004,
       "volume1h": 2622.273887259474,
       "copycat": {
-        "count": 64,
+        "count": 66,
         "isCopycat": true
       },
       "prevDevHoldPct": 0.685584,
       "holdersHistory": [
-        465,
         467,
         467,
         471,
+        470,
         470
       ],
       "priceHistory": [
-        4.2e-05,
         4.234e-05,
         4.289e-05,
         4.326e-05,
-        4.358e-05
+        4.358e-05,
+        4.396e-05
       ]
     },
     {
@@ -2000,14 +1947,14 @@
       },
       "prevDevHoldPct": 0.0,
       "holdersHistory": [
-        16,
+        14,
         14,
         14,
         14,
         14
       ],
       "priceHistory": [
-        3.7e-06,
+        3.684e-06,
         3.684e-06,
         3.684e-06,
         3.684e-06,
@@ -2047,75 +1994,23 @@
       "top10Pct": 9.774358679870577,
       "volume1h": 326.6782655357104,
       "copycat": {
-        "count": 117,
+        "count": 120,
         "isCopycat": true
       },
       "prevDevHoldPct": 0.0,
       "holdersHistory": [
-        7,
+        6,
         6,
         6,
         6,
         6
       ],
       "priceHistory": [
-        4.096e-06,
+        3.756e-06,
         3.756e-06,
         3.756e-06,
         3.756e-06,
         3.756e-06
-      ]
-    },
-    {
-      "address": "0x409d1a88645296fd5960c84221a6a8af6fae4444",
-      "creator": "0x049ac9610a0ceddae2b267f06f6a666176184bf6",
-      "block": 92080781,
-      "name": "5",
-      "symbol": "5",
-      "createdAt": 1775986813000,
-      "addedAt": 1775987119935,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "twitter": "https://x.com/i/status/2043262855047155756"
-      },
-      "descr": "5",
-      "price": 3.615e-06,
-      "peakPrice": 3.714e-06,
-      "holders": 4,
-      "peakHolders": 5,
-      "liquidity": 319.8705567587628,
-      "peakLiquidity": 319.8705567587628,
-      "raisedAmount": 0.19140243401592882,
-      "progress": 0.0404279208,
-      "day1Vol": 0.0,
-      "consecDrops": 1,
-      "lastPrice": 3.615e-06,
-      "devHoldPct": 0.0,
-      "smartMoneyHolders": 0,
-      "smartMoneyHoldPct": 0.0,
-      "kolHolders": 0,
-      "proHolders": 4,
-      "top10Pct": 4.492562622058553,
-      "volume1h": 0.0,
-      "copycat": {
-        "count": 0,
-        "isCopycat": false
-      },
-      "prevDevHoldPct": 0.0,
-      "holdersHistory": [
-        3,
-        3,
-        3,
-        3,
-        4
-      ],
-      "priceHistory": [
-        3.714e-06,
-        3.714e-06,
-        3.714e-06,
-        3.714e-06,
-        3.615e-06
       ]
     },
     {
@@ -2185,17 +2080,17 @@
         "twitter": "https://x.com/NASA/status/2042714976767349088"
       },
       "descr": "地落",
-      "price": 4.224e-05,
+      "price": 5.167e-05,
       "peakPrice": 8.166e-05,
       "holders": 619,
       "peakHolders": 619,
-      "liquidity": 19515.96,
+      "liquidity": 21632.35,
       "peakLiquidity": 26618.44,
       "raisedAmount": 18.0,
       "progress": 1.0,
       "day1Vol": 0.0,
-      "consecDrops": 1,
-      "lastPrice": 4.224e-05,
+      "consecDrops": 0,
+      "lastPrice": 5.167e-05,
       "devHoldPct": 0.0,
       "smartMoneyHolders": 0,
       "smartMoneyHoldPct": 0.0,
@@ -2216,11 +2111,11 @@
         619
       ],
       "priceHistory": [
-        5.729e-05,
         5.521e-05,
         5.987e-05,
         6.57e-05,
-        4.224e-05
+        4.224e-05,
+        5.167e-05
       ]
     },
     {
@@ -2237,17 +2132,17 @@
         "website": "https://www.instagram.com/reel/DXBvetzBVVH/"
       },
       "descr": "binancial freedom",
-      "price": 1.035e-05,
+      "price": 1.036e-05,
       "peakPrice": 5.27993947093185e-05,
       "holders": 224,
       "peakHolders": 348,
-      "liquidity": 9843.66,
+      "liquidity": 9846.5,
       "peakLiquidity": 13931.4,
       "raisedAmount": 18.0,
       "progress": 1.0,
       "day1Vol": 0.0,
       "consecDrops": 0,
-      "lastPrice": 1.035e-05,
+      "lastPrice": 1.036e-05,
       "devHoldPct": 0.0,
       "smartMoneyHolders": 3,
       "smartMoneyHoldPct": 3.321149,
@@ -2268,11 +2163,11 @@
         224
       ],
       "priceHistory": [
-        8.568e-06,
         8.954e-06,
         7.898e-06,
         7.886e-06,
-        1.035e-05
+        1.035e-05,
+        1.036e-05
       ]
     },
     {
@@ -2341,17 +2236,17 @@
         "twitter": "https://x.com/i/status/2043270110321029563"
       },
       "descr": "钢铁之心",
-      "price": 6.213e-05,
+      "price": 5.637e-05,
       "peakPrice": 6.711e-05,
       "holders": 623,
       "peakHolders": 623,
-      "liquidity": 23506.22,
+      "liquidity": 22402.4,
       "peakLiquidity": 24402.87,
       "raisedAmount": 18.0,
       "progress": 1.0,
       "day1Vol": 0.0,
-      "consecDrops": 1,
-      "lastPrice": 6.213e-05,
+      "consecDrops": 2,
+      "lastPrice": 5.637e-05,
       "devHoldPct": 0.0,
       "smartMoneyHolders": 11,
       "smartMoneyHoldPct": 7.266891,
@@ -2372,11 +2267,11 @@
         623
       ],
       "priceHistory": [
-        4.805e-05,
         5.69e-05,
         5.474e-05,
         6.475e-05,
-        6.213e-05
+        6.213e-05,
+        5.637e-05
       ]
     },
     {
@@ -2393,17 +2288,17 @@
         "twitter": "https://x.com/i/status/2043270110321029563"
       },
       "descr": "冲破枷锁的钢铁之心",
-      "price": 4.76e-06,
+      "price": 4.788e-06,
       "peakPrice": 1.129e-05,
-      "holders": 25,
+      "holders": 24,
       "peakHolders": 68,
       "liquidity": 1189.0100793270685,
       "peakLiquidity": 4846.001909761108,
-      "raisedAmount": 1.1154096543293641,
-      "progress": 0.2056925545,
+      "raisedAmount": 1.211404252397212,
+      "progress": 0.2204874603,
       "day1Vol": 0.0,
       "consecDrops": 0,
-      "lastPrice": 4.76e-06,
+      "lastPrice": 4.788e-06,
       "devHoldPct": 0.0,
       "smartMoneyHolders": 0,
       "smartMoneyHoldPct": 0.0,
@@ -2417,18 +2312,18 @@
       },
       "prevDevHoldPct": 0.0,
       "holdersHistory": [
-        26,
         25,
         25,
         25,
-        25
+        25,
+        24
       ],
       "priceHistory": [
-        4.787e-06,
         4.76e-06,
         4.76e-06,
         4.76e-06,
-        4.76e-06
+        4.76e-06,
+        4.788e-06
       ]
     },
     {
@@ -2819,7 +2714,7 @@
       "raisedAmount": 1.3060783992222924,
       "progress": 0.2347064388,
       "day1Vol": 0.0,
-      "consecDrops": 3,
+      "consecDrops": 0,
       "lastPrice": 4.997e-06,
       "devHoldPct": 0.0,
       "smartMoneyHolders": 2,
@@ -2835,16 +2730,16 @@
       "prevDevHoldPct": 0.0,
       "holdersHistory": [
         145,
-        145,
         144,
         142,
+        141,
         141
       ],
       "priceHistory": [
         5.294e-06,
-        5.294e-06,
         5.208e-06,
         5.048e-06,
+        4.997e-06,
         4.997e-06
       ]
     },
@@ -2881,7 +2776,7 @@
       "top10Pct": 11.241874562704936,
       "volume1h": 8.652390431665047,
       "copycat": {
-        "count": 7,
+        "count": 8,
         "isCopycat": true
       },
       "prevDevHoldPct": 0.0,
@@ -2915,17 +2810,17 @@
         "website": "https://x.com/UTechStables/status/2043154643199439008?s=20"
       },
       "descr": "Book For U",
-      "price": 6.13697235237e-06,
-      "peakPrice": 6.508031493609e-06,
-      "holders": 62,
+      "price": 6.554411066776e-06,
+      "peakPrice": 6.554411066776e-06,
+      "holders": 61,
       "peakHolders": 68,
       "liquidity": 2400.9645222574845,
       "peakLiquidity": 2439.2727851914565,
-      "raisedAmount": 1094.83748773961,
-      "progress": 0.2824099495,
+      "raisedAmount": 1268.9290797197884,
+      "progress": 0.3167217801,
       "day1Vol": 0.0,
-      "consecDrops": 2,
-      "lastPrice": 6.13697235237e-06,
+      "consecDrops": 0,
+      "lastPrice": 6.554411066776e-06,
       "devHoldPct": 0.0,
       "smartMoneyHolders": 1,
       "smartMoneyHoldPct": 0.0,
@@ -2939,18 +2834,18 @@
       },
       "prevDevHoldPct": 0.0,
       "holdersHistory": [
-        64,
         62,
         65,
         63,
-        62
+        62,
+        61
       ],
       "priceHistory": [
-        6.111131133709e-06,
         6.175776165823e-06,
         6.508031493609e-06,
         6.365267348234e-06,
-        6.13697235237e-06
+        6.13697235237e-06,
+        6.554411066776e-06
       ]
     },
     {
@@ -3088,7 +2983,7 @@
       "top10Pct": 11.13486583672632,
       "volume1h": 11071.884642876825,
       "copycat": {
-        "count": 52,
+        "count": 53,
         "isCopycat": true
       },
       "holdersHistory": [
@@ -3172,17 +3067,17 @@
         "website": "https://www.peopleapp.com/column/30051875464-500007439273"
       },
       "descr": "数字肥水",
-      "price": 4.304e-06,
+      "price": 4.423e-06,
       "peakPrice": 5.482e-06,
-      "holders": 16,
+      "holders": 17,
       "peakHolders": 56,
       "liquidity": 2600.849350600925,
       "peakLiquidity": 2600.849350600925,
-      "raisedAmount": 0.7676648089907983,
-      "progress": 0.1486665501,
+      "raisedAmount": 0.8656846109709962,
+      "progress": 0.165311618,
       "day1Vol": 0.0,
       "consecDrops": 0,
-      "lastPrice": 4.304e-06,
+      "lastPrice": 4.423e-06,
       "devHoldPct": 0.0,
       "smartMoneyHolders": 0,
       "smartMoneyHoldPct": 0.0,
@@ -3196,17 +3091,17 @@
       },
       "holdersHistory": [
         17,
-        17,
         16,
         16,
-        16
+        16,
+        17
       ],
       "priceHistory": [
-        4.312e-06,
         4.195e-06,
         4.304e-06,
         4.304e-06,
-        4.304e-06
+        4.304e-06,
+        4.423e-06
       ]
     },
     {
@@ -3233,7 +3128,7 @@
       "raisedAmount": 0.33544804948395934,
       "progress": 0.0692829516,
       "day1Vol": 0.0,
-      "consecDrops": 1,
+      "consecDrops": 0,
       "lastPrice": 3.782e-06,
       "devHoldPct": 0.0,
       "smartMoneyHolders": 0,
@@ -3255,9 +3150,9 @@
       ],
       "priceHistory": [
         3.994e-06,
-        3.994e-06,
         3.788e-06,
         3.788e-06,
+        3.782e-06,
         3.782e-06
       ]
     },
@@ -3298,14 +3193,14 @@
         "isCopycat": false
       },
       "holdersHistory": [
-        135,
+        134,
         134,
         134,
         134,
         134
       ],
       "priceHistory": [
-        6.87e-06,
+        6.842e-06,
         6.842e-06,
         6.842e-06,
         6.842e-06,
@@ -3371,22 +3266,22 @@
         "website": "https://www.douyin.com/video/7625244636932769254"
       },
       "descr": "宇宙很大却叫太空",
-      "price": 3.907e-06,
+      "price": 3.895e-06,
       "peakPrice": 4.213e-06,
       "holders": 20,
       "peakHolders": 25,
       "liquidity": 0.0,
       "peakLiquidity": 0.0,
-      "raisedAmount": 0.44133609361395826,
-      "progress": 0.0896917554,
+      "raisedAmount": 0.43689476910541664,
+      "progress": 0.088848892,
       "day1Vol": 0.0,
-      "consecDrops": 2,
-      "lastPrice": 3.907e-06,
+      "consecDrops": 3,
+      "lastPrice": 3.895e-06,
       "holdersHistory": [
         24,
         24,
-        24,
         23,
+        20,
         20
       ],
       "copycat": {
@@ -3396,9 +3291,9 @@
       "priceHistory": [
         4.16e-06,
         4.16e-06,
-        4.16e-06,
         4.139e-06,
-        3.907e-06
+        3.907e-06,
+        3.895e-06
       ]
     },
     {
@@ -3425,13 +3320,13 @@
       "raisedAmount": 2.5809926488128965,
       "progress": 0.3961972771,
       "day1Vol": 0.0,
-      "consecDrops": 1,
+      "consecDrops": 0,
       "lastPrice": 6.842e-06,
       "holdersHistory": [
-        49,
         48,
         49,
         58,
+        56,
         56
       ],
       "copycat": {
@@ -3439,10 +3334,10 @@
         "isCopycat": false
       },
       "priceHistory": [
-        5.087e-06,
         4.965e-06,
         4.843e-06,
         6.981e-06,
+        6.842e-06,
         6.842e-06
       ]
     },
@@ -3460,34 +3355,34 @@
         "website": "https://weibo.com/1826017320/QAuc64UrM"
       },
       "descr": " QwenPaw",
-      "price": 4.338e-06,
+      "price": 4.189e-06,
       "peakPrice": 7.513e-06,
-      "holders": 23,
+      "holders": 22,
       "peakHolders": 61,
       "liquidity": 0.0,
       "peakLiquidity": 0.0,
-      "raisedAmount": 0.7813218538243115,
-      "progress": 0.1510138667,
+      "raisedAmount": 0.6775280872036933,
+      "progress": 0.132939199,
       "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 4.338e-06,
+      "consecDrops": 1,
+      "lastPrice": 4.189e-06,
       "holdersHistory": [
-        24,
         23,
         23,
         23,
-        23
+        23,
+        22
       ],
       "copycat": {
         "count": 9,
         "isCopycat": true
       },
       "priceHistory": [
-        4.276e-06,
         4.338e-06,
         4.338e-06,
         4.338e-06,
-        4.338e-06
+        4.338e-06,
+        4.189e-06
       ]
     },
     {
@@ -3517,7 +3412,7 @@
       "consecDrops": 0,
       "lastPrice": 3.773e-06,
       "holdersHistory": [
-        5,
+        3,
         3,
         3,
         3,
@@ -3528,7 +3423,7 @@
         "isCopycat": true
       },
       "priceHistory": [
-        3.965e-06,
+        3.773e-06,
         3.773e-06,
         3.773e-06,
         3.773e-06,
@@ -3549,21 +3444,21 @@
         "twitter": "https://x.com/skyogbnb/status/2043171614704247236"
       },
       "descr": "用50秒的时间带你看完《币安人生》这本书",
-      "price": 1.089e-05,
+      "price": 1.021e-05,
       "peakPrice": 1.515e-05,
       "holders": 115,
       "peakHolders": 127,
       "liquidity": 0.0,
       "peakLiquidity": 0.0,
-      "raisedAmount": 4.8552580835397245,
-      "progress": 0.5914908953,
+      "raisedAmount": 5.03650335801973,
+      "progress": 0.6036426691,
       "day1Vol": 0.0,
-      "consecDrops": 1,
-      "lastPrice": 1.089e-05,
+      "consecDrops": 2,
+      "lastPrice": 1.021e-05,
       "holdersHistory": [
-        117,
         118,
         118,
+        115,
         115,
         115
       ],
@@ -3572,11 +3467,11 @@
         "isCopycat": true
       },
       "priceHistory": [
-        1.004e-05,
         1.074e-05,
         1.07e-05,
         1.102e-05,
-        1.089e-05
+        1.089e-05,
+        1.021e-05
       ]
     },
     {
@@ -3594,78 +3489,34 @@
         "website": "https://www.xiaohongshu.com/discovery/item/69cd47310000000023010225?app_platform=ios&app_version=9.25&share_from_user_hidden=true&xsec_source=app_share&"
       },
       "descr": "m",
-      "price": 3.875e-06,
+      "price": 3.864e-06,
       "peakPrice": 1.976e-05,
-      "holders": 28,
+      "holders": 27,
       "peakHolders": 114,
       "liquidity": 0.0,
       "peakLiquidity": 0.0,
-      "raisedAmount": 0.41451121995410295,
-      "progress": 0.084583678,
+      "raisedAmount": 0.4097318870398217,
+      "progress": 0.0836692071,
       "day1Vol": 0.0,
-      "consecDrops": 7,
-      "lastPrice": 3.875e-06,
+      "consecDrops": 8,
+      "lastPrice": 3.864e-06,
       "holdersHistory": [
-        33,
         32,
         30,
         30,
-        28
+        28,
+        27
       ],
       "copycat": {
         "count": 5,
         "isCopycat": true
       },
       "priceHistory": [
-        4.287e-06,
         4.279e-06,
         4.062e-06,
         3.99e-06,
-        3.875e-06
-      ]
-    },
-    {
-      "address": "0x36d3542df6969f923e3780fc2ca5d7b3b5fb4444",
-      "creator": "0x81dd1a5291f2f03a7a56dfa34ecfc127265f4095",
-      "block": 92096340,
-      "name": "土木工程署石仔",
-      "symbol": "石仔",
-      "createdAt": 1775993845000,
-      "addedAt": 1775994320522,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "website": "https://reurl.cc/5349rn"
-      },
-      "descr": "土木工程署石仔",
-      "price": 3.434e-06,
-      "peakPrice": 3.448e-06,
-      "holders": 7,
-      "peakHolders": 10,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.01779017177928537,
-      "progress": 0.0038631552,
-      "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 3.434e-06,
-      "holdersHistory": [
-        7,
-        7,
-        7,
-        7,
-        7
-      ],
-      "copycat": {
-        "count": 1,
-        "isCopycat": false
-      },
-      "priceHistory": [
-        3.434e-06,
-        3.434e-06,
-        3.434e-06,
-        3.434e-06,
-        3.434e-06
+        3.875e-06,
+        3.864e-06
       ]
     },
     {
@@ -3781,18 +3632,18 @@
       "raisedAmount": 0.13244809935956944,
       "progress": 0.0282375403,
       "day1Vol": 0.0,
-      "consecDrops": 1,
+      "consecDrops": 0,
       "lastPrice": 3.551e-06,
       "priceHistory": [
-        3.743e-06,
         3.732e-06,
         3.608e-06,
         3.608e-06,
+        3.551e-06,
         3.551e-06
       ],
       "holdersHistory": [
-        13,
         12,
+        10,
         10,
         10,
         10
@@ -3817,30 +3668,30 @@
         "website": "https://www.amazon.com/dp/B0GHL761FP?r"
       },
       "descr": "brilliantbusinessman",
-      "price": 6.043e-06,
+      "price": 6.024e-06,
       "peakPrice": 1.391e-05,
-      "holders": 46,
+      "holders": 45,
       "peakHolders": 150,
       "liquidity": 0.0,
       "peakLiquidity": 0.0,
-      "raisedAmount": 2.050245197818401,
-      "progress": 0.3350588378,
+      "raisedAmount": 2.2373659766265805,
+      "progress": 0.3574954465,
       "day1Vol": 0.0,
-      "consecDrops": 2,
-      "lastPrice": 6.043e-06,
+      "consecDrops": 3,
+      "lastPrice": 6.024e-06,
       "priceHistory": [
-        5.556e-06,
         5.155e-06,
         6.079e-06,
         6.045e-06,
-        6.043e-06
+        6.043e-06,
+        6.024e-06
       ],
       "holdersHistory": [
-        58,
         46,
         53,
         48,
-        46
+        46,
+        45
       ],
       "copycat": {
         "count": 8,
@@ -3962,14 +3813,14 @@
       "consecDrops": 0,
       "lastPrice": 3.493e-06,
       "priceHistory": [
-        3.523e-06,
+        3.493e-06,
         3.493e-06,
         3.493e-06,
         3.493e-06,
         3.493e-06
       ],
       "holdersHistory": [
-        6,
+        5,
         5,
         5,
         5,
@@ -3995,30 +3846,30 @@
         "website": "https://bnb.fan/freedom-of-money"
       },
       "descr": "BNB.FAN",
-      "price": 2.23e-05,
+      "price": 2.339e-05,
       "peakPrice": 3.014e-05,
-      "holders": 253,
+      "holders": 246,
       "peakHolders": 268,
       "liquidity": 0.0,
       "peakLiquidity": 0.0,
-      "raisedAmount": 9.624018025112592,
-      "progress": 0.818316822,
+      "raisedAmount": 12.360693244152685,
+      "progress": 0.8957483709,
       "day1Vol": 0.0,
-      "consecDrops": 1,
-      "lastPrice": 2.23e-05,
+      "consecDrops": 0,
+      "lastPrice": 2.339e-05,
       "priceHistory": [
-        2.959e-05,
         3.014e-05,
         2.501e-05,
         3.012e-05,
-        2.23e-05
+        2.23e-05,
+        2.339e-05
       ],
       "holdersHistory": [
-        227,
         268,
         261,
         254,
-        253
+        253,
+        246
       ],
       "copycat": {
         "count": 2,
@@ -4084,30 +3935,30 @@
         "website": "https://wx.tech-melon.top/9460ca"
       },
       "descr": "腾讯科技称XChat为西方微信",
-      "price": 6.393e-06,
+      "price": 6.331e-06,
       "peakPrice": 6.492e-06,
-      "holders": 40,
+      "holders": 41,
       "peakHolders": 41,
       "liquidity": 0.0,
       "peakLiquidity": 0.0,
-      "raisedAmount": 2.287115212802273,
-      "progress": 0.3632934146,
+      "raisedAmount": 2.25001418574003,
+      "progress": 0.3589760171,
       "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 6.393e-06,
+      "consecDrops": 1,
+      "lastPrice": 6.331e-06,
       "priceHistory": [
-        6.492e-06,
         6.371e-06,
         6.371e-06,
         6.33e-06,
-        6.393e-06
+        6.393e-06,
+        6.331e-06
       ],
       "holdersHistory": [
         41,
         41,
-        41,
         39,
-        40
+        40,
+        41
       ],
       "copycat": {
         "count": 10,
@@ -4129,29 +3980,29 @@
         "website": "https://jellypaul.live"
       },
       "descr": "JellyPaul is a decentralized prediction market on BNB Chain, designed for global events starting with World Cup 2026.\n\nInspired by the legendary Paul the Octopus, the platform enables users to place predictions, track real-time market sentiment, and earn rewards — all fully on-chain.",
-      "price": 3.533e-06,
+      "price": 3.52e-06,
       "peakPrice": 2.996e-05,
       "holders": 37,
       "peakHolders": 163,
       "liquidity": 0.0,
       "peakLiquidity": 0.0,
-      "raisedAmount": 0.11893901217808815,
-      "progress": 0.0254119614,
+      "raisedAmount": 0.11083781644389656,
+      "progress": 0.0237116691,
       "day1Vol": 0.0,
-      "consecDrops": 4,
-      "lastPrice": 3.533e-06,
+      "consecDrops": 5,
+      "lastPrice": 3.52e-06,
       "priceHistory": [
-        2.996e-05,
         1.601e-05,
         3.699e-06,
         3.54e-06,
-        3.533e-06
+        3.533e-06,
+        3.52e-06
       ],
       "holdersHistory": [
-        163,
         117,
         48,
         39,
+        37,
         37
       ],
       "copycat": {
@@ -4185,14 +4036,14 @@
       "consecDrops": 0,
       "lastPrice": 3.44e-06,
       "priceHistory": [
-        3.48e-06,
+        3.44e-06,
         3.44e-06,
         3.44e-06,
         3.44e-06,
         3.44e-06
       ],
       "holdersHistory": [
-        8,
+        7,
         7,
         7,
         7,
@@ -4230,15 +4081,15 @@
       "consecDrops": 0,
       "lastPrice": 3.403e-06,
       "priceHistory": [
-        4.111e-06,
         3.415e-06,
+        3.403e-06,
         3.403e-06,
         3.403e-06,
         3.403e-06
       ],
       "holdersHistory": [
-        12,
         4,
+        3,
         3,
         3,
         3
@@ -4275,7 +4126,7 @@
       "consecDrops": 0,
       "lastPrice": 3.413e-06,
       "priceHistory": [
-        6.543e-06,
+        3.413e-06,
         3.413e-06,
         3.413e-06,
         3.413e-06,
@@ -4317,19 +4168,20 @@
       "raisedAmount": 0.05998039922336027,
       "progress": 0.0129365237,
       "day1Vol": 0.0,
-      "consecDrops": 3,
+      "consecDrops": 0,
       "lastPrice": 3.467e-06,
       "priceHistory": [
-        7.95109366e-09,
         4.73e-06,
         4.008e-06,
         3.591e-06,
+        3.467e-06,
         3.467e-06
       ],
       "holdersHistory": [
         33,
         26,
         16,
+        15,
         15
       ],
       "copycat": {
@@ -4352,25 +4204,26 @@
         "website": "https://v.douyin.com/R7KLNwTN_sc/ 07/15 C@U.Yz zGV:/ "
       },
       "descr": "m",
-      "price": 4.724e-06,
+      "price": 4.704e-06,
       "peakPrice": 4.724e-06,
       "holders": 24,
       "peakHolders": 24,
       "liquidity": 0.0,
       "peakLiquidity": 0.0,
-      "raisedAmount": 1.0898037529637432,
-      "progress": 0.2016799613,
+      "raisedAmount": 1.089553375010439,
+      "progress": 0.2016405858,
       "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 4.724e-06,
+      "consecDrops": 1,
+      "lastPrice": 4.704e-06,
       "priceHistory": [
-        7.948673804e-09,
         4.724e-06,
         4.724e-06,
         4.724e-06,
-        4.724e-06
+        4.724e-06,
+        4.704e-06
       ],
       "holdersHistory": [
+        24,
         24,
         24,
         24,
@@ -4408,13 +4261,14 @@
       "consecDrops": 0,
       "lastPrice": 3.971e-06,
       "priceHistory": [
-        6.672938941e-09,
+        3.971e-06,
         3.971e-06,
         3.971e-06,
         3.971e-06,
         3.971e-06
       ],
       "holdersHistory": [
+        8,
         8,
         8,
         8,
@@ -4455,9 +4309,11 @@
         6.627905607e-09,
         3.885e-06,
         3.4e-06,
+        3.4e-06,
         3.4e-06
       ],
       "holdersHistory": [
+        17,
         17,
         17,
         17
@@ -4490,21 +4346,23 @@
       "raisedAmount": 0.3177837011374026,
       "progress": 0.0658134415,
       "day1Vol": 0.0,
-      "consecDrops": 2,
+      "consecDrops": 0,
       "lastPrice": 3.761e-06,
       "priceHistory": [
         8.490544132e-09,
         5.506e-06,
         3.808e-06,
+        3.761e-06,
         3.761e-06
       ],
       "holdersHistory": [
         20,
         9,
+        8,
         8
       ],
       "copycat": {
-        "count": 8,
+        "count": 9,
         "isCopycat": true
       }
     },
@@ -4536,9 +4394,11 @@
       "priceHistory": [
         3.826530612244e-06,
         3.826e-06,
+        3.826e-06,
         3.826e-06
       ],
       "holdersHistory": [
+        3,
         3,
         3
       ],
@@ -4561,23 +4421,25 @@
         "twitter": "https://x.com/256natethegr8/status/2043315546255720663"
       },
       "descr": "WEB3爆火二创meme表情包",
-      "price": 3.496e-06,
+      "price": 3.437e-06,
       "peakPrice": 3.496e-06,
       "holders": 4,
       "peakHolders": 4,
       "liquidity": 0.0,
       "peakLiquidity": 0.0,
-      "raisedAmount": 0.08444675972316719,
-      "progress": 0.0181420966,
+      "raisedAmount": 0.03465004398059294,
+      "progress": 0.0075038305,
       "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 3.496e-06,
+      "consecDrops": 1,
+      "lastPrice": 3.437e-06,
       "priceHistory": [
         5.804504138e-09,
         3.436e-06,
-        3.496e-06
+        3.496e-06,
+        3.437e-06
       ],
       "holdersHistory": [
+        4,
         4,
         4
       ],
@@ -4614,51 +4476,16 @@
       "priceHistory": [
         8.19914029e-09,
         3.428e-06,
+        3.428e-06,
         3.428e-06
       ],
       "holdersHistory": [
         5,
+        3,
         3
       ],
       "copycat": {
         "count": 0,
-        "isCopycat": false
-      }
-    },
-    {
-      "address": "0x26d761ae1756c512193fe071618ee2ce5eb74444",
-      "creator": "0x2457153a31bf204478df6f6cd39004c09ec7be17",
-      "block": 92109406,
-      "name": "德沃普",
-      "symbol": "Dwop",
-      "createdAt": 1775999729000,
-      "addedAt": 1776000624770,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "twitter": "https://x.com/i/status/2043317060919271571"
-      },
-      "descr": "德沃普",
-      "price": 3.826e-06,
-      "peakPrice": 3.826530612244e-06,
-      "holders": 0,
-      "peakHolders": 0,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.0,
-      "progress": 0.0,
-      "day1Vol": 0.0,
-      "consecDrops": 1,
-      "lastPrice": 3.826e-06,
-      "priceHistory": [
-        3.826530612244e-06,
-        3.826e-06
-      ],
-      "holdersHistory": [
-        0
-      ],
-      "copycat": {
-        "count": 2,
         "isCopycat": false
       }
     },
@@ -4690,125 +4517,15 @@
       "lastPrice": 3.512e-06,
       "priceHistory": [
         5.925415114e-09,
+        3.512e-06,
         3.512e-06
       ],
       "holdersHistory": [
+        7,
         7
       ],
       "copycat": {
         "count": 2,
-        "isCopycat": false
-      }
-    },
-    {
-      "address": "0xf3d138cf4d9b2ef38c641d1841c628ec7ca84444",
-      "creator": "0x9a2665f396921b1681ad67bf3b361770aa8e4444",
-      "block": 92109583,
-      "name": "你我都是平凡人",
-      "symbol": "平凡",
-      "createdAt": 1775999809000,
-      "addedAt": 1776000624770,
-      "totalSupply": 1000000000,
-      "socialCount": 2,
-      "socialLinks": {
-        "twitter": "https://x.com/TMDxushi/status/2043317382349766774?s=20",
-        "website": "https://www.douyin.com/video/7627035387689395306"
-      },
-      "descr": "你我都是平凡人",
-      "price": 3.399e-06,
-      "peakPrice": 3.399e-06,
-      "holders": 1,
-      "peakHolders": 1,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.0,
-      "progress": 0.0,
-      "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 3.399e-06,
-      "priceHistory": [
-        5.739795917e-09,
-        3.399e-06
-      ],
-      "holdersHistory": [
-        1
-      ],
-      "copycat": {
-        "count": 0,
-        "isCopycat": false
-      }
-    },
-    {
-      "address": "0xe27d012a90723e5364247b916d0dfc7e1abeffff",
-      "creator": "0x68a61bd9409588909da761f2b4ef200e8f92d1d4",
-      "block": 92109602,
-      "name": "赫米斯",
-      "symbol": "Hermes",
-      "createdAt": 1775999812000,
-      "addedAt": 1776000624770,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "twitter": "https://x.com/NousResearch"
-      },
-      "descr": "Hermes Agent",
-      "price": 3.399e-06,
-      "peakPrice": 3.399e-06,
-      "holders": 1,
-      "peakHolders": 1,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 2.99e-16,
-      "progress": 1e-10,
-      "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 3.399e-06,
-      "priceHistory": [
-        5.739795917e-09,
-        3.399e-06
-      ],
-      "holdersHistory": [
-        1
-      ],
-      "copycat": {
-        "count": 16,
-        "isCopycat": true
-      }
-    },
-    {
-      "address": "0x532bfe92b41f91fd8d90d2c00d9aae08ff3f4444",
-      "creator": "0x2457153a31bf204478df6f6cd39004c09ec7be17",
-      "block": 92109603,
-      "name": "炸鸡帝国AI",
-      "symbol": "KRAI",
-      "createdAt": 1775999818000,
-      "addedAt": 1776000624770,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "twitter": "https://x.com/i/status/2043317433642140152"
-      },
-      "descr": "炸鸡帝国AI",
-      "price": 3.826e-06,
-      "peakPrice": 3.826530612244e-06,
-      "holders": 0,
-      "peakHolders": 0,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.0,
-      "progress": 0.0,
-      "day1Vol": 0.0,
-      "consecDrops": 1,
-      "lastPrice": 3.826e-06,
-      "priceHistory": [
-        3.826530612244e-06,
-        3.826e-06
-      ],
-      "holdersHistory": [
-        0
-      ],
-      "copycat": {
-        "count": 0,
         "isCopycat": false
       }
     },
@@ -4839,645 +4556,15 @@
       "lastPrice": 3.592e-06,
       "priceHistory": [
         6.05982251e-09,
+        3.592e-06,
         3.592e-06
       ],
       "holdersHistory": [
+        3,
         3
       ],
       "copycat": {
         "count": 2,
-        "isCopycat": false
-      }
-    },
-    {
-      "address": "0x46b35d92779142e399f526a85507bf1243e04444",
-      "creator": "0x9a2665f396921b1681ad67bf3b361770aa8e4444",
-      "block": 92109811,
-      "name": "忘记屏幕",
-      "symbol": "忘记屏幕",
-      "createdAt": 1775999912000,
-      "addedAt": 1776000624770,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "twitter": "https://x.com/BinanceBrasil/status/2043317766988452312"
-      },
-      "descr": "",
-      "price": 3.399e-06,
-      "peakPrice": 3.399e-06,
-      "holders": 2,
-      "peakHolders": 2,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.0,
-      "progress": 0.0,
-      "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 3.399e-06,
-      "priceHistory": [
-        5.739795917e-09,
-        3.399e-06
-      ],
-      "holdersHistory": [
-        2
-      ],
-      "copycat": {
-        "count": 0,
-        "isCopycat": false
-      }
-    },
-    {
-      "address": "0x4189adf644740e4781f6f76ef9c2ae3458c24444",
-      "creator": "0xaf02ed92699c10b0d70da0d75474dd4b34655689",
-      "block": 92109840,
-      "name": "When you realize",
-      "symbol": "派大星",
-      "createdAt": 1775999925000,
-      "addedAt": 1776000624770,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "twitter": "https://x.com/WilliameBelfort/status/2043315031945699653"
-      },
-      "descr": "When you realize",
-      "price": 3.401e-06,
-      "peakPrice": 3.401e-06,
-      "holders": 1,
-      "peakHolders": 1,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.0,
-      "progress": 0.0,
-      "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 3.401e-06,
-      "priceHistory": [
-        5.739795917e-09,
-        3.401e-06
-      ],
-      "holdersHistory": [
-        1
-      ],
-      "copycat": {
-        "count": 3,
-        "isCopycat": true
-      }
-    },
-    {
-      "address": "0xd29ac4cd1248693a8fba86b27057cba273314444",
-      "creator": "0x7bddcafff7e86eacb984a94247d41655277fb22b",
-      "block": 92109860,
-      "name": "放空世间",
-      "symbol": "放空世间",
-      "createdAt": 1775999934000,
-      "addedAt": 1776000624770,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "twitter": "https://x.com/i/status/2043317766988452312"
-      },
-      "descr": "放空世间",
-      "price": 3.401e-06,
-      "peakPrice": 3.401e-06,
-      "holders": 1,
-      "peakHolders": 1,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.0,
-      "progress": 0.0,
-      "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 3.401e-06,
-      "priceHistory": [
-        5.739795917e-09,
-        3.401e-06
-      ],
-      "holdersHistory": [
-        1
-      ],
-      "copycat": {
-        "count": 0,
-        "isCopycat": false
-      }
-    },
-    {
-      "address": "0xc0c31989cd2eba6948cc764ea67c69389d2a4444",
-      "creator": "0x6a4012b20768d9b5df1bdf88b3f8df00ecd4de94",
-      "block": 92109888,
-      "name": "When you realize",
-      "symbol": "开智",
-      "createdAt": 1775999947000,
-      "addedAt": 1776000624770,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "twitter": "https://x.com/WilliameBelfort/status/2043315031945699653"
-      },
-      "descr": "When you realize",
-      "price": 3.402e-06,
-      "peakPrice": 3.402e-06,
-      "holders": 1,
-      "peakHolders": 1,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.0,
-      "progress": 0.0,
-      "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 3.402e-06,
-      "priceHistory": [
-        5.739795917e-09,
-        3.402e-06
-      ],
-      "holdersHistory": [
-        1
-      ],
-      "copycat": {
-        "count": 3,
-        "isCopycat": true
-      }
-    },
-    {
-      "address": "0xfc870d47123c6033def8b683d75c07e7e12d4444",
-      "creator": "0x6f3d61450a757c85dbdf843992d5bc146921ef36",
-      "block": 92110045,
-      "name": "cz的答案",
-      "symbol": "CZ的答案",
-      "createdAt": 1776000017000,
-      "addedAt": 1776000624770,
-      "totalSupply": 1000000000,
-      "socialCount": 2,
-      "socialLinks": {
-        "twitter": "https://x.com/Gmf_winner/status/2043312967538901075?s=20",
-        "website": "https://czanswer.com/"
-      },
-      "descr": "Launched on discord.gg/uxento",
-      "price": 3.413e-06,
-      "peakPrice": 3.413e-06,
-      "holders": 0,
-      "peakHolders": 0,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.009900990099009894,
-      "progress": 0.002152758,
-      "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 3.413e-06,
-      "priceHistory": [
-        5.758248793e-09,
-        3.413e-06
-      ],
-      "holdersHistory": [
-        0
-      ],
-      "copycat": {
-        "count": 2,
-        "isCopycat": false
-      }
-    },
-    {
-      "address": "0x389772a33af17ba2c72e51d3e185b95bcda14444",
-      "creator": "0x2457153a31bf204478df6f6cd39004c09ec7be17",
-      "block": 92110109,
-      "name": "早安币",
-      "symbol": "GM",
-      "createdAt": 1776000046000,
-      "addedAt": 1776000624770,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "twitter": "https://x.com/i/status/2043318409358647509"
-      },
-      "descr": "早安币",
-      "price": 3.826e-06,
-      "peakPrice": 3.826530612244e-06,
-      "holders": 2,
-      "peakHolders": 2,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.0,
-      "progress": 0.0,
-      "day1Vol": 0.0,
-      "consecDrops": 1,
-      "lastPrice": 3.826e-06,
-      "priceHistory": [
-        3.826530612244e-06,
-        3.826e-06
-      ],
-      "holdersHistory": [
-        2
-      ],
-      "copycat": {
-        "count": 0,
-        "isCopycat": false
-      }
-    },
-    {
-      "address": "0x15a29ffb10b3d978ebc7e1d3cbfb405d9bb6ffff",
-      "creator": "0x68a61bd9409588909da761f2b4ef200e8f92d1d4",
-      "block": 92110259,
-      "name": "Hermes",
-      "symbol": "赫米斯",
-      "createdAt": 1776000108000,
-      "addedAt": 1776000624770,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "twitter": "https://x.com/NousResearch"
-      },
-      "descr": "Hermes Agent",
-      "price": 3.739e-06,
-      "peakPrice": 3.739e-06,
-      "holders": 2,
-      "peakHolders": 2,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.297029702970297,
-      "progress": 0.0617128464,
-      "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 3.739e-06,
-      "priceHistory": [
-        6.306264491e-09,
-        3.739e-06
-      ],
-      "holdersHistory": [
-        2
-      ],
-      "copycat": {
-        "count": 16,
-        "isCopycat": true
-      }
-    },
-    {
-      "address": "0x0603cdc2d25e65531a62636c6751a1269d634444",
-      "creator": "0x80369bfd95fca08ee948dc0aa28b500e15e99dc8",
-      "block": 92110288,
-      "name": "When you realize",
-      "symbol": "PATRICK",
-      "createdAt": 1776000127000,
-      "addedAt": 1776000624770,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "twitter": "https://x.com/WilliameBelfort/status/2043315031945699653"
-      },
-      "descr": "Deployed using j7tracker.io",
-      "price": 3.402e-06,
-      "peakPrice": 3.402e-06,
-      "holders": 1,
-      "peakHolders": 1,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.0,
-      "progress": 0.0,
-      "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 3.402e-06,
-      "priceHistory": [
-        5.739795917e-09,
-        3.402e-06
-      ],
-      "holdersHistory": [
-        1
-      ],
-      "copycat": {
-        "count": 5,
-        "isCopycat": true
-      }
-    },
-    {
-      "address": "0xd5a723c478bb23c314889ce50c6456acd9954444",
-      "creator": "0x25f67e50d832363278f5777578707d56bb4d4698",
-      "block": 92110444,
-      "name": "When you realize",
-      "symbol": "开智",
-      "createdAt": 1776000196000,
-      "addedAt": 1776000624770,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "twitter": "https://x.com/WilliameBelfort/status/2043315031945699653"
-      },
-      "descr": "When you realize",
-      "price": 3.406e-06,
-      "peakPrice": 3.406e-06,
-      "holders": 2,
-      "peakHolders": 2,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.003724090931052162,
-      "progress": 0.0008105346,
-      "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 3.406e-06,
-      "priceHistory": [
-        5.746733181e-09,
-        3.406e-06
-      ],
-      "holdersHistory": [
-        2
-      ],
-      "copycat": {
-        "count": 3,
-        "isCopycat": true
-      }
-    },
-    {
-      "address": "0x924f89edd0db9113016d451a6a60c99d92644444",
-      "creator": "0x3b3d934fb98fc87451ee060748b722894e3e4d68",
-      "block": 92110465,
-      "name": "微博热搜",
-      "symbol": "ai哄人文学",
-      "createdAt": 1776000206000,
-      "addedAt": 1776000624770,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "website": "https://weibo.com/6519170412/QAsnRyn82?refer_flag=1001030103_"
-      },
-      "descr": "微博热搜",
-      "price": 3.403e-06,
-      "peakPrice": 3.403e-06,
-      "holders": 1,
-      "peakHolders": 1,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.0,
-      "progress": 0.0,
-      "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 3.403e-06,
-      "priceHistory": [
-        5.739795917e-09,
-        3.403e-06
-      ],
-      "holdersHistory": [
-        1
-      ],
-      "copycat": {
-        "count": 10,
-        "isCopycat": true
-      }
-    },
-    {
-      "address": "0xa9577a5c042793c0e17c01ab69ef9f7aca984444",
-      "creator": "0x2457153a31bf204478df6f6cd39004c09ec7be17",
-      "block": 92110483,
-      "name": "全力Dwop",
-      "symbol": "Dwop",
-      "createdAt": 1776000214000,
-      "addedAt": 1776000624770,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "twitter": "https://x.com/i/status/2043319103729946749"
-      },
-      "descr": "全力Dwop",
-      "price": 3.826e-06,
-      "peakPrice": 3.826530612244e-06,
-      "holders": 1,
-      "peakHolders": 1,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.0,
-      "progress": 0.0,
-      "day1Vol": 0.0,
-      "consecDrops": 1,
-      "lastPrice": 3.826e-06,
-      "priceHistory": [
-        3.826530612244e-06,
-        3.826e-06
-      ],
-      "holdersHistory": [
-        1
-      ],
-      "copycat": {
-        "count": 2,
-        "isCopycat": false
-      }
-    },
-    {
-      "address": "0xa912b5e882a195c7e1e897043beaf86b8b534444",
-      "creator": "0x6a4012b20768d9b5df1bdf88b3f8df00ecd4de94",
-      "block": 92110648,
-      "name": "耶稣",
-      "symbol": "耶稣",
-      "createdAt": 1776000291000,
-      "addedAt": 1776000624770,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "twitter": "https://x.com/i/status/2043319267517722842"
-      },
-      "descr": "耶稣",
-      "price": 3.826e-06,
-      "peakPrice": 3.826530612244e-06,
-      "holders": 1,
-      "peakHolders": 1,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.0,
-      "progress": 0.0,
-      "day1Vol": 0.0,
-      "consecDrops": 1,
-      "lastPrice": 3.826e-06,
-      "priceHistory": [
-        3.826530612244e-06,
-        3.826e-06
-      ],
-      "holdersHistory": [
-        1
-      ],
-      "copycat": {
-        "count": 0,
-        "isCopycat": false
-      }
-    },
-    {
-      "address": "0xa420aa9b3fc0ce19a18dd9be58eeb62d73844444",
-      "creator": "0xaf02ed92699c10b0d70da0d75474dd4b34655689",
-      "block": 92110676,
-      "name": "川神",
-      "symbol": "川神",
-      "createdAt": 1776000304000,
-      "addedAt": 1776000624770,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "twitter": "https://x.com/i/status/2043319267517722842"
-      },
-      "descr": "川神",
-      "price": 3.826e-06,
-      "peakPrice": 3.826530612244e-06,
-      "holders": 2,
-      "peakHolders": 2,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.0,
-      "progress": 0.0,
-      "day1Vol": 0.0,
-      "consecDrops": 1,
-      "lastPrice": 3.826e-06,
-      "priceHistory": [
-        3.826530612244e-06,
-        3.826e-06
-      ],
-      "holdersHistory": [
-        2
-      ],
-      "copycat": {
-        "count": 0,
-        "isCopycat": false
-      }
-    },
-    {
-      "address": "0x7eaf4eb0bdb218abf0a5dfafb093cd18fa11ffff",
-      "creator": "0x3d91cd5d63ab82b32ddf23703f83960322948b89",
-      "block": 92110687,
-      "name": "JellyPaul",
-      "symbol": "JellyPaul",
-      "createdAt": 1776000306000,
-      "addedAt": 1776000624770,
-      "totalSupply": 1000000000,
-      "socialCount": 2,
-      "socialLinks": {
-        "twitter": "https://x.com/jellypaul_",
-        "website": "https://bnbagent.fun/go"
-      },
-      "descr": "JellyPaul is a decentralized prediction market on BNB Chain, designed for global events starting with World Cup 2026.\n\nInspired by the legendary Paul the Octopus, the platform enables users to place predictions, track real-time market sentiment, and earn rewards — all fully on-chain.",
-      "price": 5.739795918367347e-09,
-      "peakPrice": 5.739795918367347e-09,
-      "holders": 0,
-      "peakHolders": 0,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.0,
-      "progress": 0.0,
-      "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 5.739795918367347e-09,
-      "priceHistory": [
-        5.739795918367347e-09,
-        5.739795918367347e-09
-      ],
-      "holdersHistory": [
-        0
-      ],
-      "copycat": {
-        "count": 1,
-        "isCopycat": false
-      }
-    },
-    {
-      "address": "0x05c3066439b70d6e5e9d2fe74da55bbeb1034444",
-      "creator": "0xf84a59f13adcb9576876436c458519c15ca5dcab",
-      "block": 92110706,
-      "name": "Grainrot",
-      "symbol": "GRAINROT",
-      "createdAt": 1776000315000,
-      "addedAt": 1776000624770,
-      "totalSupply": 1000000000,
-      "socialCount": 2,
-      "socialLinks": {
-        "twitter": "https://x.com/grainrotcoin",
-        "website": "https://www.youtube.com/@grain-j6f/videos"
-      },
-      "descr": "Grainrot",
-      "price": 3.402e-06,
-      "peakPrice": 3.402e-06,
-      "holders": 1,
-      "peakHolders": 1,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.0,
-      "progress": 0.0,
-      "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 3.402e-06,
-      "priceHistory": [
-        5.739795917e-09,
-        3.402e-06
-      ],
-      "holdersHistory": [
-        1
-      ],
-      "copycat": {
-        "count": 0,
-        "isCopycat": false
-      }
-    },
-    {
-      "address": "0x6da86fb9a0fec56cb489c2589e83d6b9f31f4444",
-      "creator": "0x2457153a31bf204478df6f6cd39004c09ec7be17",
-      "block": 92110741,
-      "name": "科幻生活",
-      "symbol": "科幻",
-      "createdAt": 1776000331000,
-      "addedAt": 1776000624770,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "twitter": "https://x.com/i/status/2043319586083438810"
-      },
-      "descr": "科幻生活",
-      "price": 3.826e-06,
-      "peakPrice": 3.826530612244e-06,
-      "holders": 1,
-      "peakHolders": 1,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.0,
-      "progress": 0.0,
-      "day1Vol": 0.0,
-      "consecDrops": 1,
-      "lastPrice": 3.826e-06,
-      "priceHistory": [
-        3.826530612244e-06,
-        3.826e-06
-      ],
-      "holdersHistory": [
-        1
-      ],
-      "copycat": {
-        "count": 1,
-        "isCopycat": false
-      }
-    },
-    {
-      "address": "0xb9f568557ec8d95f1819fdc647967bbb4de34444",
-      "creator": "0xf39ba554595160ce6160132a03cf759995ecf779",
-      "block": 92110751,
-      "name": "科幻小说",
-      "symbol": "科幻小说",
-      "createdAt": 1776000335000,
-      "addedAt": 1776000624770,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "twitter": "https://x.com/i/status/2043319586083438810"
-      },
-      "descr": "科幻小说",
-      "price": 3.402e-06,
-      "peakPrice": 3.402e-06,
-      "holders": 0,
-      "peakHolders": 0,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.0,
-      "progress": 0.0,
-      "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 3.402e-06,
-      "priceHistory": [
-        5.739795917e-09,
-        3.402e-06
-      ],
-      "holdersHistory": [
-        0
-      ],
-      "copycat": {
-        "count": 1,
         "isCopycat": false
       }
     },
@@ -5496,64 +4583,29 @@
         "website": "https://s.weibo.com/weibo?q=%E8%84%91%E9%9B%BE&t=31&band_rank=4&Refer=top"
       },
       "descr": "脑雾",
-      "price": 3.967e-06,
-      "peakPrice": 3.967e-06,
+      "price": 4.164e-06,
+      "peakPrice": 4.164e-06,
       "holders": 5,
       "peakHolders": 5,
       "liquidity": 0.0,
       "peakLiquidity": 0.0,
-      "raisedAmount": 0.49373195410877607,
-      "progress": 0.0995504266,
+      "raisedAmount": 0.661402746187984,
+      "progress": 0.1300817952,
       "day1Vol": 0.0,
       "consecDrops": 0,
-      "lastPrice": 3.967e-06,
+      "lastPrice": 4.164e-06,
       "priceHistory": [
         6.696067072e-09,
-        3.967e-06
+        3.967e-06,
+        4.164e-06
       ],
       "holdersHistory": [
+        5,
         5
       ],
       "copycat": {
-        "count": 10,
+        "count": 24,
         "isCopycat": true
-      }
-    },
-    {
-      "address": "0xe67a0c80c1de5b6fe65b1d2cb7bc71b3a5e94444",
-      "creator": "0x80369bfd95fca08ee948dc0aa28b500e15e99dc8",
-      "block": 92110844,
-      "name": "GEM ALARM",
-      "symbol": "GEM",
-      "createdAt": 1776000377000,
-      "addedAt": 1776000624770,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "twitter": "https://x.com/fflitzer/status/2042770969496899604"
-      },
-      "descr": "Deployed using j7tracker.io",
-      "price": 3.456e-06,
-      "peakPrice": 3.456e-06,
-      "holders": 1,
-      "peakHolders": 1,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.0495049504950495,
-      "progress": 0.0106951872,
-      "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 3.456e-06,
-      "priceHistory": [
-        5.83235644e-09,
-        3.456e-06
-      ],
-      "holdersHistory": [
-        1
-      ],
-      "copycat": {
-        "count": 1,
-        "isCopycat": false
       }
     },
     {
@@ -5571,290 +4623,29 @@
         "website": "https://s.weibo.com/weibo?q=%E8%84%91%E9%9B%BE&t=31&band_rank=4&Refer=top"
       },
       "descr": "脑雾",
-      "price": 1.56e-05,
-      "peakPrice": 1.56e-05,
-      "holders": 98,
-      "peakHolders": 98,
+      "price": 2.818e-05,
+      "peakPrice": 2.818e-05,
+      "holders": 260,
+      "peakHolders": 260,
       "liquidity": 0.0,
       "peakLiquidity": 0.0,
-      "raisedAmount": 7.627257869730465,
-      "progress": 0.7424302999,
+      "raisedAmount": 9.596120906490794,
+      "progress": 0.8173890442,
       "day1Vol": 0.0,
       "consecDrops": 0,
-      "lastPrice": 1.56e-05,
+      "lastPrice": 2.818e-05,
       "priceHistory": [
         2.8730888625e-08,
-        1.56e-05
+        1.56e-05,
+        2.818e-05
       ],
       "holdersHistory": [
-        98
+        98,
+        260
       ],
       "copycat": {
-        "count": 8,
+        "count": 22,
         "isCopycat": true
-      }
-    },
-    {
-      "address": "0x195a4f08b1797bfd63e199424a01b7d0d9ba4444",
-      "creator": "0x6a4012b20768d9b5df1bdf88b3f8df00ecd4de94",
-      "block": 92110992,
-      "name": "脑雾",
-      "symbol": "脑雾",
-      "createdAt": 1776000444000,
-      "addedAt": 1776000624770,
-      "totalSupply": 1000000000,
-      "socialCount": 2,
-      "socialLinks": {
-        "twitter": "https://x.com/web2designer09/status/2043318794085675120",
-        "website": "https://s.weibo.com/weibo?q=%E8%84%91%E9%9B%BE&t=31&band_rank=4&Refer=top"
-      },
-      "descr": "脑雾",
-      "price": 4.088e-06,
-      "peakPrice": 4.088e-06,
-      "holders": 2,
-      "peakHolders": 2,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.5949504950495049,
-      "progress": 0.1181626264,
-      "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 4.088e-06,
-      "priceHistory": [
-        6.901205578e-09,
-        4.088e-06
-      ],
-      "holdersHistory": [
-        2
-      ],
-      "copycat": {
-        "count": 8,
-        "isCopycat": true
-      }
-    },
-    {
-      "address": "0x1392e7e98430ace8ce85a889153e04582b844444",
-      "creator": "0xaf02ed92699c10b0d70da0d75474dd4b34655689",
-      "block": 92111008,
-      "name": "Turn Nothing toSomet",
-      "symbol": "Stardust",
-      "createdAt": 1776000451000,
-      "addedAt": 1776000624770,
-      "totalSupply": 1000000000,
-      "socialCount": 2,
-      "socialLinks": {
-        "twitter": "https://x.com/Hiddengem100x/status/2043319188161196129",
-        "website": "https://youtu.be/MUI4wmJgCjo?t=2766"
-      },
-      "descr": "Turn Nothing toSomet",
-      "price": 3.401e-06,
-      "peakPrice": 3.401e-06,
-      "holders": 1,
-      "peakHolders": 1,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.0,
-      "progress": 0.0,
-      "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 3.401e-06,
-      "priceHistory": [
-        5.739795917e-09,
-        3.401e-06
-      ],
-      "holdersHistory": [
-        1
-      ],
-      "copycat": {
-        "count": 0,
-        "isCopycat": false
-      }
-    },
-    {
-      "address": "0x86298d8724d1f1948c083aaa1a6b338d48ac4444",
-      "creator": "0x53a58a540c295a4b1fdf19173e3ed64c45275cc0",
-      "block": 92111144,
-      "name": "正确的图",
-      "symbol": "脑雾",
-      "createdAt": 1776000513000,
-      "addedAt": 1776000624770,
-      "totalSupply": 1000000000,
-      "socialCount": 2,
-      "socialLinks": {
-        "twitter": "https://x.com/BSC_EL_dev/status/2043320365548794027?s=20",
-        "website": "https://s.weibo.com/weibo?q=%E8%84%91%E9%9B%BE&t=31&band_rank=4&Refer=top"
-      },
-      "descr": "正确的图",
-      "price": 3.4e-06,
-      "peakPrice": 3.4e-06,
-      "holders": 1,
-      "peakHolders": 1,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.0,
-      "progress": 0.0,
-      "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 3.4e-06,
-      "priceHistory": [
-        5.739795917e-09,
-        3.4e-06
-      ],
-      "holdersHistory": [
-        1
-      ],
-      "copycat": {
-        "count": 8,
-        "isCopycat": true
-      }
-    },
-    {
-      "address": "0xcf3e64c2cae356bc46c4de2ecfa9c72dd91f4444",
-      "creator": "0xa043c521a38a8bac385715da4228f215d4374feb",
-      "block": 92111168,
-      "name": "原来是脑雾反应啊",
-      "symbol": "脑雾",
-      "createdAt": 1776000524000,
-      "addedAt": 1776000624770,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "website": "https://weibo.com/5890288408/QAuxECCut?refer_flag=1001030103_"
-      },
-      "descr": "原来是脑雾反应啊",
-      "price": 3.4e-06,
-      "peakPrice": 3.4e-06,
-      "holders": 1,
-      "peakHolders": 1,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.0,
-      "progress": 0.0,
-      "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 3.4e-06,
-      "priceHistory": [
-        5.739795917e-09,
-        3.4e-06
-      ],
-      "holdersHistory": [
-        1
-      ],
-      "copycat": {
-        "count": 8,
-        "isCopycat": true
-      }
-    },
-    {
-      "address": "0x278798a673aadf1e2107f82ba18dac89ce2b4444",
-      "creator": "0xeeefff8ce2710fa490e0fcb794235e873c252d2e",
-      "block": 92111195,
-      "name": "脑雾",
-      "symbol": "脑雾",
-      "createdAt": 1776000536000,
-      "addedAt": 1776000624770,
-      "totalSupply": 1000000000,
-      "socialCount": 2,
-      "socialLinks": {
-        "twitter": "https://x.com/web2designer09/status/2043318794085675120",
-        "website": "https://s.weibo.com/weibo?q=%E8%84%91%E9%9B%BE&t=31&band_rank=4&Refer=top"
-      },
-      "descr": "脑雾",
-      "price": 3.744e-06,
-      "peakPrice": 3.744e-06,
-      "holders": 0,
-      "peakHolders": 0,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.30386138613861385,
-      "progress": 0.0630655623,
-      "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 3.744e-06,
-      "priceHistory": [
-        6.319606828e-09,
-        3.744e-06
-      ],
-      "holdersHistory": [
-        0
-      ],
-      "copycat": {
-        "count": 8,
-        "isCopycat": true
-      }
-    },
-    {
-      "address": "0x02c5f2bd2766a08d57ee3a1345d4a852f6cb4444",
-      "creator": "0x7bddcafff7e86eacb984a94247d41655277fb22b",
-      "block": 92111314,
-      "name": "最新最适合p小将的人格是 川普",
-      "symbol": "川普",
-      "createdAt": 1776000590000,
-      "addedAt": 1776000624770,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "twitter": "https://x.com/six1xxx/status/2043320684257112279?s=20"
-      },
-      "descr": "最新最适合p小将的人格是 川普",
-      "price": 4.104e-06,
-      "peakPrice": 4.204530263878e-06,
-      "holders": 0,
-      "peakHolders": 0,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 198.20111996864546,
-      "progress": 0.0617667542,
-      "day1Vol": 0.0,
-      "consecDrops": 1,
-      "lastPrice": 4.104e-06,
-      "priceHistory": [
-        4.204530263878e-06,
-        4.104e-06
-      ],
-      "holdersHistory": [
-        0
-      ],
-      "copycat": {
-        "count": 2,
-        "isCopycat": false
-      }
-    },
-    {
-      "address": "0xbed1b3a80352b1f0e52ea07a6db81f4b5eb64444",
-      "creator": "0xbf1cf361c4a036b338ec5aeda5abe468428c1e3f",
-      "block": 92111367,
-      "name": "meme改变人生",
-      "symbol": "meme改变人生",
-      "createdAt": 1776000613000,
-      "addedAt": 1776000624770,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "twitter": "https://x.com/DongBnb/status/2043320773990068286"
-      },
-      "descr": " ",
-      "price": 3.4e-06,
-      "peakPrice": 3.4e-06,
-      "holders": 0,
-      "peakHolders": 0,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.0,
-      "progress": 0.0,
-      "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 3.4e-06,
-      "priceHistory": [
-        5.739795918367347e-09,
-        3.4e-06
-      ],
-      "holdersHistory": [
-        0
-      ],
-      "copycat": {
-        "count": 0,
-        "isCopycat": false
       }
     },
     {
@@ -5884,9 +4675,11 @@
       "lastPrice": 4.213e-06,
       "priceHistory": [
         7.111140312e-09,
+        4.213e-06,
         4.213e-06
       ],
       "holdersHistory": [
+        26,
         26
       ],
       "copycat": {
@@ -5921,10 +4714,1510 @@
       "lastPrice": 6.185e-06,
       "priceHistory": [
         1.0433419086e-08,
+        6.185e-06,
         6.185e-06
       ],
       "holdersHistory": [
+        23,
         23
+      ],
+      "copycat": {
+        "count": 1,
+        "isCopycat": false
+      }
+    },
+    {
+      "address": "0x55634a3dd8f3063e5ccd2e69f7689cd718364444",
+      "creator": "0x23a8d81a21f9d99c993ff733085cf1fca8062f83",
+      "block": 92111434,
+      "name": "脑袋卡了的咪咪",
+      "symbol": "卡了咪",
+      "createdAt": 1776000643000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 1,
+      "socialLinks": {
+        "website": "https://weibo.com/5890288408/QAuxECCut?refer_flag=1001030103_"
+      },
+      "descr": "脑袋卡了的咪咪",
+      "price": 3.397e-06,
+      "peakPrice": 3.397e-06,
+      "holders": 1,
+      "peakHolders": 1,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.0,
+      "progress": 0.0,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 3.397e-06,
+      "priceHistory": [
+        5.739795917e-09,
+        3.397e-06
+      ],
+      "holdersHistory": [
+        1
+      ],
+      "copycat": {
+        "count": 0,
+        "isCopycat": false
+      }
+    },
+    {
+      "address": "0xd4e042fffa041f1666643031f89d1729b50effff",
+      "creator": "0x3d91cd5d63ab82b32ddf23703f83960322948b89",
+      "block": 92111526,
+      "name": "税收给作者",
+      "symbol": "****",
+      "createdAt": 1776000685000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 2,
+      "socialLinks": {
+        "twitter": "https://x.com/i/status/2043312967538901075",
+        "website": "https://bnbagent.fun/go"
+      },
+      "descr": "税收给作者",
+      "price": 5.739795918367347e-09,
+      "peakPrice": 5.739795918367347e-09,
+      "holders": 0,
+      "peakHolders": 0,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.0,
+      "progress": 0.0,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 5.739795918367347e-09,
+      "priceHistory": [
+        5.739795918367347e-09,
+        5.739795918367347e-09
+      ],
+      "holdersHistory": [
+        0
+      ],
+      "copycat": {
+        "count": 33,
+        "isCopycat": true
+      }
+    },
+    {
+      "address": "0xe50201e70ccb16777ab88ab0227b33b4c76a4444",
+      "creator": "0x6a900ee716a579a6ea984015697de9fbf98989fc",
+      "block": 92111561,
+      "name": "最符合中囯智障的王尼玛",
+      "symbol": "脑雾",
+      "createdAt": 1776000701000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 2,
+      "socialLinks": {
+        "twitter": "https://x.com/web2designer09/status/2043318794085675120",
+        "website": "https://s.weibo.com/weibo?q=%E8%84%91%E9%9B%BE&t=31&band_rank=4&Refer=top"
+      },
+      "descr": "最符合中囯智障的王尼玛",
+      "price": 3.403e-06,
+      "peakPrice": 3.403e-06,
+      "holders": 2,
+      "peakHolders": 2,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.005406743804729677,
+      "progress": 0.0011764369,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 3.403e-06,
+      "priceHistory": [
+        5.749869014e-09,
+        3.403e-06
+      ],
+      "holdersHistory": [
+        2
+      ],
+      "copycat": {
+        "count": 22,
+        "isCopycat": true
+      }
+    },
+    {
+      "address": "0xec798300964b3d5ab1c28633bcbb5771acea4444",
+      "creator": "0xaf02ed92699c10b0d70da0d75474dd4b34655689",
+      "block": 92111675,
+      "name": "央视报道营养点滴",
+      "symbol": "NAD+",
+      "createdAt": 1776000752000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 2,
+      "socialLinks": {
+        "twitter": "https://x.com/NoTickerNoLife/status/2043321367333105682?s=20",
+        "website": "https://v.douyin.com/yIrgE-evwBw/"
+      },
+      "descr": "央视报道营养点滴",
+      "price": 3.401e-06,
+      "peakPrice": 3.401e-06,
+      "holders": 1,
+      "peakHolders": 1,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.0,
+      "progress": 0.0,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 3.401e-06,
+      "priceHistory": [
+        5.739795917e-09,
+        3.401e-06
+      ],
+      "holdersHistory": [
+        1
+      ],
+      "copycat": {
+        "count": 0,
+        "isCopycat": false
+      }
+    },
+    {
+      "address": "0x1888541f871c7727cb44e985cc7c5e59188d4444",
+      "creator": "0xd41feaa24dede516a501862cf1f376defb811772",
+      "block": 92111748,
+      "name": "智力低下",
+      "symbol": "脑雾",
+      "createdAt": 1776000785000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 2,
+      "socialLinks": {
+        "twitter": "https://x.com/web2designer09/status/2043318794085675120",
+        "website": "https://s.weibo.com/weibo?q=%E8%84%91%E9%9B%BE&t=31&band_rank=4&Refer=top"
+      },
+      "descr": "智力低下",
+      "price": 3.939e-06,
+      "peakPrice": 3.939e-06,
+      "holders": 3,
+      "peakHolders": 3,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.47191140891184796,
+      "progress": 0.0954636447,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 3.939e-06,
+      "priceHistory": [
+        6.652249145e-09,
+        3.939e-06
+      ],
+      "holdersHistory": [
+        3
+      ],
+      "copycat": {
+        "count": 22,
+        "isCopycat": true
+      }
+    },
+    {
+      "address": "0x57bdc6f2c937962ee178ba46fed4bd5ef8f34444",
+      "creator": "0x168a38dd8486067a4597c09ef8148a77c0fba000",
+      "block": 92111752,
+      "name": "币安新功能",
+      "symbol": "Binance NFT",
+      "createdAt": 1776000787000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 1,
+      "socialLinks": {
+        "twitter": "https://x.com/SourceUnify/status/2043321347896746255?s=20"
+      },
+      "descr": "币安新功能",
+      "price": 3.848e-06,
+      "peakPrice": 3.848e-06,
+      "holders": 4,
+      "peakHolders": 4,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.3975824961764475,
+      "progress": 0.0813385624,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 3.848e-06,
+      "priceHistory": [
+        6.504068447e-09,
+        3.848e-06
+      ],
+      "holdersHistory": [
+        4
+      ],
+      "copycat": {
+        "count": 9,
+        "isCopycat": true
+      }
+    },
+    {
+      "address": "0xca2ec074eafde67e3226f24ce3f40b6b51c84444",
+      "creator": "0x53a58a540c295a4b1fdf19173e3ed64c45275cc0",
+      "block": 92111765,
+      "name": "脑梗=脑meme",
+      "symbol": "脑梗",
+      "createdAt": 1776000792000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 1,
+      "socialLinks": {
+        "twitter": "https://x.com/BSC_EL_dev/status/2043321541849755996?s=20"
+      },
+      "descr": "脑梗=脑meme",
+      "price": 3.688e-06,
+      "peakPrice": 3.688e-06,
+      "holders": 6,
+      "peakHolders": 6,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.2562377837928763,
+      "progress": 0.0535758817,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 3.688e-06,
+      "priceHistory": [
+        6.226890952e-09,
+        3.688e-06
+      ],
+      "holdersHistory": [
+        6
+      ],
+      "copycat": {
+        "count": 1,
+        "isCopycat": false
+      }
+    },
+    {
+      "address": "0x658cb7e8b757e65bef3495f084a65270b4bd4444",
+      "creator": "0x71bb70d482f53af54f29ef0720ee03acf1f68409",
+      "block": 92111941,
+      "name": "USD1强盗团",
+      "symbol": "USD1强盗团",
+      "createdAt": 1776000871000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 1,
+      "socialLinks": {
+        "twitter": "https://x.com/i/status/2043321820456366098"
+      },
+      "descr": "USD1强盗团",
+      "price": 3.826e-06,
+      "peakPrice": 3.826530612244e-06,
+      "holders": 1,
+      "peakHolders": 1,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.0,
+      "progress": 0.0,
+      "day1Vol": 0.0,
+      "consecDrops": 1,
+      "lastPrice": 3.826e-06,
+      "priceHistory": [
+        3.826530612244e-06,
+        3.826e-06
+      ],
+      "holdersHistory": [
+        1
+      ],
+      "copycat": {
+        "count": 6,
+        "isCopycat": true
+      }
+    },
+    {
+      "address": "0x988ef6b85276a9fddb13b89d02bf3cea7d954444",
+      "creator": "0x2457153a31bf204478df6f6cd39004c09ec7be17",
+      "block": 92111984,
+      "name": "心灵捕手币",
+      "symbol": "GWH",
+      "createdAt": 1776000891000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 1,
+      "socialLinks": {
+        "twitter": "https://x.com/i/status/2043321951788143062"
+      },
+      "descr": "心灵捕手币",
+      "price": 3.826e-06,
+      "peakPrice": 3.826530612244e-06,
+      "holders": 1,
+      "peakHolders": 1,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.0,
+      "progress": 0.0,
+      "day1Vol": 0.0,
+      "consecDrops": 1,
+      "lastPrice": 3.826e-06,
+      "priceHistory": [
+        3.826530612244e-06,
+        3.826e-06
+      ],
+      "holdersHistory": [
+        1
+      ],
+      "copycat": {
+        "count": 0,
+        "isCopycat": false
+      }
+    },
+    {
+      "address": "0x859ab99abfa894123e5e55bd733e42b272484444",
+      "creator": "0xf38ce55fe4e517e77e1056a54e64f22d43d88c3a",
+      "block": 92112021,
+      "name": "脑雾",
+      "symbol": "脑雾",
+      "createdAt": 1776000910000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 2,
+      "socialLinks": {
+        "twitter": "https://x.com/web2designer09/status/2043318794085675120",
+        "website": "https://s.weibo.com/weibo?q=%E8%84%91%E9%9B%BE&t=31&band_rank=4&Refer=top"
+      },
+      "descr": "脑雾",
+      "price": 3.397e-06,
+      "peakPrice": 3.397e-06,
+      "holders": 1,
+      "peakHolders": 1,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 2.9e-17,
+      "progress": 1e-10,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 3.397e-06,
+      "priceHistory": [
+        5.739795917e-09,
+        3.397e-06
+      ],
+      "holdersHistory": [
+        1
+      ],
+      "copycat": {
+        "count": 22,
+        "isCopycat": true
+      }
+    },
+    {
+      "address": "0xe76f16477010fa8b0758f76996598de370834444",
+      "creator": "0x2457153a31bf204478df6f6cd39004c09ec7be17",
+      "block": 92112033,
+      "name": "推特文章币",
+      "symbol": "推文币",
+      "createdAt": 1776000913000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 1,
+      "socialLinks": {
+        "twitter": "https://x.com/i/status/2043322017102135765"
+      },
+      "descr": "推特文章币",
+      "price": 3.826e-06,
+      "peakPrice": 3.826530612244e-06,
+      "holders": 0,
+      "peakHolders": 0,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.0,
+      "progress": 0.0,
+      "day1Vol": 0.0,
+      "consecDrops": 1,
+      "lastPrice": 3.826e-06,
+      "priceHistory": [
+        3.826530612244e-06,
+        3.826e-06
+      ],
+      "holdersHistory": [
+        0
+      ],
+      "copycat": {
+        "count": 0,
+        "isCopycat": false
+      }
+    },
+    {
+      "address": "0x6eb21d1f81718420da0f505223f7b0132d9effff",
+      "creator": "0x61731881911f1b65b9bc3d06ff4b533214ca0168",
+      "block": 92112043,
+      "name": "CHIMERA",
+      "symbol": "CHIM",
+      "createdAt": 1776000899000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 3,
+      "socialLinks": {
+        "twitter": "https://x.com/Chimera688",
+        "telegram": "https://t.me/Chimera686868",
+        "website": "https://www.Chimera888.com"
+      },
+      "descr": "奇美拉（Chimera）——柏拉图“多头兽”哲学与BSC链Meme币的结合。通过质押锁仓、合伙人分红、回购销毁、强大的线下地推四大机制，将欲望（收益）、激情（共识）、理性（通缩）融为一体，| 质押 | 分红 | 通缩 | 去中心化 | BSC超级MEME",
+      "price": 3.401e-06,
+      "peakPrice": 3.401e-06,
+      "holders": 1,
+      "peakHolders": 1,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.0,
+      "progress": 0.0,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 3.401e-06,
+      "priceHistory": [
+        5.739795917e-09,
+        3.401e-06
+      ],
+      "holdersHistory": [
+        1
+      ],
+      "copycat": {
+        "count": 2,
+        "isCopycat": false
+      }
+    },
+    {
+      "address": "0x63e544cb8559bdd3aa9206ae0876eb2ea9c44444",
+      "creator": "0x9a2665f396921b1681ad67bf3b361770aa8e4444",
+      "block": 92112067,
+      "name": "微博热搜",
+      "symbol": "脑瘤",
+      "createdAt": 1776000929000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 1,
+      "socialLinks": {
+        "website": "https://s.weibo.com/weibo?q=%23%E5%A6%88%E5%A6%88%E8%BE%85%E5%AF%BC%E4%BD%9C%E4%B8%9A%E8%A2%AB%E6%B0%94%E5%88%B0%E5%BC%95%E7%88%86%E8%84%91%E7%98%A4%2"
+      },
+      "descr": "微博热搜",
+      "price": 3.401e-06,
+      "peakPrice": 3.401e-06,
+      "holders": 0,
+      "peakHolders": 0,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.0,
+      "progress": 0.0,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 3.401e-06,
+      "priceHistory": [
+        5.739795917e-09,
+        3.401e-06
+      ],
+      "holdersHistory": [
+        0
+      ],
+      "copycat": {
+        "count": 13,
+        "isCopycat": true
+      }
+    },
+    {
+      "address": "0x7a2e6cba2f8504355f07feb2c85e7e6495ed4444",
+      "creator": "0xc694bc91de4b6397abfbabc9d1293c4ffc2f2863",
+      "block": 92112106,
+      "name": "最顶级的概念",
+      "symbol": "脑腐",
+      "createdAt": 1776000946000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 1,
+      "socialLinks": {
+        "twitter": "https://x.com/chinh132hn/status/2043322171649609737"
+      },
+      "descr": "最顶级的概念",
+      "price": 3.422e-06,
+      "peakPrice": 3.422e-06,
+      "holders": 3,
+      "peakHolders": 3,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.02284753970169751,
+      "progress": 0.0049573128,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 3.422e-06,
+      "priceHistory": [
+        5.78242248e-09,
+        3.422e-06
+      ],
+      "holdersHistory": [
+        3
+      ],
+      "copycat": {
+        "count": 1,
+        "isCopycat": false
+      }
+    },
+    {
+      "address": "0x9bf165fd436f7d8e549e38822801d298a1eb4444",
+      "creator": "0x168a38dd8486067a4597c09ef8148a77c0fba000",
+      "block": 92112114,
+      "name": "销毁大脑1税全销毁",
+      "symbol": "脑雾",
+      "createdAt": 1776000949000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 2,
+      "socialLinks": {
+        "twitter": "https://x.com/SourceUnify/status/2043322187386687680?s=20",
+        "website": "https://s.weibo.com/weibo?q=%E8%84%91%E9%9B%BE&t=31&band_rank=4&Refer=top"
+      },
+      "descr": "销毁大脑1税全销毁",
+      "price": 3.396e-06,
+      "peakPrice": 3.396e-06,
+      "holders": 1,
+      "peakHolders": 1,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.0,
+      "progress": 0.0,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 3.396e-06,
+      "priceHistory": [
+        5.739795917e-09,
+        3.396e-06
+      ],
+      "holdersHistory": [
+        1
+      ],
+      "copycat": {
+        "count": 22,
+        "isCopycat": true
+      }
+    },
+    {
+      "address": "0xedc9d8b04b315c2c1591d0ee80a6f68029994444",
+      "creator": "0x1ef832120aa68c650e84df4769c5d9616d914014",
+      "block": 92112125,
+      "name": "脑雾",
+      "symbol": "脑雾",
+      "createdAt": 1776000954000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 1,
+      "socialLinks": {
+        "website": "https://s.weibo.com/weibo?q=%E8%84%91%E9%9B%BE&t=31&band_rank=4&Refer=top"
+      },
+      "descr": "脑雾",
+      "price": 3.401e-06,
+      "peakPrice": 3.401e-06,
+      "holders": 0,
+      "peakHolders": 0,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.0,
+      "progress": 0.0,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 3.401e-06,
+      "priceHistory": [
+        5.739795917e-09,
+        3.401e-06
+      ],
+      "holdersHistory": [
+        0
+      ],
+      "copycat": {
+        "count": 22,
+        "isCopycat": true
+      }
+    },
+    {
+      "address": "0x10c6c15cb260e1b34cadeae877c0823a7fbb4444",
+      "creator": "0x6a900ee716a579a6ea984015697de9fbf98989fc",
+      "block": 92112292,
+      "name": "脑瘫",
+      "symbol": "脑瘫",
+      "createdAt": 1776001030000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 1,
+      "socialLinks": {
+        "twitter": "https://x.com/BSC_EL_dev/status/2043321541849755996?s=20"
+      },
+      "descr": "脑瘫",
+      "price": 3.4e-06,
+      "peakPrice": 3.4e-06,
+      "holders": 1,
+      "peakHolders": 1,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.0,
+      "progress": 0.0,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 3.4e-06,
+      "priceHistory": [
+        5.739795917e-09,
+        3.4e-06
+      ],
+      "holdersHistory": [
+        1
+      ],
+      "copycat": {
+        "count": 3,
+        "isCopycat": true
+      }
+    },
+    {
+      "address": "0x51e635163613dae134c5905f265bd0391e7c4444",
+      "creator": "0x2ed4f55c013186659e755d5ce8791ca377bd1433",
+      "block": 92112317,
+      "name": "脑瘫",
+      "symbol": "脑瘫",
+      "createdAt": 1776001041000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 2,
+      "socialLinks": {
+        "twitter": "https://x.com/web2designer09/status/2043318794085675120",
+        "website": "https://s.weibo.com/weibo?q=%E8%84%91%E9%9B%BE&t=31&band_rank=4&Refer=top"
+      },
+      "descr": "脑瘫",
+      "price": 3.4e-06,
+      "peakPrice": 3.4e-06,
+      "holders": 1,
+      "peakHolders": 1,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.0,
+      "progress": 0.0,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 3.4e-06,
+      "priceHistory": [
+        5.739795917e-09,
+        3.4e-06
+      ],
+      "holdersHistory": [
+        1
+      ],
+      "copycat": {
+        "count": 3,
+        "isCopycat": true
+      }
+    },
+    {
+      "address": "0x3a989d907b27ef324f25af363e4b8ffeddd44444",
+      "creator": "0x195eedd642ae54d60343483704bf7c62af5c8419",
+      "block": 92112354,
+      "name": "正确图片",
+      "symbol": "脑雾",
+      "createdAt": 1776001058000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 2,
+      "socialLinks": {
+        "twitter": "https://x.com/web2designer09/status/2043318794085675120",
+        "website": "https://s.weibo.com/weibo?q=%E8%84%91%E9%9B%BE&t=31&band_rank=4&Refer=top"
+      },
+      "descr": "正确图片",
+      "price": 3.505e-06,
+      "peakPrice": 3.505e-06,
+      "holders": 2,
+      "peakHolders": 2,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.09820508024642052,
+      "progress": 0.0210515116,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 3.505e-06,
+      "priceHistory": [
+        5.924134577e-09,
+        3.505e-06
+      ],
+      "holdersHistory": [
+        2
+      ],
+      "copycat": {
+        "count": 22,
+        "isCopycat": true
+      }
+    },
+    {
+      "address": "0xda8f38550fc1c2842bf46a62069cb62f7c3d4444",
+      "creator": "0xaf02ed92699c10b0d70da0d75474dd4b34655689",
+      "block": 92112439,
+      "name": "微博热搜",
+      "symbol": "AI造黄",
+      "createdAt": 1776001099000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 2,
+      "socialLinks": {
+        "twitter": "https://x.com/NoTickerNoLife/status/2043322813260718164?s=20",
+        "website": "https://weibo.com/2258727970/QAuzSxV4g?refer_flag=1001030103_"
+      },
+      "descr": "微博热搜",
+      "price": 3.397e-06,
+      "peakPrice": 3.397e-06,
+      "holders": 1,
+      "peakHolders": 1,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.0,
+      "progress": 0.0,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 3.397e-06,
+      "priceHistory": [
+        5.739795917e-09,
+        3.397e-06
+      ],
+      "holdersHistory": [
+        1
+      ],
+      "copycat": {
+        "count": 14,
+        "isCopycat": true
+      }
+    },
+    {
+      "address": "0xcd426ba9611f89d869996125b6c6c2c7e42b4444",
+      "creator": "0x7bddcafff7e86eacb984a94247d41655277fb22b",
+      "block": 92112443,
+      "name": "微博热搜bangbang猫 堪比大开门",
+      "symbol": "bangbang猫",
+      "createdAt": 1776001098000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 2,
+      "socialLinks": {
+        "twitter": "https://x.com/six1xxx/status/2043322803878019549?s=20",
+        "website": "https://s.weibo.com/weibo?q=%23%E7%AC%AC%E4%B8%80%E6%AC%A1%E8%A7%81bangbang%E5%8F%AB%E7%9A%84%E7%8C%AB%23"
+      },
+      "descr": "微博热搜bangbang猫 堪比大开门",
+      "price": 3.396e-06,
+      "peakPrice": 3.396e-06,
+      "holders": 1,
+      "peakHolders": 1,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.0,
+      "progress": 0.0,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 3.396e-06,
+      "priceHistory": [
+        5.739795917e-09,
+        3.396e-06
+      ],
+      "holdersHistory": [
+        1
+      ],
+      "copycat": {
+        "count": 4,
+        "isCopycat": true
+      }
+    },
+    {
+      "address": "0x2848f1401d9230789a9ca0966541fd2ba99e4444",
+      "creator": "0x7dcf275735184a51ade69c7c8e6e54c2dd23aeef",
+      "block": 92112468,
+      "name": "brain and brain",
+      "symbol": "BNB",
+      "createdAt": 1776001109000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 1,
+      "socialLinks": {
+        "twitter": "https://x.com/aryonserwin/status/2043322866582913050"
+      },
+      "descr": "brain and brain",
+      "price": 3.396e-06,
+      "peakPrice": 3.396e-06,
+      "holders": 1,
+      "peakHolders": 1,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.0,
+      "progress": 0.0,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 3.396e-06,
+      "priceHistory": [
+        5.739795917e-09,
+        3.396e-06
+      ],
+      "holdersHistory": [
+        1
+      ],
+      "copycat": {
+        "count": 8,
+        "isCopycat": true
+      }
+    },
+    {
+      "address": "0xaaffdf926980d4da9c1d312c1e6fb205c5e54444",
+      "creator": "0x1f6ffc85622304c68340dbaf3f80ddc7bc824de3",
+      "block": 92112484,
+      "name": "Brain and Brain",
+      "symbol": "BNB",
+      "createdAt": 1776001116000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 1,
+      "socialLinks": {
+        "twitter": "https://x.com/i/status/2043322866582913050"
+      },
+      "descr": "Brain and Brain",
+      "price": 3.397e-06,
+      "peakPrice": 3.397e-06,
+      "holders": 0,
+      "peakHolders": 0,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.0,
+      "progress": 0.0,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 3.397e-06,
+      "priceHistory": [
+        5.739795917e-09,
+        3.397e-06
+      ],
+      "holdersHistory": [
+        0
+      ],
+      "copycat": {
+        "count": 8,
+        "isCopycat": true
+      }
+    },
+    {
+      "address": "0xa35d1186a91539d6dbb3b15f85d8e09740e84444",
+      "creator": "0x6a4012b20768d9b5df1bdf88b3f8df00ecd4de94",
+      "block": 92112548,
+      "name": "brainless&brainless",
+      "symbol": "BNB",
+      "createdAt": 1776001145000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 1,
+      "socialLinks": {
+        "twitter": "https://x.com/aryonserwin/status/2043322866582913050"
+      },
+      "descr": "brainless&brainless",
+      "price": 3.399e-06,
+      "peakPrice": 3.399e-06,
+      "holders": 1,
+      "peakHolders": 1,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.0,
+      "progress": 0.0,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 3.399e-06,
+      "priceHistory": [
+        5.739795917e-09,
+        3.399e-06
+      ],
+      "holdersHistory": [
+        1
+      ],
+      "copycat": {
+        "count": 9,
+        "isCopycat": true
+      }
+    },
+    {
+      "address": "0x48caaf68863df5ab687161cd4304e23f55e44444",
+      "creator": "0x3acaf3edb63000b615bee89ffb0effa997bcced8",
+      "block": 92112649,
+      "name": "脑雾反过来=无脑",
+      "symbol": "无脑",
+      "createdAt": 1776001187000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 1,
+      "socialLinks": {
+        "twitter": "https://x.com/raxhephonh/status/2043323181558034478?s=46"
+      },
+      "descr": "m",
+      "price": 3.397e-06,
+      "peakPrice": 3.397e-06,
+      "holders": 1,
+      "peakHolders": 1,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.0,
+      "progress": 0.0,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 3.397e-06,
+      "priceHistory": [
+        5.739795917e-09,
+        3.397e-06
+      ],
+      "holdersHistory": [
+        1
+      ],
+      "copycat": {
+        "count": 25,
+        "isCopycat": true
+      }
+    },
+    {
+      "address": "0x488d91591529a5e1ca2bda6ee1f35379e8fbffff",
+      "creator": "0x53a58a540c295a4b1fdf19173e3ed64c45275cc0",
+      "block": 92112653,
+      "name": "智商税",
+      "symbol": "智商税",
+      "createdAt": 1776001195000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 1,
+      "socialLinks": {
+        "twitter": "https://x.com/BSC_EL_dev/status/2043323221601337621?s=20"
+      },
+      "descr": "智商税",
+      "price": 3.397e-06,
+      "peakPrice": 3.397e-06,
+      "holders": 1,
+      "peakHolders": 1,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 5.011e-15,
+      "progress": 1e-10,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 3.397e-06,
+      "priceHistory": [
+        5.739795917e-09,
+        3.397e-06
+      ],
+      "holdersHistory": [
+        1
+      ],
+      "copycat": {
+        "count": 0,
+        "isCopycat": false
+      }
+    },
+    {
+      "address": "0x0d7781505d52aa3c68ec1b4fdb00608631f44444",
+      "creator": "0xaf02ed92699c10b0d70da0d75474dd4b34655689",
+      "block": 92112656,
+      "name": "无脑",
+      "symbol": "无脑",
+      "createdAt": 1776001197000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 1,
+      "socialLinks": {
+        "twitter": "https://x.com/i/status/2043323181558034478"
+      },
+      "descr": "无脑",
+      "price": 3.397e-06,
+      "peakPrice": 3.397e-06,
+      "holders": 3,
+      "peakHolders": 3,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.000160246399243987,
+      "progress": 3.48972e-05,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 3.397e-06,
+      "priceHistory": [
+        5.740094339e-09,
+        3.397e-06
+      ],
+      "holdersHistory": [
+        3
+      ],
+      "copycat": {
+        "count": 5,
+        "isCopycat": true
+      }
+    },
+    {
+      "address": "0xc2d3d5f326dc2c3c06fab513962aec68fafe4444",
+      "creator": "0xd3cae8166e14c58d74a51c46e4389a9b5bad411b",
+      "block": 92112660,
+      "name": "币安脑雾",
+      "symbol": "脑雾",
+      "createdAt": 1776001196000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 1,
+      "socialLinks": {
+        "twitter": "https://x.com/DinaCron/status/2043323206585790527"
+      },
+      "descr": "币安脑雾",
+      "price": 3.396e-06,
+      "peakPrice": 3.396e-06,
+      "holders": 1,
+      "peakHolders": 1,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.0,
+      "progress": 0.0,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 3.396e-06,
+      "priceHistory": [
+        5.739795917e-09,
+        3.396e-06
+      ],
+      "holdersHistory": [
+        1
+      ],
+      "copycat": {
+        "count": 29,
+        "isCopycat": true
+      }
+    },
+    {
+      "address": "0xaaa1b24a52e11fe7d8ee5a4ab209ba902aca4444",
+      "creator": "0x7dcf275735184a51ade69c7c8e6e54c2dd23aeef",
+      "block": 92112753,
+      "name": "无脑人生",
+      "symbol": "Brainless",
+      "createdAt": 1776001237000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 2,
+      "socialLinks": {
+        "twitter": "https://x.com/aryonserwin/status/2043323407828439112",
+        "website": "https://x.com/heyibinance/status/1975808793939259688"
+      },
+      "descr": "无脑人生",
+      "price": 3.656e-06,
+      "peakPrice": 3.656e-06,
+      "holders": 6,
+      "peakHolders": 6,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.22955261891258597,
+      "progress": 0.0481966853,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 3.656e-06,
+      "priceHistory": [
+        6.175238535e-09,
+        3.656e-06
+      ],
+      "holdersHistory": [
+        6
+      ],
+      "copycat": {
+        "count": 6,
+        "isCopycat": true
+      }
+    },
+    {
+      "address": "0x5566462e88cb9c336232c5b2f8bbc6a271384444",
+      "creator": "0x912753d660851aa856b6489e23ef2e8ad3760e6c",
+      "block": 92112754,
+      "name": "Deez Nuts",
+      "symbol": "DEEZNUTS",
+      "createdAt": 1776001237000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 1,
+      "socialLinks": {
+        "twitter": "https://x.com/Dexerto/status/2043323344422871207"
+      },
+      "descr": "🚨 Coachella just dropped the ultimate meme moment—Justin Bieber played “Deez Nuts” LIVE on the main stage! 🔥 This isn’t just nostalgia—it’s ignition. $DEEZNUTS is blowing up *right now* as the interne\nhttps://x.com/Dexerto/status/2043323344422871207",
+      "price": 3.43e-06,
+      "peakPrice": 3.43e-06,
+      "holders": 1,
+      "peakHolders": 1,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.029702970297029695,
+      "progress": 0.0064376273,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 3.43e-06,
+      "priceHistory": [
+        5.795243387e-09,
+        3.43e-06
+      ],
+      "holdersHistory": [
+        1
+      ],
+      "copycat": {
+        "count": 0,
+        "isCopycat": false
+      }
+    },
+    {
+      "address": "0x75c7b15b6b96b7e8cdb281cd1efef05a5a714444",
+      "creator": "0x1f6ffc85622304c68340dbaf3f80ddc7bc824de3",
+      "block": 92112757,
+      "name": "无脑",
+      "symbol": "无脑",
+      "createdAt": 1776001239000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 1,
+      "socialLinks": {
+        "twitter": "https://x.com/i/status/2043323407828439112"
+      },
+      "descr": "无脑",
+      "price": 3.399e-06,
+      "peakPrice": 3.399e-06,
+      "holders": 2,
+      "peakHolders": 2,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.0,
+      "progress": 0.0,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 3.399e-06,
+      "priceHistory": [
+        5.739795917e-09,
+        3.399e-06
+      ],
+      "holdersHistory": [
+        2
+      ],
+      "copycat": {
+        "count": 5,
+        "isCopycat": true
+      }
+    },
+    {
+      "address": "0xda9ea127616ccbf2abbbbcaed6fac122aaf64444",
+      "creator": "0x6a900ee716a579a6ea984015697de9fbf98989fc",
+      "block": 92112788,
+      "name": "脑雾",
+      "symbol": "脑雾",
+      "createdAt": 1776001253000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 2,
+      "socialLinks": {
+        "twitter": "https://x.com/aryonserwin/status/2043323407828439112",
+        "website": "https://x.com/heyibinance/status/1975808793939259688"
+      },
+      "descr": "脑雾",
+      "price": 3.396e-06,
+      "peakPrice": 3.396e-06,
+      "holders": 0,
+      "peakHolders": 0,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.0,
+      "progress": 0.0,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 3.396e-06,
+      "priceHistory": [
+        5.739795917e-09,
+        3.396e-06
+      ],
+      "holdersHistory": [
+        0
+      ],
+      "copycat": {
+        "count": 22,
+        "isCopycat": true
+      }
+    },
+    {
+      "address": "0x0dfbc54218258c9605563faf4d36de240dd24444",
+      "creator": "0x5d6282a9c3ecccd897c5235fb26e7b97cde5b854",
+      "block": 92112844,
+      "name": "无脑人生",
+      "symbol": "无脑人生",
+      "createdAt": 1776001281000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 2,
+      "socialLinks": {
+        "twitter": "https://x.com/aryonserwin/status/2043323407828439112",
+        "website": "https://x.com/heyibinance/status/1975808793939259688"
+      },
+      "descr": "无脑人生",
+      "price": 3.396e-06,
+      "peakPrice": 3.396e-06,
+      "holders": 1,
+      "peakHolders": 1,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.0,
+      "progress": 0.0,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 3.396e-06,
+      "priceHistory": [
+        5.739795917e-09,
+        3.396e-06
+      ],
+      "holdersHistory": [
+        1
+      ],
+      "copycat": {
+        "count": 5,
+        "isCopycat": true
+      }
+    },
+    {
+      "address": "0x698705bce7b4617e37217255748d726eff5d4444",
+      "creator": "0x53a58a540c295a4b1fdf19173e3ed64c45275cc0",
+      "block": 92112903,
+      "name": "智障人生",
+      "symbol": "智障人生",
+      "createdAt": 1776001305000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 1,
+      "socialLinks": {
+        "twitter": "https://x.com/BSC_EL_dev/status/2043323693678711215?s=20"
+      },
+      "descr": "智障人生",
+      "price": 3.397e-06,
+      "peakPrice": 3.397e-06,
+      "holders": 1,
+      "peakHolders": 1,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 5.011e-15,
+      "progress": 1e-10,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 3.397e-06,
+      "priceHistory": [
+        5.739795917e-09,
+        3.397e-06
+      ],
+      "holdersHistory": [
+        1
+      ],
+      "copycat": {
+        "count": 0,
+        "isCopycat": false
+      }
+    },
+    {
+      "address": "0x0e2c1fd8aa153c78d085f4e47de980c85ed44444",
+      "creator": "0x9d11dfb6609ebc7a047155b704a1b8e7f9220850",
+      "block": 92112905,
+      "name": "yi he experiment",
+      "symbol": "yi he experiment",
+      "createdAt": 1776001306000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 1,
+      "socialLinks": {
+        "website": "https://yiheexp.xyz/"
+      },
+      "descr": "yi he experiment",
+      "price": 3.423e-06,
+      "peakPrice": 3.423e-06,
+      "holders": 11,
+      "peakHolders": 11,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.05354788759333568,
+      "progress": 0.0115611126,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 3.423e-06,
+      "priceHistory": [
+        5.839948311e-09,
+        3.423e-06
+      ],
+      "holdersHistory": [
+        11
+      ],
+      "copycat": {
+        "count": 1,
+        "isCopycat": false
+      }
+    },
+    {
+      "address": "0x8c7bebb6f290f1457459c2c13beaff61e0df4444",
+      "creator": "0x6a4012b20768d9b5df1bdf88b3f8df00ecd4de94",
+      "block": 92112934,
+      "name": "脑雾反过来=无脑",
+      "symbol": "无脑",
+      "createdAt": 1776001319000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 1,
+      "socialLinks": {
+        "twitter": "https://x.com/raxhephonh/status/2043323181558034478?s=46"
+      },
+      "descr": "脑雾反过来=无脑",
+      "price": 3.423e-06,
+      "peakPrice": 3.423e-06,
+      "holders": 2,
+      "peakHolders": 2,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.021511117257391636,
+      "progress": 0.0046683528,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 3.423e-06,
+      "priceHistory": [
+        5.77992478e-09,
+        3.423e-06
+      ],
+      "holdersHistory": [
+        2
+      ],
+      "copycat": {
+        "count": 25,
+        "isCopycat": true
+      }
+    },
+    {
+      "address": "0x66b606baad1ce8b343df2bd8200cc0628b7e4444",
+      "creator": "0xf38ce55fe4e517e77e1056a54e64f22d43d88c3a",
+      "block": 92112962,
+      "name": "yi he experiment",
+      "symbol": "experiment",
+      "createdAt": 1776001334000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 1,
+      "socialLinks": {
+        "website": "https://yiheexp.xyz/"
+      },
+      "descr": "yi he experiment",
+      "price": 3.399e-06,
+      "peakPrice": 3.399e-06,
+      "holders": 1,
+      "peakHolders": 1,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.0,
+      "progress": 0.0,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 3.399e-06,
+      "priceHistory": [
+        5.739795917e-09,
+        3.399e-06
+      ],
+      "holdersHistory": [
+        1
+      ],
+      "copycat": {
+        "count": 1,
+        "isCopycat": false
+      }
+    },
+    {
+      "address": "0xcea3c9fca91335da94fe3c749f37f9fe1d9e4444",
+      "creator": "0x3b3d934fb98fc87451ee060748b722894e3e4d68",
+      "block": 92113125,
+      "name": "大脑CZ",
+      "symbol": "大脑CZ",
+      "createdAt": 1776001408000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 2,
+      "socialLinks": {
+        "twitter": "https://x.com/binance/status/1357395155628789761",
+        "website": "https://x.com/binance/status/1357395155628789761"
+      },
+      "descr": "大脑CZ",
+      "price": 3.421e-06,
+      "peakPrice": 3.421e-06,
+      "holders": 0,
+      "peakHolders": 0,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.019801980198019795,
+      "progress": 0.0042986227,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 3.421e-06,
+      "priceHistory": [
+        5.776731283e-09,
+        3.421e-06
+      ],
+      "holdersHistory": [
+        0
+      ],
+      "copycat": {
+        "count": 0,
+        "isCopycat": false
+      }
+    },
+    {
+      "address": "0x642a290f6f7b062abe8b485a2da430ed1b344444",
+      "creator": "0xeeefff8ce2710fa490e0fcb794235e873c252d2e",
+      "block": 92113161,
+      "name": "Garf Garf Garf Sahur",
+      "symbol": "TripleG",
+      "createdAt": 1776001421000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 2,
+      "socialLinks": {
+        "twitter": "https://x.com/DarthMiaul/status/2043324070561816662",
+        "website": "https://www.reddit.com/r/namesoundalikes/comments/1sitnoe/non_ai_triple_t/"
+      },
+      "descr": "Garf Garf Garf Sahur",
+      "price": 4.902e-06,
+      "peakPrice": 4.902e-06,
+      "holders": 6,
+      "peakHolders": 6,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.7965548877367986,
+      "progress": 0.1536211914,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 4.902e-06,
+      "priceHistory": [
+        7.31901658e-09,
+        4.902e-06
+      ],
+      "holdersHistory": [
+        6
+      ],
+      "copycat": {
+        "count": 1,
+        "isCopycat": false
+      }
+    },
+    {
+      "address": "0xfcac47c9f96a7cf981fd0da30c8596ec4a324444",
+      "creator": "0xf84a59f13adcb9576876436c458519c15ca5dcab",
+      "block": 92113163,
+      "name": "Garf Garf Garf Sahur",
+      "symbol": "TripleG",
+      "createdAt": 1776001422000,
+      "addedAt": 1776001520057,
+      "totalSupply": 1000000000,
+      "socialCount": 2,
+      "socialLinks": {
+        "twitter": "https://x.com/DarthMiaul/status/2043324070561816662",
+        "website": "https://www.reddit.com/r/namesoundalikes/comments/1sitnoe/non_ai_triple_t/"
+      },
+      "descr": "Garf Garf Garf Sahur",
+      "price": 3.967e-06,
+      "peakPrice": 3.967e-06,
+      "holders": 1,
+      "peakHolders": 1,
+      "liquidity": 0.0,
+      "peakLiquidity": 0.0,
+      "raisedAmount": 0.49504950495049505,
+      "progress": 0.0997963341,
+      "day1Vol": 0.0,
+      "consecDrops": 0,
+      "lastPrice": 3.967e-06,
+      "priceHistory": [
+        6.698717456e-09,
+        3.967e-06
+      ],
+      "holdersHistory": [
+        1
       ],
       "copycat": {
         "count": 1,
@@ -5933,566 +6226,6 @@
     }
   ],
   "eliminated": [
-    {
-      "address": "0xdaeba78702db194cc0756952c0923f63a7674444",
-      "name": "59",
-      "symbol": "59",
-      "elimReason": "币龄0.5h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984434000
-    },
-    {
-      "address": "0xffe8029855a16c139e68b04580d37138a68f4444",
-      "name": "59",
-      "symbol": "59",
-      "elimReason": "币龄0.5h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984437000
-    },
-    {
-      "address": "0xe9df149a8ad6f42c877113980afc31d92b0f4444",
-      "name": "59",
-      "symbol": "59",
-      "elimReason": "币龄0.5h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984437000
-    },
-    {
-      "address": "0x169f25fd9e296000dc93804b95978840e9824444",
-      "name": "比特币",
-      "symbol": "比特币",
-      "elimReason": "币龄0.5h 最高持币仅2",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984441000
-    },
-    {
-      "address": "0x469e59073af90334d82cd13bce5e7c919f934444",
-      "name": "Bitcoin",
-      "symbol": "复古化",
-      "elimReason": "币龄0.5h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984439000
-    },
-    {
-      "address": "0xbff1189128217a0744ca4fa7fd7685276fd34444",
-      "name": "BTC",
-      "symbol": "BTC",
-      "elimReason": "币龄0.5h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984441000
-    },
-    {
-      "address": "0xd4a4a7cabd9fe33298e0639bee734a9b16294444",
-      "name": "Bitcoin",
-      "symbol": "OLDIFY",
-      "elimReason": "币龄0.5h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984451000
-    },
-    {
-      "address": "0x7e6c9546bcf0a2b4ff51cc1df891c4ca553f4444",
-      "name": "BTC59",
-      "symbol": "B59",
-      "elimReason": "币龄0.5h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984449000
-    },
-    {
-      "address": "0x7586660df8fbcfac22073ed0900c1a55e82e4444",
-      "name": "Bitcoin1991",
-      "symbol": "Bitcoin1991",
-      "elimReason": "币龄0.5h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984459000
-    },
-    {
-      "address": "0x879f9fc96cf5cb9d58fbd34e4484e62e164d4444",
-      "name": "B59",
-      "symbol": "B59",
-      "elimReason": "币龄0.5h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984460000
-    },
-    {
-      "address": "0xb7d44add5288cec3c0afd55909bd494f48054444",
-      "name": "B59",
-      "symbol": "B59",
-      "elimReason": "币龄0.5h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984465000
-    },
-    {
-      "address": "0xcec81f3049c3cb9f89d9183edeb60b25168a4444",
-      "name": "bitcoin logo",
-      "symbol": "bitcoinlogo",
-      "elimReason": "币龄0.5h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984469000
-    },
-    {
-      "address": "0xdae739363e7f3a162500ca319527e8afce5e4444",
-      "name": "Buckazoids",
-      "symbol": "Buckazoids",
-      "elimReason": "币龄0.5h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984469000
-    },
-    {
-      "address": "0xa0d3cdf05a9f30e56ad2a7e28521cf6dcf574444",
-      "name": "B59",
-      "symbol": "B59",
-      "elimReason": "币龄0.5h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984471000
-    },
-    {
-      "address": "0x57648d352a6c97c627fa6bbb3b37862ff4ac4444",
-      "name": "老币登",
-      "symbol": "老币登",
-      "elimReason": "币龄0.5h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984471000
-    },
-    {
-      "address": "0xd683983fedef835dd4fc6e611fc8caaa3df04444",
-      "name": "Buckazoid",
-      "symbol": "Buckazoid",
-      "elimReason": "币龄0.5h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984481000
-    },
-    {
-      "address": "0x51aa826e8fb6ca75c81e4d94ee596e560c1b4444",
-      "name": "Buckazoid",
-      "symbol": "BKZ",
-      "elimReason": "币龄0.5h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984481000
-    },
-    {
-      "address": "0xedb80be9a05e483a7ee8bf47fc63d4db2f044444",
-      "name": "正确名字",
-      "symbol": "Buckazoids",
-      "elimReason": "币龄0.5h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984479000
-    },
-    {
-      "address": "0xd66349dd3a021ddc020b69e0539f5e06d7754444",
-      "name": "Buckazoid",
-      "symbol": "巴卡币",
-      "elimReason": "币龄0.5h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984485000
-    },
-    {
-      "address": "0x022dc65bcb12a99017d3fc5ab59eee68270e4444",
-      "name": "真名Bitzoid",
-      "symbol": "Bitzoid",
-      "elimReason": "币龄0.5h 最高持币仅2",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984496000
-    },
-    {
-      "address": "0x4177c25e74af7493c90c1639809f01dd8a494444",
-      "name": "Space Quest IV",
-      "symbol": "Space Quest IV",
-      "elimReason": "币龄0.5h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984505000
-    },
-    {
-      "address": "0x28c8a256275a33fa56a1897f558aea6d02414444",
-      "name": "游戏名",
-      "symbol": "Space Quest IV",
-      "elimReason": "币龄0.5h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984531000
-    },
-    {
-      "address": "0xed0a33f72b09c620f6e9f5933709c1ed363d4444",
-      "name": "₿uckazoid",
-      "symbol": "₿uckazoid",
-      "elimReason": "币龄0.5h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984541000
-    },
-    {
-      "address": "0x6efbb8f1bc376d90189da3cc116ef0293d9b4444",
-      "name": "Buckazoid",
-      "symbol": "BZ",
-      "elimReason": "币龄0.5h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984546000
-    },
-    {
-      "address": "0x87e2ec051c185c0a0926d60f0aab00cfff8c4444",
-      "name": "腾讯中式家长JZTI人格测试",
-      "symbol": "JZTI",
-      "elimReason": "币龄0.5h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984545000
-    },
-    {
-      "address": "0xcea5dd7efef679105e298be0b0497ca646934444",
-      "name": "真名",
-      "symbol": "Buckazoids",
-      "elimReason": "币龄0.5h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984547000
-    },
-    {
-      "address": "0xdcfa98c24794bad366bacc47c7d503f389054444",
-      "name": "MMcoin",
-      "symbol": "MM",
-      "elimReason": "币龄0.5h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984550000
-    },
-    {
-      "address": "0x432fdc9dfc1594dc63977aea1ad1c73869fc4444",
-      "name": "幣給娃樂",
-      "symbol": "幣給娃樂",
-      "elimReason": "币龄0.5h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984571000
-    },
-    {
-      "address": "0xa4c525fc736e0fe52814ee43ed9bb71c45714444",
-      "name": "BTC59",
-      "symbol": "BTC59",
-      "elimReason": "币龄0.5h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984567000
-    },
-    {
-      "address": "0xd62f8076c7b9bea6bb18d9462cc94a252cfb4444",
-      "name": "1991比特币之谜",
-      "symbol": "BTC91",
-      "elimReason": "币龄0.5h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984598000
-    },
-    {
-      "address": "0x11b0c742ccf14ef4177dfbef6be71cb326154444",
-      "name": "正确名字",
-      "symbol": "Buckazoids",
-      "elimReason": "币龄0.5h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984598000
-    },
-    {
-      "address": "0x1b3a3b0719a69003aa4ea35f549f12f476194444",
-      "name": "第一款比特币的游戏名字",
-      "symbol": "Space Quest IV",
-      "elimReason": "币龄0.4h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984611000
-    },
-    {
-      "address": "0x6248562c3b65ad4b7efe2d7c2f8b9c3dde574444",
-      "name": "中文名",
-      "symbol": "魔炮弹",
-      "elimReason": "币龄0.4h 最高持币仅2",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984638000
-    },
-    {
-      "address": "0xb176e56fc1aa2f89c3d2a10f3d34dff5687f4444",
-      "name": "Space Quest IV",
-      "symbol": "Buckazoid",
-      "elimReason": "币龄0.4h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984645000
-    },
-    {
-      "address": "0x8686b4bbba76f2d657f3eac89c2d2508eb6b4444",
-      "name": "Buckazoid",
-      "symbol": "Buckazoidcoin",
-      "elimReason": "币龄0.4h 最高持币仅2",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984646000
-    },
-    {
-      "address": "0x050ca5b551ed69b9886fc2149ef99d99dd734444",
-      "name": "Buckazoid",
-      "symbol": "Buckazoid",
-      "elimReason": "币龄0.4h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984658000
-    },
-    {
-      "address": "0x641ba94ebcebf4ed1ca0c41d8a31c49d433b4444",
-      "name": "钢铁天空下",
-      "symbol": "钢铁天空下",
-      "elimReason": "币龄0.4h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984661000
-    },
-    {
-      "address": "0x4b4041b093c67ed1feec56c3087dbff2e47a4444",
-      "name": "游戏另一个代币",
-      "symbol": "Selenazoid",
-      "elimReason": "币龄0.4h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984665000
-    },
-    {
-      "address": "0x7aca714dd7dd9e63454af0e48993cbbbd68d4444",
-      "name": "Buckazoids",
-      "symbol": "BUCKAZOIDS",
-      "elimReason": "币龄0.4h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984674000
-    },
-    {
-      "address": "0x95ff2af0249c2f1321e2ebaa5a49fc8260d64444",
-      "name": "正确名字",
-      "symbol": "Buckazoids",
-      "elimReason": "币龄0.4h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984677000
-    },
-    {
-      "address": "0x1fe4c117e140a57ca9e9073f3a1d9f26baca4444",
-      "name": "Buckazoid Coin",
-      "symbol": "₿",
-      "elimReason": "币龄0.4h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984691000
-    },
-    {
-      "address": "0x581b271b9c57b978040a05978bb3054248434444",
-      "name": "正确名字",
-      "symbol": "Buckazoids",
-      "elimReason": "币龄0.4h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984700000
-    },
-    {
-      "address": "0x0c26f02dc7bbfa6f12f20da413d2f44ddddd4444",
-      "name": "正确名字",
-      "symbol": "Buckazoids",
-      "elimReason": "币龄0.4h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984702000
-    },
-    {
-      "address": "0xa081ab829dad3481bc98ded4bad55f74642c4444",
-      "name": "正确名字",
-      "symbol": "Buckazoids",
-      "elimReason": "币龄0.4h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984703000
-    },
-    {
-      "address": "0xd07acb27cfcb7d1e9093251be3defb1c92a44444",
-      "name": "正确名字",
-      "symbol": "Buckazoids",
-      "elimReason": "币龄0.4h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984705000
-    },
-    {
-      "address": "0xea78996991e8beb9c04ddfde23fce6d37b9f4444",
-      "name": "货币中文名",
-      "symbol": "巴卡佐伊德",
-      "elimReason": "币龄0.4h 最高持币仅2",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984715000
-    },
-    {
-      "address": "0xc0a76ed201ff02395d83192b779165857e4a4444",
-      "name": "游戏里另一个加密币",
-      "symbol": "Selenazoid",
-      "elimReason": "币龄0.4h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984720000
-    },
-    {
-      "address": "0x68be92cf8b17d6b94efce48542f8ad29d27c4444",
-      "name": "₿uckazoids Coin",
-      "symbol": "₿uckazoids",
-      "elimReason": "币龄0.4h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984742000
-    },
-    {
-      "address": "0x5235c20905961f998eafa8ae99c2928b2dd54444",
-      "name": "cz书中最早的币安标志",
-      "symbol": "BN714",
-      "elimReason": "币龄0.4h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984759000
-    },
-    {
-      "address": "0x0a7c1a2cdb2df6f96ea9c00c645b8c6377b54444",
-      "name": "Space Quest IV",
-      "symbol": "Space Quest IV",
-      "elimReason": "币龄0.4h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984774000
-    },
-    {
-      "address": "0xa9cba6e661a5e78dd2bb351e91d3f51b3df94444",
-      "name": "BUCKAZOIDS",
-      "symbol": "BUCKAZOIDS",
-      "elimReason": "币龄0.4h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984801000
-    },
-    {
-      "address": "0x76ac172fc88d4e163ef31459b9ae4fe489e34444",
-      "name": "BUCKAZOIDS",
-      "symbol": "BUCKAZOIDS",
-      "elimReason": "币龄0.4h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984807000
-    },
-    {
-      "address": "0x25b607a07c77f4e34cd0d711eb108ed58d714444",
-      "name": "BUCKAZOIDS",
-      "symbol": "BUCKAZOIDS",
-      "elimReason": "币龄0.4h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984812000
-    },
-    {
-      "address": "0x46106ce5173a87db8cdf702fc2443e959c874444",
-      "name": "BUCKAZOIDS",
-      "symbol": "BUCKAZOIDS",
-      "elimReason": "币龄0.4h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984820000
-    },
-    {
-      "address": "0x8a32f014c6511dbbf6a3d7f5e771564fdd6b4444",
-      "name": "比特币最早的meme",
-      "symbol": "BOB",
-      "elimReason": "币龄0.4h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984829000
-    },
-    {
-      "address": "0xa3835abd34fb7c4fd72e2d52ec047c1339824444",
-      "name": "Buckazoids",
-      "symbol": "太空任務4",
-      "elimReason": "币龄0.4h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984840000
-    },
-    {
-      "address": "0xc496e820f4ce80c2cdeca6ebfb817b8df74d4444",
-      "name": "CZ书中的比特币",
-      "symbol": "Ƀ",
-      "elimReason": "币龄0.4h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984861000
-    },
-    {
-      "address": "0xaf53df8f2bec94c0558f521effa8b56b5b4c4444",
-      "name": "比特币吉祥物",
-      "symbol": "比蒂",
-      "elimReason": "币龄0.4h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984864000
-    },
-    {
-      "address": "0x5d389b2085fbc510278204130031a30e9e614444",
-      "name": "Buckazoid",
-      "symbol": "BKZ",
-      "elimReason": "币龄0.4h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984937000
-    },
-    {
-      "address": "0xd23178b61dd5326230c54c66d926fb002c914444",
-      "name": "太空探索IV吉祥物",
-      "symbol": "Astro Chicken",
-      "elimReason": "币龄0.4h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984958000
-    },
-    {
-      "address": "0x0b6af927b9111929b24375e624a5bd70d3154444",
-      "name": "太空探索IV吉祥物",
-      "symbol": "ASTRO CHICKEN",
-      "elimReason": "币龄0.4h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984963000
-    },
-    {
-      "address": "0xc90548c5734571aedcf1108a96acef9f4d9a4444",
-      "name": "中文名",
-      "symbol": "太空任务",
-      "elimReason": "币龄0.4h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984964000
-    },
-    {
-      "address": "0x4233f556fe49b96f6ff28656432e14c2f1d24444",
-      "name": "同款游戏的另外个金币",
-      "symbol": "BKZ1",
-      "elimReason": "币龄0.3h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984995000
-    },
-    {
-      "address": "0x60c1033a2c0a256ec20acf7647969002bb674444",
-      "name": "BUCKAZOIDS",
-      "symbol": "BUCKAZOIDS",
-      "elimReason": "币龄0.3h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775984998000
-    },
-    {
-      "address": "0xc2e77c88c3e65fe9de43d2eb2d97e55740984444",
-      "name": "binancemoon",
-      "symbol": "Binancemoon",
-      "elimReason": "币龄0.3h 最高持币仅2",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775985001000
-    },
-    {
-      "address": "0x15622b2e4c204952abf1684226924900adab4444",
-      "name": "币安始终是我的目的地",
-      "symbol": "币安始终是我的目的地",
-      "elimReason": "币龄0.3h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775985005000
-    },
-    {
-      "address": "0xd196b5d13a3dd853a05764b79c6d9a3607434444",
-      "name": "币安国旗",
-      "symbol": "币安国旗",
-      "elimReason": "币龄0.3h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775985012000
-    },
-    {
-      "address": "0xd30c550094653da50f1956290535e719d3be4444",
-      "name": "同款游戏的另外个金币",
-      "symbol": "BKZ1",
-      "elimReason": "币龄0.3h 最高持币仅2",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775985013000
-    },
-    {
-      "address": "0x8642f4bda3ecee541a28161add82b2191b5b4444",
-      "name": "游戏制作人",
-      "symbol": "Satoshi Nakamoto",
-      "elimReason": "币龄0.3h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775985018000
-    },
-    {
-      "address": "0xb5724406f8230727b358397830c0e26b62fc4444",
-      "name": "游戏中另一个代币",
-      "symbol": "Selenazoid",
-      "elimReason": "币龄0.3h 最高持币仅1",
-      "eliminatedAt": 1775986226483,
-      "createdAt": 1775985052000
-    },
     {
       "address": "0xba85fd47fbf971aac1120133532233ab06954444",
       "name": "幣安人生",
@@ -13932,10 +13665,570 @@
       "elimReason": "入场拒绝: 币龄过大 (币龄3429.9h)",
       "eliminatedAt": 1776000624770,
       "createdAt": 1763653077000
+    },
+    {
+      "address": "0x26d761ae1756c512193fe071618ee2ce5eb74444",
+      "name": "德沃普",
+      "symbol": "Dwop",
+      "elimReason": "币龄0.5h 最高持币仅0",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1775999729000
+    },
+    {
+      "address": "0xf3d138cf4d9b2ef38c641d1841c628ec7ca84444",
+      "name": "你我都是平凡人",
+      "symbol": "平凡",
+      "elimReason": "币龄0.5h 最高持币仅1",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1775999809000
+    },
+    {
+      "address": "0xe27d012a90723e5364247b916d0dfc7e1abeffff",
+      "name": "赫米斯",
+      "symbol": "Hermes",
+      "elimReason": "币龄0.5h 最高持币仅1",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1775999812000
+    },
+    {
+      "address": "0x532bfe92b41f91fd8d90d2c00d9aae08ff3f4444",
+      "name": "炸鸡帝国AI",
+      "symbol": "KRAI",
+      "elimReason": "币龄0.5h 最高持币仅0",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1775999818000
+    },
+    {
+      "address": "0x46b35d92779142e399f526a85507bf1243e04444",
+      "name": "忘记屏幕",
+      "symbol": "忘记屏幕",
+      "elimReason": "币龄0.4h 最高持币仅2",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1775999912000
+    },
+    {
+      "address": "0x4189adf644740e4781f6f76ef9c2ae3458c24444",
+      "name": "When you realize",
+      "symbol": "派大星",
+      "elimReason": "币龄0.4h 最高持币仅1",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1775999925000
+    },
+    {
+      "address": "0xd29ac4cd1248693a8fba86b27057cba273314444",
+      "name": "放空世间",
+      "symbol": "放空世间",
+      "elimReason": "币龄0.4h 最高持币仅1",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1775999934000
+    },
+    {
+      "address": "0xc0c31989cd2eba6948cc764ea67c69389d2a4444",
+      "name": "When you realize",
+      "symbol": "开智",
+      "elimReason": "币龄0.4h 最高持币仅1",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1775999947000
+    },
+    {
+      "address": "0xfc870d47123c6033def8b683d75c07e7e12d4444",
+      "name": "cz的答案",
+      "symbol": "CZ的答案",
+      "elimReason": "币龄0.4h 最高持币仅0",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1776000017000
+    },
+    {
+      "address": "0x389772a33af17ba2c72e51d3e185b95bcda14444",
+      "name": "早安币",
+      "symbol": "GM",
+      "elimReason": "币龄0.4h 最高持币仅2",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1776000046000
+    },
+    {
+      "address": "0x15a29ffb10b3d978ebc7e1d3cbfb405d9bb6ffff",
+      "name": "Hermes",
+      "symbol": "赫米斯",
+      "elimReason": "币龄0.4h 最高持币仅2",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1776000108000
+    },
+    {
+      "address": "0x0603cdc2d25e65531a62636c6751a1269d634444",
+      "name": "When you realize",
+      "symbol": "PATRICK",
+      "elimReason": "币龄0.4h 最高持币仅1",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1776000127000
+    },
+    {
+      "address": "0xd5a723c478bb23c314889ce50c6456acd9954444",
+      "name": "When you realize",
+      "symbol": "开智",
+      "elimReason": "币龄0.4h 最高持币仅2",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1776000196000
+    },
+    {
+      "address": "0x924f89edd0db9113016d451a6a60c99d92644444",
+      "name": "微博热搜",
+      "symbol": "ai哄人文学",
+      "elimReason": "币龄0.4h 最高持币仅1",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1776000206000
+    },
+    {
+      "address": "0xa9577a5c042793c0e17c01ab69ef9f7aca984444",
+      "name": "全力Dwop",
+      "symbol": "Dwop",
+      "elimReason": "币龄0.4h 最高持币仅1",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1776000214000
+    },
+    {
+      "address": "0xa912b5e882a195c7e1e897043beaf86b8b534444",
+      "name": "耶稣",
+      "symbol": "耶稣",
+      "elimReason": "币龄0.3h 最高持币仅1",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1776000291000
+    },
+    {
+      "address": "0xa420aa9b3fc0ce19a18dd9be58eeb62d73844444",
+      "name": "川神",
+      "symbol": "川神",
+      "elimReason": "币龄0.3h 最高持币仅2",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1776000304000
+    },
+    {
+      "address": "0x7eaf4eb0bdb218abf0a5dfafb093cd18fa11ffff",
+      "name": "JellyPaul",
+      "symbol": "JellyPaul",
+      "elimReason": "币龄0.3h 最高持币仅0",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1776000306000
+    },
+    {
+      "address": "0x05c3066439b70d6e5e9d2fe74da55bbeb1034444",
+      "name": "Grainrot",
+      "symbol": "GRAINROT",
+      "elimReason": "币龄0.3h 最高持币仅1",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1776000315000
+    },
+    {
+      "address": "0x6da86fb9a0fec56cb489c2589e83d6b9f31f4444",
+      "name": "科幻生活",
+      "symbol": "科幻",
+      "elimReason": "币龄0.3h 最高持币仅1",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1776000331000
+    },
+    {
+      "address": "0xb9f568557ec8d95f1819fdc647967bbb4de34444",
+      "name": "科幻小说",
+      "symbol": "科幻小说",
+      "elimReason": "币龄0.3h 最高持币仅0",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1776000335000
+    },
+    {
+      "address": "0xe67a0c80c1de5b6fe65b1d2cb7bc71b3a5e94444",
+      "name": "GEM ALARM",
+      "symbol": "GEM",
+      "elimReason": "币龄0.3h 最高持币仅1",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1776000377000
+    },
+    {
+      "address": "0x195a4f08b1797bfd63e199424a01b7d0d9ba4444",
+      "name": "脑雾",
+      "symbol": "脑雾",
+      "elimReason": "币龄0.3h 最高持币仅2",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1776000444000
+    },
+    {
+      "address": "0x1392e7e98430ace8ce85a889153e04582b844444",
+      "name": "Turn Nothing toSomet",
+      "symbol": "Stardust",
+      "elimReason": "币龄0.3h 最高持币仅1",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1776000451000
+    },
+    {
+      "address": "0x86298d8724d1f1948c083aaa1a6b338d48ac4444",
+      "name": "正确的图",
+      "symbol": "脑雾",
+      "elimReason": "币龄0.3h 最高持币仅1",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1776000513000
+    },
+    {
+      "address": "0xcf3e64c2cae356bc46c4de2ecfa9c72dd91f4444",
+      "name": "原来是脑雾反应啊",
+      "symbol": "脑雾",
+      "elimReason": "币龄0.3h 最高持币仅1",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1776000524000
+    },
+    {
+      "address": "0x278798a673aadf1e2107f82ba18dac89ce2b4444",
+      "name": "脑雾",
+      "symbol": "脑雾",
+      "elimReason": "币龄0.3h 最高持币仅0",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1776000536000
+    },
+    {
+      "address": "0x02c5f2bd2766a08d57ee3a1345d4a852f6cb4444",
+      "name": "最新最适合p小将的人格是 川普",
+      "symbol": "川普",
+      "elimReason": "币龄0.3h 最高持币仅0",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1776000590000
+    },
+    {
+      "address": "0xbed1b3a80352b1f0e52ea07a6db81f4b5eb64444",
+      "name": "meme改变人生",
+      "symbol": "meme改变人生",
+      "elimReason": "币龄0.3h 最高持币仅0",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1776000613000
+    },
+    {
+      "address": "0x4d3b4310bfd7297a35e189f15102d2084d20ffff",
+      "name": "捐款给CZ书中的项目基金会",
+      "symbol": "Vertex Fund",
+      "elimReason": "币龄6.9h 最高持币仅2",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1775976591000
+    },
+    {
+      "address": "0x52ca69c5aeb9d13cd9c9816406cd563e7e734444",
+      "name": "加密霸主",
+      "symbol": "Crypto Overlord",
+      "elimReason": "币龄16.4h 最高持币仅2",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1775942519000
+    },
+    {
+      "address": "0x72b3151607499da4e1cd92f9853b1b7c962f4444",
+      "name": "PenguBot",
+      "symbol": "PENGUBOT",
+      "elimReason": "币龄33.0h 最高持币仅4",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1775882757000
+    },
+    {
+      "address": "0xa4c057bff4cf6a4b5870512b04bd4e5915234444",
+      "name": "#FreedomOfMoney",
+      "symbol": "#FREEDOMOFMONEY",
+      "elimReason": "币龄23.2h 最高持币仅2",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1775918073000
+    },
+    {
+      "address": "0xec1aec5590bb3ca1f6cc61e0c2bb738b09dc4444",
+      "name": "于风浪见担当,于初心知温暖",
+      "symbol": "但当",
+      "elimReason": "币龄6.4h 最高持币仅1",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1775978516000
+    },
+    {
+      "address": "0x17bcbc2fb9675f646f2324fcc2fdcb7848074444",
+      "name": "WORLD LIBERTY FI",
+      "symbol": "WLFI",
+      "elimReason": "币龄10.8h 最高持币仅3",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1775962675000
+    },
+    {
+      "address": "0xda4a58b94fac5ebe0d933883e3ed96f6bedf4444",
+      "name": "LPM 1.0",
+      "symbol": "LPM1.0",
+      "elimReason": "价格跌100% (峰:6.02e-06 现:6.48e-09)",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1775909280000
+    },
+    {
+      "address": "0x409d1a88645296fd5960c84221a6a8af6fae4444",
+      "name": "5",
+      "symbol": "5",
+      "elimReason": "进度4.04% 币龄4.1h",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1775986813000
+    },
+    {
+      "address": "0x36d3542df6969f923e3780fc2ca5d7b3b5fb4444",
+      "name": "土木工程署石仔",
+      "symbol": "石仔",
+      "elimReason": "进度0.39% 币龄2.1h",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1775993845000
+    },
+    {
+      "address": "0x85fbe17dafeac0138f4921d31d60592980cb4444",
+      "name": "1号球衣CZ",
+      "symbol": "10",
+      "elimReason": "进度0.29% 币龄34.0h",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1775879092000
+    },
+    {
+      "address": "0x74e5935d93794add853572e5c9840aadb49d4444",
+      "name": "自由人生",
+      "symbol": "自由人生",
+      "elimReason": "进度4.12% 币龄41.0h",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1775853923000
+    },
+    {
+      "address": "0xcdfb9fade5ce5044d634fe13bb3bc67ce57a4444",
+      "name": "Binance Movie",
+      "symbol": "Binance Movie",
+      "elimReason": "进度0.04% 币龄36.4h",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1775870333000
+    },
+    {
+      "address": "0x20d73d5da1ca89cf80c43ce37245dc3157e44444",
+      "name": "美伊谈崩 加密寒冬",
+      "symbol": "嘣咚",
+      "elimReason": "入场拒绝: 无社交媒体",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1776000881000
+    },
+    {
+      "address": "0xbb925ddae393c9046e91129100e624ca150e4444",
+      "name": "脑雾",
+      "symbol": "脑雾",
+      "elimReason": "入场拒绝: 无社交媒体",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1776001091000
+    },
+    {
+      "address": "0x1d12f9b2bef7f153eca774affed2f63307074444",
+      "name": "wickpapa",
+      "symbol": "wickpapa",
+      "elimReason": "入场拒绝: 无社交媒体",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1776001102000
+    },
+    {
+      "address": "0xc948903fb52371ed5c9c84b12b9989d3398f4444",
+      "name": "bsc顶级脑meme",
+      "symbol": "脑梗",
+      "elimReason": "入场拒绝: 无社交媒体",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1776001158000
+    },
+    {
+      "address": "0x67dab39b3ef2b1d0487340c8e8921b80e4fd4444",
+      "name": "脑雾",
+      "symbol": "脑雾",
+      "elimReason": "入场拒绝: 无社交媒体",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1776001198000
+    },
+    {
+      "address": "0xe6a69e70edfe849745de0934d197e7496f624444",
+      "name": "bsc第一脑雾",
+      "symbol": "脑雾李",
+      "elimReason": "入场拒绝: 无社交媒体",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1776001277000
+    },
+    {
+      "address": "0x7e39ae11e5f0ce0ebc2572f9a3012772b7674444",
+      "name": "脑瘫必备",
+      "symbol": "脑白金",
+      "elimReason": "入场拒绝: 无社交媒体",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1776001317000
+    },
+    {
+      "address": "0xc25496e888d8f8b6cdd06779f9d1a030ef684444",
+      "name": "真正的名字",
+      "symbol": "wick吃了李",
+      "elimReason": "入场拒绝: 无社交媒体",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1776001331000
+    },
+    {
+      "address": "0x32252f8d9761b80e3abbd2cdda49242f75d04444",
+      "name": "****",
+      "symbol": "papa",
+      "elimReason": "入场拒绝: 无社交媒体",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1776001345000
+    },
+    {
+      "address": "0x42dcbbb468e702ea2105d0ab5f624a80dba34444",
+      "name": "抖音首部以Cz经历拍摄的动漫",
+      "symbol": "鹏程万里",
+      "elimReason": "入场拒绝: 币龄过大 (币龄152.4h)",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1775452811000
+    },
+    {
+      "address": "0x5657d308c212c3853cc99578d1e2cafc821c4444",
+      "name": "Grok",
+      "symbol": "Grok",
+      "elimReason": "入场拒绝: 币龄过大 (币龄193.7h)",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1775304362000
+    },
+    {
+      "address": "0xdf8e4eee73d16cb5f975c529297a8275b5bb4444",
+      "name": "央视提了一个很新的概念",
+      "symbol": "脑雾",
+      "elimReason": "入场拒绝: 币龄过大 (币龄2162.3h)",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1768217169000
+    },
+    {
+      "address": "0x66af684a439d7b7338061c4af0d2e2ddb4f64444",
+      "name": "Sango coin",
+      "symbol": "桑戈币",
+      "elimReason": "入场拒绝: 币龄过大 (币龄108.9h)",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1775609382000
+    },
+    {
+      "address": "0x1e239012bafaef0dfb5844383a8226aa90e74444",
+      "name": "币安大家庭",
+      "symbol": "Global Family",
+      "elimReason": "入场拒绝: 币龄过大 (币龄226.3h)",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1775186689000
+    },
+    {
+      "address": "0xb0507cc09d1524a0fadc4f80acd578c08ed24444",
+      "name": "Fartcoin",
+      "symbol": "FARTCOIN",
+      "elimReason": "入场拒绝: 币龄过大 (币龄2799.6h)",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1765923114000
+    },
+    {
+      "address": "0x478aebe7758c29e29ca71147a57e1063fc764444",
+      "name": "人民网AI起名",
+      "symbol": "神仝",
+      "elimReason": "入场拒绝: 币龄过大 (币龄424.0h)",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1774475236000
+    },
+    {
+      "address": "0x0e45d9b1356934d35864262a5c559b0b5d754444",
+      "name": "HappyHorse-1.0",
+      "symbol": "HappyHorse",
+      "elimReason": "入场拒绝: 币龄过大 (币龄53.6h)",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1775808655000
+    },
+    {
+      "address": "0x234aa68407a393cbbba9de7823cf6bdee8284444",
+      "name": "比我聪明的都梭哈了",
+      "symbol": "梭哈",
+      "elimReason": "入场拒绝: 币龄过大 (币龄117.3h)",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1775579146000
+    },
+    {
+      "address": "0x8ecccad18f222e401ac6efae8c72d5960ecb4444",
+      "name": "最认真的读者",
+      "symbol": "****",
+      "elimReason": "入场拒绝: 币龄过大 (币龄79.2h)",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1775716445000
+    },
+    {
+      "address": "0xcd117d0ebcfd585c05bfb6742ba6f57699214444",
+      "name": "脑瘫",
+      "symbol": "脑瘫",
+      "elimReason": "入场拒绝: 币龄过大 (币龄2162.2h)",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1768217490000
+    },
+    {
+      "address": "0xaeb8a8fba2c3aa61a6ae90dca22489f59165ffff",
+      "name": "Mascot 🥷🦅",
+      "symbol": "🥷🦅",
+      "elimReason": "入场拒绝: 币龄过大 (币龄142.0h)",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1775490335000
+    },
+    {
+      "address": "0x3daa0ae2ba8d26cee4ff276d3a875c8b77a64444",
+      "name": "GTA6",
+      "symbol": "GTA6",
+      "elimReason": "入场拒绝: 币龄过大 (币龄4951.7h)",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1758175264000
+    },
+    {
+      "address": "0x058122d1f89fec449e0f6f2d3759edbeb8c74444",
+      "name": "wicklipa",
+      "symbol": "wicklipa",
+      "elimReason": "入场拒绝: 币龄过大 (币龄1994.4h)",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1768821531000
+    },
+    {
+      "address": "0x041de58cbe65c7cc91b84cf9615e0e93dafa4444",
+      "name": "Increasing Freedom",
+      "symbol": "Increasing Freedom",
+      "elimReason": "入场拒绝: 币龄过大 (币龄130.8h)",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1775530499000
+    },
+    {
+      "address": "0x4d06c3343c64290f84fa95ec1a33effe32524444",
+      "name": "BNBMAXXlNG",
+      "symbol": "BNBMAXXlNG",
+      "elimReason": "入场拒绝: 币龄过大 (币龄1007.3h)",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1772375104000
+    },
+    {
+      "address": "0x2a417e0d074e7962b1cac35b322ee8c919074444",
+      "name": "女娲.skill是元skill",
+      "symbol": "女娲.skill",
+      "elimReason": "入场拒绝: 币龄过大 (币龄86.6h)",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1775689649000
+    },
+    {
+      "address": "0x0e142630f6f33cd276da6795d06b63ae35444444",
+      "name": "灵机",
+      "symbol": "灵机",
+      "elimReason": "入场拒绝: 币龄过大 (币龄57.2h)",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1775795594000
+    },
+    {
+      "address": "0x2945bc06c4c62356e9ff5b392b9dff78d72c4444",
+      "name": "Web 5.0 AI雇佣人类",
+      "symbol": "AIHireHumans",
+      "elimReason": "入场拒绝: 币龄过大 (币龄418.2h)",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1774495969000
+    },
+    {
+      "address": "0xf37b9d07c45674d23cecd3bc5863a5ca11e94444",
+      "name": "GRAF DRAKULA",
+      "symbol": "GRAF DRAKULA",
+      "elimReason": "入场拒绝: 币龄过大 (币龄8404.1h)",
+      "eliminatedAt": 1776001520057,
+      "createdAt": 1745746666000
     }
   ],
-  "lastBlock": 92111380,
-  "lastScanTime": 1776000624770,
+  "lastBlock": 92113368,
+  "lastScanTime": 1776001520057,
   "nameIndex": {
     "moritz": {
       "addrs": [
@@ -14098,7 +14391,8 @@
     },
     "鹏程万里": {
       "addrs": [
-        "0xe4a9855bae8e75d8258bf7dcafdcc55a2f9a4444"
+        "0xe4a9855bae8e75d8258bf7dcafdcc55a2f9a4444",
+        "0x42dcbbb468e702ea2105d0ab5f624a80dba34444"
       ]
     },
     "抖音最新cz短剧人生副本": {
@@ -14141,7 +14435,10 @@
         "0x04c1a5c217b835579aa9d76aabab48dd695c4444",
         "0x8bad91288536ce6a44ae7bd3b34fcebe4d954444",
         "0x17cf07dab1f30e08850b0769d9cc5c67199b4444",
-        "0x437b0b2ec3a5cd9f446c2281a1655ff217304444"
+        "0x437b0b2ec3a5cd9f446c2281a1655ff217304444",
+        "0x2848f1401d9230789a9ca0966541fd2ba99e4444",
+        "0xaaffdf926980d4da9c1d312c1e6fb205c5e54444",
+        "0xa35d1186a91539d6dbb3b15f85d8e09740e84444"
       ]
     },
     "奇蹟只發生在bnb": {
@@ -14310,7 +14607,8 @@
         "0xa89e1adb8be989df5a70d111785b16ad215f4444",
         "0xf5dd7617e41cb65d82cb724d488bd927337e4444",
         "0x7ca7855b5c5790d89a8aad804acde9654e4e4444",
-        "0x334a8b45894559844907f254a58cd58da5824444"
+        "0x334a8b45894559844907f254a58cd58da5824444",
+        "0x17bcbc2fb9675f646f2324fcc2fdcb7848074444"
       ]
     },
     "we love fucking inve": {
@@ -14858,7 +15156,8 @@
     },
     "#freedomofmoney": {
       "addrs": [
-        "0xafbd8e0902b551d30e9a723ea05352f51bf84444"
+        "0xafbd8e0902b551d30e9a723ea05352f51bf84444",
+        "0xa4c057bff4cf6a4b5870512b04bd4e5915234444"
       ]
     },
     "热门话题": {
@@ -14903,7 +15202,8 @@
         "0xbcc8087ede4d314406c13e2306a775374c49ffff",
         "0xeeb87cd2effaf7bce6360a190f902eeef266ffff",
         "0x2da4e5dadd9eb98b836b5a279376b93c8ef5ffff",
-        "0xb8d5d82da44e7072e09bdd3c664422f3f320ffff"
+        "0xb8d5d82da44e7072e09bdd3c664422f3f320ffff",
+        "0xd4e042fffa041f1666643031f89d1729b50effff"
       ]
     },
     "chair": {
@@ -15559,7 +15859,10 @@
         "0x43068da158396e8cf7099a4a8dd424f3e72b4444",
         "0xc52fd9483d021b537f24d12e0b3bb185607f4444",
         "0x00a69bac1e4349953a9e8790772ef9f91e794444",
-        "0xc646a24d82eedc94ad68dbb8e397956a669f4444"
+        "0xc646a24d82eedc94ad68dbb8e397956a669f4444",
+        "0xd4e042fffa041f1666643031f89d1729b50effff",
+        "0x32252f8d9761b80e3abbd2cdda49242f75d04444",
+        "0x8ecccad18f222e401ac6efae8c72d5960ecb4444"
       ]
     },
     "币圈回忆录": {
@@ -16274,12 +16577,14 @@
     "女娲 skill": {
       "addrs": [
         "0xde5c86fcdb9c29031b73da67400e86e340164444",
-        "0x6ce3d7361cadfff682af128109d7870459f24444"
+        "0x6ce3d7361cadfff682af128109d7870459f24444",
+        "0x2a417e0d074e7962b1cac35b322ee8c919074444"
       ]
     },
     "女娲 skill是元skill": {
       "addrs": [
-        "0xde5c86fcdb9c29031b73da67400e86e340164444"
+        "0xde5c86fcdb9c29031b73da67400e86e340164444",
+        "0x2a417e0d074e7962b1cac35b322ee8c919074444"
       ]
     },
     "抖音最新爆火空耳梗": {
@@ -16623,7 +16928,8 @@
     "world liberty fi": {
       "addrs": [
         "0xf6327ff27bef76b47e02841db02ee2dae1694444",
-        "0x154a27e06b7386630bb28f0f23a0c91a69444444"
+        "0x154a27e06b7386630bb28f0f23a0c91a69444444",
+        "0x17bcbc2fb9675f646f2324fcc2fdcb7848074444"
       ]
     },
     "江湖录": {
@@ -21686,7 +21992,8 @@
     },
     "binance movie": {
       "addrs": [
-        "0x5c69b46671626956099344e8ba29930ac6914444"
+        "0x5c69b46671626956099344e8ba29930ac6914444",
+        "0xcdfb9fade5ce5044d634fe13bb3bc67ce57a4444"
       ]
     },
     "aibot": {
@@ -21845,7 +22152,8 @@
         "0xa16444800c245d0e15a90c7f14e10c7e8c3b4444",
         "0x35f7995744599707028df6bb98ddcd223e574444",
         "0x48a10721a0172ac686d8e0e0aecdae14faf54444",
-        "0x36aca130585dc74e39c5593384c8b88aeeee4444"
+        "0x36aca130585dc74e39c5593384c8b88aeeee4444",
+        "0x3daa0ae2ba8d26cee4ff276d3a875c8b77a64444"
       ]
     },
     "gta6:cz": {
@@ -22770,7 +23078,18 @@
         "0x195a4f08b1797bfd63e199424a01b7d0d9ba4444",
         "0x86298d8724d1f1948c083aaa1a6b338d48ac4444",
         "0xcf3e64c2cae356bc46c4de2ecfa9c72dd91f4444",
-        "0x278798a673aadf1e2107f82ba18dac89ce2b4444"
+        "0x278798a673aadf1e2107f82ba18dac89ce2b4444",
+        "0xe50201e70ccb16777ab88ab0227b33b4c76a4444",
+        "0x1888541f871c7727cb44e985cc7c5e59188d4444",
+        "0x859ab99abfa894123e5e55bd733e42b272484444",
+        "0x9bf165fd436f7d8e549e38822801d298a1eb4444",
+        "0xedc9d8b04b315c2c1591d0ee80a6f68029994444",
+        "0x3a989d907b27ef324f25af363e4b8ffeddd44444",
+        "0xc2d3d5f326dc2c3c06fab513962aec68fafe4444",
+        "0xda9ea127616ccbf2abbbbcaed6fac122aaf64444",
+        "0xbb925ddae393c9046e91129100e624ca150e4444",
+        "0x67dab39b3ef2b1d0487340c8e8921b80e4fd4444",
+        "0xdf8e4eee73d16cb5f975c529297a8275b5bb4444"
       ]
     },
     "微博热搜脑雾": {
@@ -22965,7 +23284,8 @@
     },
     "央视提了一个很新的概念": {
       "addrs": [
-        "0x450240d0620e9e82aa4e469909f62f99d7e54444"
+        "0x450240d0620e9e82aa4e469909f62f99d7e54444",
+        "0xdf8e4eee73d16cb5f975c529297a8275b5bb4444"
       ]
     },
     "数字生命": {
@@ -23070,7 +23390,8 @@
     },
     "ai造黄": {
       "addrs": [
-        "0xcada92a6e69f930bf6e54472bf6dc5db76a74444"
+        "0xcada92a6e69f930bf6e54472bf6dc5db76a74444",
+        "0xda8f38550fc1c2842bf46a62069cb62f7c3d4444"
       ]
     },
     "win": {
@@ -23218,12 +23539,14 @@
     },
     "chim": {
       "addrs": [
-        "0x90a9cd5e814fbc6e5779b30de3da17969d5fffff"
+        "0x90a9cd5e814fbc6e5779b30de3da17969d5fffff",
+        "0x6eb21d1f81718420da0f505223f7b0132d9effff"
       ]
     },
     "chimera": {
       "addrs": [
-        "0x90a9cd5e814fbc6e5779b30de3da17969d5fffff"
+        "0x90a9cd5e814fbc6e5779b30de3da17969d5fffff",
+        "0x6eb21d1f81718420da0f505223f7b0132d9effff"
       ]
     },
     "世界是个盘子": {
@@ -23325,7 +23648,9 @@
     },
     "微博热搜": {
       "addrs": [
-        "0x924f89edd0db9113016d451a6a60c99d92644444"
+        "0x924f89edd0db9113016d451a6a60c99d92644444",
+        "0x63e544cb8559bdd3aa9206ae0876eb2ea9c44444",
+        "0xda8f38550fc1c2842bf46a62069cb62f7c3d4444"
       ]
     },
     "全力dwop": {
@@ -23430,7 +23755,8 @@
     },
     "10": {
       "addrs": [
-        "0x52ff5c24863cd5e7796cd7fd436a4fde2d654444"
+        "0x52ff5c24863cd5e7796cd7fd436a4fde2d654444",
+        "0x85fbe17dafeac0138f4921d31d60592980cb4444"
       ]
     },
     "10号球衣cz": {
@@ -23512,6 +23838,408 @@
     "ton": {
       "addrs": [
         "0x6e7db100103c2fbcd7ee337a19e35391175b4444"
+      ]
+    },
+    "卡了咪": {
+      "addrs": [
+        "0x55634a3dd8f3063e5ccd2e69f7689cd718364444"
+      ]
+    },
+    "脑袋卡了的咪咪": {
+      "addrs": [
+        "0x55634a3dd8f3063e5ccd2e69f7689cd718364444"
+      ]
+    },
+    "最符合中囯智障的王尼玛": {
+      "addrs": [
+        "0xe50201e70ccb16777ab88ab0227b33b4c76a4444"
+      ]
+    },
+    "nad+": {
+      "addrs": [
+        "0xec798300964b3d5ab1c28633bcbb5771acea4444"
+      ]
+    },
+    "央视报道营养点滴": {
+      "addrs": [
+        "0xec798300964b3d5ab1c28633bcbb5771acea4444"
+      ]
+    },
+    "智力低下": {
+      "addrs": [
+        "0x1888541f871c7727cb44e985cc7c5e59188d4444"
+      ]
+    },
+    "binance nft": {
+      "addrs": [
+        "0x57bdc6f2c937962ee178ba46fed4bd5ef8f34444"
+      ]
+    },
+    "币安新功能": {
+      "addrs": [
+        "0x57bdc6f2c937962ee178ba46fed4bd5ef8f34444"
+      ]
+    },
+    "脑梗": {
+      "addrs": [
+        "0xca2ec074eafde67e3226f24ce3f40b6b51c84444",
+        "0xc948903fb52371ed5c9c84b12b9989d3398f4444"
+      ]
+    },
+    "脑梗=脑meme": {
+      "addrs": [
+        "0xca2ec074eafde67e3226f24ce3f40b6b51c84444"
+      ]
+    },
+    "usd1强盗团": {
+      "addrs": [
+        "0x658cb7e8b757e65bef3495f084a65270b4bd4444"
+      ]
+    },
+    "gwh": {
+      "addrs": [
+        "0x988ef6b85276a9fddb13b89d02bf3cea7d954444"
+      ]
+    },
+    "心灵捕手币": {
+      "addrs": [
+        "0x988ef6b85276a9fddb13b89d02bf3cea7d954444"
+      ]
+    },
+    "推文币": {
+      "addrs": [
+        "0xe76f16477010fa8b0758f76996598de370834444"
+      ]
+    },
+    "推特文章币": {
+      "addrs": [
+        "0xe76f16477010fa8b0758f76996598de370834444"
+      ]
+    },
+    "脑瘤": {
+      "addrs": [
+        "0x63e544cb8559bdd3aa9206ae0876eb2ea9c44444"
+      ]
+    },
+    "脑腐": {
+      "addrs": [
+        "0x7a2e6cba2f8504355f07feb2c85e7e6495ed4444"
+      ]
+    },
+    "最顶级的概念": {
+      "addrs": [
+        "0x7a2e6cba2f8504355f07feb2c85e7e6495ed4444"
+      ]
+    },
+    "销毁大脑1税全销毁": {
+      "addrs": [
+        "0x9bf165fd436f7d8e549e38822801d298a1eb4444"
+      ]
+    },
+    "脑瘫": {
+      "addrs": [
+        "0x10c6c15cb260e1b34cadeae877c0823a7fbb4444",
+        "0x51e635163613dae134c5905f265bd0391e7c4444",
+        "0xcd117d0ebcfd585c05bfb6742ba6f57699214444"
+      ]
+    },
+    "正确图片": {
+      "addrs": [
+        "0x3a989d907b27ef324f25af363e4b8ffeddd44444"
+      ]
+    },
+    "bangbang猫": {
+      "addrs": [
+        "0xcd426ba9611f89d869996125b6c6c2c7e42b4444"
+      ]
+    },
+    "微博热搜bangbang猫 堪比大开门": {
+      "addrs": [
+        "0xcd426ba9611f89d869996125b6c6c2c7e42b4444"
+      ]
+    },
+    "brain and brain": {
+      "addrs": [
+        "0x2848f1401d9230789a9ca0966541fd2ba99e4444",
+        "0xaaffdf926980d4da9c1d312c1e6fb205c5e54444"
+      ]
+    },
+    "brainless&brainless": {
+      "addrs": [
+        "0xa35d1186a91539d6dbb3b15f85d8e09740e84444"
+      ]
+    },
+    "无脑": {
+      "addrs": [
+        "0x48caaf68863df5ab687161cd4304e23f55e44444",
+        "0x0d7781505d52aa3c68ec1b4fdb00608631f44444",
+        "0x75c7b15b6b96b7e8cdb281cd1efef05a5a714444",
+        "0x8c7bebb6f290f1457459c2c13beaff61e0df4444"
+      ]
+    },
+    "脑雾反过来=无脑": {
+      "addrs": [
+        "0x48caaf68863df5ab687161cd4304e23f55e44444",
+        "0x8c7bebb6f290f1457459c2c13beaff61e0df4444"
+      ]
+    },
+    "智商税": {
+      "addrs": [
+        "0x488d91591529a5e1ca2bda6ee1f35379e8fbffff"
+      ]
+    },
+    "币安脑雾": {
+      "addrs": [
+        "0xc2d3d5f326dc2c3c06fab513962aec68fafe4444"
+      ]
+    },
+    "brainless": {
+      "addrs": [
+        "0xaaa1b24a52e11fe7d8ee5a4ab209ba902aca4444"
+      ]
+    },
+    "无脑人生": {
+      "addrs": [
+        "0xaaa1b24a52e11fe7d8ee5a4ab209ba902aca4444",
+        "0x0dfbc54218258c9605563faf4d36de240dd24444"
+      ]
+    },
+    "deeznuts": {
+      "addrs": [
+        "0x5566462e88cb9c336232c5b2f8bbc6a271384444"
+      ]
+    },
+    "deez nuts": {
+      "addrs": [
+        "0x5566462e88cb9c336232c5b2f8bbc6a271384444"
+      ]
+    },
+    "智障人生": {
+      "addrs": [
+        "0x698705bce7b4617e37217255748d726eff5d4444"
+      ]
+    },
+    "yi he experiment": {
+      "addrs": [
+        "0x0e2c1fd8aa153c78d085f4e47de980c85ed44444",
+        "0x66b606baad1ce8b343df2bd8200cc0628b7e4444"
+      ]
+    },
+    "experiment": {
+      "addrs": [
+        "0x66b606baad1ce8b343df2bd8200cc0628b7e4444"
+      ]
+    },
+    "大脑cz": {
+      "addrs": [
+        "0xcea3c9fca91335da94fe3c749f37f9fe1d9e4444"
+      ]
+    },
+    "tripleg": {
+      "addrs": [
+        "0x642a290f6f7b062abe8b485a2da430ed1b344444",
+        "0xfcac47c9f96a7cf981fd0da30c8596ec4a324444"
+      ]
+    },
+    "garf garf garf sahur": {
+      "addrs": [
+        "0x642a290f6f7b062abe8b485a2da430ed1b344444",
+        "0xfcac47c9f96a7cf981fd0da30c8596ec4a324444"
+      ]
+    },
+    "crypto overlord": {
+      "addrs": [
+        "0x52ca69c5aeb9d13cd9c9816406cd563e7e734444"
+      ]
+    },
+    "加密霸主": {
+      "addrs": [
+        "0x52ca69c5aeb9d13cd9c9816406cd563e7e734444"
+      ]
+    },
+    "pengubot": {
+      "addrs": [
+        "0x72b3151607499da4e1cd92f9853b1b7c962f4444"
+      ]
+    },
+    "1号球衣cz": {
+      "addrs": [
+        "0x85fbe17dafeac0138f4921d31d60592980cb4444"
+      ]
+    },
+    "自由人生": {
+      "addrs": [
+        "0x74e5935d93794add853572e5c9840aadb49d4444"
+      ]
+    },
+    "嘣咚": {
+      "addrs": [
+        "0x20d73d5da1ca89cf80c43ce37245dc3157e44444"
+      ]
+    },
+    "美伊谈崩 加密寒冬": {
+      "addrs": [
+        "0x20d73d5da1ca89cf80c43ce37245dc3157e44444"
+      ]
+    },
+    "wickpapa": {
+      "addrs": [
+        "0x1d12f9b2bef7f153eca774affed2f63307074444"
+      ]
+    },
+    "bsc顶级脑meme": {
+      "addrs": [
+        "0xc948903fb52371ed5c9c84b12b9989d3398f4444"
+      ]
+    },
+    "脑雾李": {
+      "addrs": [
+        "0xe6a69e70edfe849745de0934d197e7496f624444"
+      ]
+    },
+    "bsc第一脑雾": {
+      "addrs": [
+        "0xe6a69e70edfe849745de0934d197e7496f624444"
+      ]
+    },
+    "脑白金": {
+      "addrs": [
+        "0x7e39ae11e5f0ce0ebc2572f9a3012772b7674444"
+      ]
+    },
+    "脑瘫必备": {
+      "addrs": [
+        "0x7e39ae11e5f0ce0ebc2572f9a3012772b7674444"
+      ]
+    },
+    "wick吃了李": {
+      "addrs": [
+        "0xc25496e888d8f8b6cdd06779f9d1a030ef684444"
+      ]
+    },
+    "真正的名字": {
+      "addrs": [
+        "0xc25496e888d8f8b6cdd06779f9d1a030ef684444"
+      ]
+    },
+    "papa": {
+      "addrs": [
+        "0x32252f8d9761b80e3abbd2cdda49242f75d04444"
+      ]
+    },
+    "抖音首部以cz经历拍摄的动漫": {
+      "addrs": [
+        "0x42dcbbb468e702ea2105d0ab5f624a80dba34444"
+      ]
+    },
+    "grok": {
+      "addrs": [
+        "0x5657d308c212c3853cc99578d1e2cafc821c4444"
+      ]
+    },
+    "桑戈币": {
+      "addrs": [
+        "0x66af684a439d7b7338061c4af0d2e2ddb4f64444"
+      ]
+    },
+    "sango coin": {
+      "addrs": [
+        "0x66af684a439d7b7338061c4af0d2e2ddb4f64444"
+      ]
+    },
+    "global family": {
+      "addrs": [
+        "0x1e239012bafaef0dfb5844383a8226aa90e74444"
+      ]
+    },
+    "币安大家庭": {
+      "addrs": [
+        "0x1e239012bafaef0dfb5844383a8226aa90e74444"
+      ]
+    },
+    "fartcoin": {
+      "addrs": [
+        "0xb0507cc09d1524a0fadc4f80acd578c08ed24444"
+      ]
+    },
+    "神仝": {
+      "addrs": [
+        "0x478aebe7758c29e29ca71147a57e1063fc764444"
+      ]
+    },
+    "人民网ai起名": {
+      "addrs": [
+        "0x478aebe7758c29e29ca71147a57e1063fc764444"
+      ]
+    },
+    "happyhorse": {
+      "addrs": [
+        "0x0e45d9b1356934d35864262a5c559b0b5d754444"
+      ]
+    },
+    "happyhorse 1 0": {
+      "addrs": [
+        "0x0e45d9b1356934d35864262a5c559b0b5d754444"
+      ]
+    },
+    "梭哈": {
+      "addrs": [
+        "0x234aa68407a393cbbba9de7823cf6bdee8284444"
+      ]
+    },
+    "比我聪明的都梭哈了": {
+      "addrs": [
+        "0x234aa68407a393cbbba9de7823cf6bdee8284444"
+      ]
+    },
+    "最认真的读者": {
+      "addrs": [
+        "0x8ecccad18f222e401ac6efae8c72d5960ecb4444"
+      ]
+    },
+    "🥷🦅": {
+      "addrs": [
+        "0xaeb8a8fba2c3aa61a6ae90dca22489f59165ffff"
+      ]
+    },
+    "mascot 🥷🦅": {
+      "addrs": [
+        "0xaeb8a8fba2c3aa61a6ae90dca22489f59165ffff"
+      ]
+    },
+    "wicklipa": {
+      "addrs": [
+        "0x058122d1f89fec449e0f6f2d3759edbeb8c74444"
+      ]
+    },
+    "increasing freedom": {
+      "addrs": [
+        "0x041de58cbe65c7cc91b84cf9615e0e93dafa4444"
+      ]
+    },
+    "bnbmaxxlng": {
+      "addrs": [
+        "0x4d06c3343c64290f84fa95ec1a33effe32524444"
+      ]
+    },
+    "灵机": {
+      "addrs": [
+        "0x0e142630f6f33cd276da6795d06b63ae35444444"
+      ]
+    },
+    "aihirehumans": {
+      "addrs": [
+        "0x2945bc06c4c62356e9ff5b392b9dff78d72c4444"
+      ]
+    },
+    "web 5 0 ai雇佣人类": {
+      "addrs": [
+        "0x2945bc06c4c62356e9ff5b392b9dff78d72c4444"
+      ]
+    },
+    "graf drakula": {
+      "addrs": [
+        "0xf37b9d07c45674d23cecd3bc5863a5ca11e94444"
       ]
     }
   }
