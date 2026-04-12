@@ -83,7 +83,7 @@ if (scanFiles.length === 0) {
       c: t.created_at || 0,
       p: t.price || 0,
       mp: t.max_price || t.peak_price || 0,
-      h2: t.high_2h || 0,
+      ath: t.ath || t.max_price || t.peak_price || 0,
       pr: t.price_ratio,
       ah: t.age_hours,
       sc: t.social_count || 0,

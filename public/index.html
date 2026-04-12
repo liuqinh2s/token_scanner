@@ -847,7 +847,7 @@
       <td>
         <div class="price-info">现:${fmtPrice(t.price)}</div>
         <div class="price-info" style="color:#5a6a80">高:${fmtPrice(t.max_price)}</div>
-        <div class="price-info" style="color:#5a6a80">2h:${fmtPrice(t.high_2h)}</div>
+        <div class="price-info" style="color:#5a6a80">ATH:${fmtPrice(t.ath || t.max_price)}</div>
         <div class="price-ratio">现/高:${priceRatio}</div>
       </td>
       <td class="tags-cell">${tags}</td>
@@ -877,7 +877,7 @@
           <div class="card-price-row">
             <span>现:${fmtPrice(t.price)}</span>
             <span>高:${fmtPrice(t.max_price)}</span>
-            <span>2h:${fmtPrice(t.high_2h)}</span>
+            <span>ATH:${fmtPrice(t.ath || t.max_price)}</span>
             <span>现/高:${priceRatio}</span>
           </div>
           <div class="card-social">${tags}</div>
@@ -1182,7 +1182,7 @@
             return n.includes(q) || s.includes(q) || a.includes(q);
           }).map(t => ({
             address: t.a, name: t.n, symbol: t.s, holders: t.h,
-            created_at: t.c, price: t.p, max_price: t.mp || t.pp, high_2h: t.h2,
+            created_at: t.c, price: t.p, max_price: t.mp || t.pp, ath: t.ath || t.mp || t.pp,
             price_ratio: t.pr, age_hours: t.ah, social_count: t.sc,
             social_links: t.sl, copycat_count: t.cc || 0,
             is_copycat: t.ic || false, total_supply: t.ts, day1_vol: t.dv,

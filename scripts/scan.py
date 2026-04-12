@@ -25,14 +25,13 @@ BSC Token Scanner v5 — 链上发现 + 队列淘汰制 (Python 版, GitHub Acti
 
 淘汰条件 (永久剔除):
   - 价格从峰值跌 90%+
-  - 持币地址从 30+ 跌破 10
+  - 持币地址从 ≥30 跌破 10
   - 无社交媒体
-  - 流动性从 >$1k 跌破 $100
+  - 流动性从 >$1k 跌破 $100 (当前数据源无法提供有效流动性, 实际不生效)
   - 进度 < 1% 且币龄 > 2h
   - 进度 < 5% 且币龄 > 4h
-  - 币龄 > 5min 且最高持币数 < 3
-  - 币龄 > 15min 且最高持币数 < 5
-  - 币龄 > 1h 且最高持币数 < 10
+  - 币龄 > 15min 且最高持币数 < 3
+  - 币龄 > 1h 且最高持币数 < 5
   - 币龄 > 48h
 
 精筛排除 (钱包行为):
@@ -45,6 +44,16 @@ BSC Token Scanner v5 — 链上发现 + 队列淘汰制 (Python 版, GitHub Acti
   - 币安标注: 聪明钱/KOL/专业投资者持仓
   - 币安开发者持仓变化追踪 (两轮扫描对比 devHoldingPercent)
   - 仿盘检测: 本地队列统计同名代币, ≥3 个标记加分
+
+精筛条件:
+  - 持币地址数: ≤1h ≥30, >1h ≥60, >2h ≥150, >4h ≥200
+  - 当前价: ≤1h ≤$0.000005, >1h ≤$0.00005
+  - 历史最高价 ≤ $0.0001
+  - 当前价在历史最高价 50%~90%
+  - 现价比历史最低价高 10%~150%
+    (币龄<1h: 15分钟K线从第二根开始; 币龄≥1h: 1小时K线从第二根开始)
+  - 仿盘检测: ≥3 标记大量仿盘(加分), ≥5 才能通过精筛
+  - 钱包行为: 开发者/聪明钱减仓清仓撤池子排除, 加仓加池子加分
 """
 
 from __future__ import annotations
@@ -161,18 +170,18 @@ BINANCE_HEADERS = {
 MAX_AGE_HOURS = 48
 SCAN_INTERVAL_MIN = 15
 TOTAL_SUPPLY = 1_000_000_000           # 10亿
-MAX_CURRENT_PRICE_OLD = 0.000023       # 币龄 > 1h 当前价格上限 (USD)
-MAX_CURRENT_PRICE_YOUNG = 0.0000045    # 币龄 ≤ 1h 当前价格上限 (USD)
-MAX_HIGH_PRICE = 0.00004               # 历史最高价上限 (USD)
-MAX_EARLY_HIGH_PRICE = 0.00002         # 前2小时最高价上限 (USD, 币龄>1h时检查)
-MAX_EARLY_HIGH_PRICE_RELAXED = 0.000023  # 前2h最高价放宽上限 (币龄<4h且价>$0.00001)
-MAX_CURRENT_PRICE_YOUNG_RELAXED = 0.0000045  # 年轻代币放宽价格上限
-PRICE_RATIO_LOW = 0.4                  # 当前价 ≥ 最高价 * 40%
+MAX_CURRENT_PRICE_YOUNG = 0.000005     # 币龄 ≤ 1h 当前价格上限 (USD)
+MAX_CURRENT_PRICE_OLD = 0.00005        # 币龄 > 1h 当前价格上限 (USD)
+MAX_HIGH_PRICE = 0.0001                # 历史最高价上限 (USD)
+PRICE_RATIO_LOW = 0.5                  # 当前价 ≥ 最高价 * 50%
 PRICE_RATIO_HIGH = 0.9                 # 当前价 ≤ 最高价 * 90%
 FLOOR_RATIO_LOW = 0.1                  # 现价比底价高 ≥ 10%
-FLOOR_RATIO_HIGH = 1.0                 # 现价比底价高 ≤ 100%
-HOLDERS_THRESHOLD_OLD = 60             # 币龄 > 1h 时持币地址数阈值
+FLOOR_RATIO_HIGH = 1.5                 # 现价比底价高 ≤ 150%
 HOLDERS_THRESHOLD_YOUNG = 30           # 币龄 ≤ 1h 时持币地址数阈值
+HOLDERS_THRESHOLD_OLD = 60             # 币龄 > 1h 时持币地址数阈值
+HOLDERS_THRESHOLD_2H = 150             # 币龄 > 2h 时持币地址数阈值
+HOLDERS_THRESHOLD_4H = 200             # 币龄 > 4h 时持币地址数阈值
+COPYCAT_PASS_MIN = 5                   # 仿盘数 ≥5 才能通过精筛
 MIN_SOCIAL_COUNT = 1                   # 最少关联社交媒体数
 
 # 淘汰阈值
@@ -185,11 +194,9 @@ ELIM_PROGRESS_MIN = 0.01              # 进度 < 1%
 ELIM_PROGRESS_AGE_HOURS = 2           # 进度<1%淘汰的币龄门槛
 ELIM_PROGRESS_MIN_MID = 0.05          # 进度 < 5%
 ELIM_PROGRESS_AGE_HOURS_MID = 4       # 进度<5%淘汰的币龄门槛
-ELIM_EARLY_PEAK_HOLDERS = 5           # 币龄>15min 最高持币数 < 5 淘汰
+ELIM_EARLY_PEAK_HOLDERS = 3           # 币龄>15min 最高持币数 < 3 淘汰
 ELIM_EARLY_AGE_MIN = 0.25             # 15 分钟 = 0.25h
-ELIM_TINY_PEAK_HOLDERS = 3            # 币龄>5min 最高持币数 < 3 淘汰
-ELIM_TINY_AGE_MIN = 5 / 60            # 5 分钟
-ELIM_MID_PEAK_HOLDERS = 10            # 币龄>1h 最高持币数 < 10 淘汰
+ELIM_MID_PEAK_HOLDERS = 5             # 币龄>1h 最高持币数 < 5 淘汰
 ELIM_MID_AGE_HOURS = 1                # 1 小时
 
 # GeckoTerminal 动态速率控制
@@ -1455,8 +1462,17 @@ def _gt_request(url: str, max_retries: int = 3) -> dict | None:
 
 
 def gt_ohlcv_direct(token_address: str, limit: int = 72) -> list[list]:
-    """直接用 tokenAddress 当 poolAddress 拿 K线"""
+    """直接用 tokenAddress 当 poolAddress 拿 1h K线"""
     url = f"{GT_BASE}/networks/bsc/pools/{token_address}/ohlcv/hour?aggregate=1&limit={limit}"
+    data = _gt_request(url)
+    if not data:
+        return []
+    return (data.get("data", {}).get("attributes", {}).get("ohlcv_list", []))
+
+
+def gt_ohlcv_15min(token_address: str, limit: int = 48) -> list[list]:
+    """拿 15 分钟 K线 (用于币龄<1h的底价计算)"""
+    url = f"{GT_BASE}/networks/bsc/pools/{token_address}/ohlcv/minute?aggregate=15&limit={limit}"
     data = _gt_request(url)
     if not data:
         return []
@@ -1488,7 +1504,7 @@ def calc_max_price_first_n_hours(candles: list[list], create_ts_sec: int,
 
 
 def calc_min_price_exclude_first(candles: list[list], create_ts_sec: int) -> float | None:
-    """计算排除第1根K线后的最低价 (币龄>1h时使用)"""
+    """计算排除第1根K线后的最低价 (从第二根K线开始统计)"""
     if not candles or len(candles) < 2:
         return None
     sorted_c = sorted(candles, key=lambda c: int(c[0]))
@@ -1505,7 +1521,7 @@ def calc_min_price_exclude_first(candles: list[list], create_ts_sec: int) -> flo
 
 
 def calc_min_price_all(candles: list[list]) -> float | None:
-    """计算全部K线的最低价 (币龄≤1h时使用)"""
+    """计算全部K线的最低价"""
     if not candles:
         return None
     min_low, found = float("inf"), False
@@ -1614,9 +1630,7 @@ def elimination_check(queue: list[dict], now_ms: int,
         age_hours = (now_ms - t.get("createdAt", 0)) / 3600000
         elim_reason = None
 
-        if age_hours > ELIM_TINY_AGE_MIN and t.get("peakHolders", 0) < ELIM_TINY_PEAK_HOLDERS:
-            elim_reason = f"币龄{age_hours:.1f}h 最高持币仅{t.get('peakHolders', 0)}"
-        elif age_hours > ELIM_EARLY_AGE_MIN and t.get("peakHolders", 0) < ELIM_EARLY_PEAK_HOLDERS:
+        if age_hours > ELIM_EARLY_AGE_MIN and t.get("peakHolders", 0) < ELIM_EARLY_PEAK_HOLDERS:
             elim_reason = f"币龄{age_hours:.1f}h 最高持币仅{t.get('peakHolders', 0)}"
         elif age_hours > ELIM_MID_AGE_HOURS and t.get("peakHolders", 0) < ELIM_MID_PEAK_HOLDERS:
             elim_reason = f"币龄{age_hours:.1f}h 最高持币仅{t.get('peakHolders', 0)}"
@@ -1770,17 +1784,12 @@ def elimination_check(queue: list[dict], now_ms: int,
             if age_hours > ELIM_PROGRESS_AGE_HOURS_MID and current_progress < ELIM_PROGRESS_MIN_MID:
                 elim_reason = f"进度{current_progress * 100:.2f}% 币龄{age_hours:.1f}h"
 
-        # 6. 币龄>5min 最高持币数 < 3
-        if not elim_reason:
-            if age_hours > ELIM_TINY_AGE_MIN and t.get("peakHolders", 0) < ELIM_TINY_PEAK_HOLDERS:
-                elim_reason = f"币龄{age_hours:.1f}h 最高持币仅{t.get('peakHolders', 0)}"
-
-        # 7. 币龄>15min 最高持币数 < 5
+        # 6. 币龄>15min 最高持币数 < 3
         if not elim_reason:
             if age_hours > ELIM_EARLY_AGE_MIN and t.get("peakHolders", 0) < ELIM_EARLY_PEAK_HOLDERS:
                 elim_reason = f"币龄{age_hours:.1f}h 最高持币仅{t.get('peakHolders', 0)}"
 
-        # 8. 币龄>1h 最高持币数 < 10
+        # 7. 币龄>1h 最高持币数 < 5
         if not elim_reason:
             if age_hours > ELIM_MID_AGE_HOURS and t.get("peakHolders", 0) < ELIM_MID_PEAK_HOLDERS:
                 elim_reason = f"币龄{age_hours:.1f}h 最高持币仅{t.get('peakHolders', 0)}"
@@ -1812,13 +1821,14 @@ def quality_filter(candidates: list[dict], now_ms: int,
     """
     精筛: 对存活代币执行 K线条件筛选 + 钱包行为排除/加分
     条件:
-      - 持币地址数: 币龄>1h ≥60, ≤1h ≥30
-      - 当前价: ≤1h ≤$0.0000045, >1h ≤$0.000023 (币龄<4h且价>$0.00001时放宽)
-      - 历史最高价 ≤ $0.00004
-      - 前2h最高价 ≤ $0.00002 (币龄>1h, 放宽时 ≤$0.000023)
-      - 当前价在最高价 40%~90%
-      - 现价比底价高 10%~100%
-      - 钱包行为排除/加分
+      - 持币地址数: ≤1h ≥30, >1h ≥60, >2h ≥150, >4h ≥200
+      - 当前价: ≤1h ≤$0.000005, >1h ≤$0.00005
+      - 历史最高价 ≤ $0.0001
+      - 当前价在历史最高价 50%~90%
+      - 现价比历史最低价高 10%~150%
+        (币龄<1h: 15分钟K线, 从第二根开始; 币龄≥1h: 1小时K线, 从第二根开始)
+      - 仿盘检测: ≥3 标记大量仿盘(加分), ≥5 才能通过精筛
+      - 钱包行为: 开发者/聪明钱减仓清仓撤池子排除, 加仓加池子加分
     """
     global _gt_rate_delay
     results = []
@@ -1836,49 +1846,48 @@ def quality_filter(candidates: list[dict], now_ms: int,
             log.info("精筛: ✗ %s — 钱包排除: %s", name, wa["excludeReason"])
             continue
 
+        # 仿盘检测: ≥3 标记大量仿盘, 但 ≥5 才能通过精筛
+        cc = t.get("copycat", {})
+        cc_count = cc.get("count", 0)
+        is_copycat = cc.get("isCopycat", False)
+        if is_copycat and cc_count < COPYCAT_PASS_MIN:
+            log.info("精筛: ✗ %s — 仿盘 %d 个, 未达 %d 个通过门槛",
+                     name, cc_count, COPYCAT_PASS_MIN)
+            continue
+
         # 价格初筛
-        is_relaxed = age_hours < 4 and current_price > 0.00001
-        young_limit = MAX_CURRENT_PRICE_YOUNG_RELAXED if is_relaxed else MAX_CURRENT_PRICE_YOUNG
-        max_price = MAX_CURRENT_PRICE_OLD if age_hours > 1 else young_limit
+        max_price = MAX_CURRENT_PRICE_OLD if age_hours > 1 else MAX_CURRENT_PRICE_YOUNG
         if current_price > max_price:
             continue
 
-        # 持币数
+        # 持币数 (分级阈值)
         holders = t.get("holders", 0)
-        if age_hours > 1 and holders < HOLDERS_THRESHOLD_OLD:
+        if age_hours > 4 and holders < HOLDERS_THRESHOLD_4H:
             continue
-        if age_hours <= 1 and holders < HOLDERS_THRESHOLD_YOUNG:
+        elif age_hours > 2 and holders < HOLDERS_THRESHOLD_2H:
+            continue
+        elif age_hours > 1 and holders < HOLDERS_THRESHOLD_OLD:
+            continue
+        elif age_hours <= 1 and holders < HOLDERS_THRESHOLD_YOUNG:
             continue
 
-        # K线 (GeckoTerminal)
+        # K线 (GeckoTerminal 1h)
         if i > 0:
             time.sleep(_gt_rate_delay)
         candles = gt_ohlcv_direct(addr, 72)
 
-        ath, high2h = None, None
+        ath = None
         if candles:
-            high2h = calc_max_price_first_n_hours(candles, create_ts_sec, 2)
             ath = calc_all_time_high(candles)
 
         # 用 K线 ATH 修正队列中的 peakPrice (解决15分钟快照遗漏峰值的问题)
         if ath is not None:
             t["peakPrice"] = max(t.get("peakPrice", 0), ath)
 
-        if ath is None and high2h is None:
-            continue
         if ath is None:
-            ath = high2h
+            continue
 
         if ath > MAX_HIGH_PRICE:
-            continue
-
-        # 币龄≤1h 时 ATH 也不能超过 YOUNG 阈值
-        if age_hours <= 1 and ath > MAX_CURRENT_PRICE_YOUNG:
-            continue
-
-        # 前2h最高价 (币龄>1h时检查)
-        early_high_limit = MAX_EARLY_HIGH_PRICE_RELAXED if is_relaxed else MAX_EARLY_HIGH_PRICE
-        if age_hours > 1 and high2h is not None and high2h > early_high_limit:
             continue
 
         # 现价/最高价比
@@ -1887,11 +1896,18 @@ def quality_filter(candidates: list[dict], now_ms: int,
             if ratio < PRICE_RATIO_LOW or ratio > PRICE_RATIO_HIGH:
                 continue
 
-        # 底价检查
+        # 底价检查: 币龄<1h 用15分钟K线从第二根开始, 币龄≥1h 用1小时K线从第二根开始
         if current_price and candles and len(candles) >= 1:
-            min_price = (calc_min_price_exclude_first(candles, create_ts_sec)
-                         if age_hours > 1
-                         else calc_min_price_all(candles))
+            if age_hours < 1:
+                # 币龄<1h: 拿15分钟K线, 从第二根15分钟K线开始统计最低价
+                time.sleep(_gt_rate_delay)
+                candles_15m = gt_ohlcv_15min(addr, 48)
+                min_price = (calc_min_price_exclude_first(candles_15m, create_ts_sec)
+                             if candles_15m and len(candles_15m) >= 2
+                             else None)
+            else:
+                # 币龄≥1h: 用1小时K线, 从第二根1小时K线开始统计最低价
+                min_price = calc_min_price_exclude_first(candles, create_ts_sec)
             if min_price and min_price > 0:
                 above_min_ratio = current_price / min_price - 1
                 if above_min_ratio < FLOOR_RATIO_LOW or above_min_ratio > FLOOR_RATIO_HIGH:
@@ -1900,7 +1916,6 @@ def quality_filter(candidates: list[dict], now_ms: int,
         results.append({
             **t,
             "ath": ath,
-            "high2h": high2h,
             "walletSignals": wa["signals"] if wa else [],
             "walletAnalysis": wa,
         })
@@ -2137,7 +2152,7 @@ def main():
             "total_supply": t.get("totalSupply", 0),
             "price": t.get("price", 0),
             "max_price": t.get("peakPrice", 0),
-            "high_2h": t.get("high2h", 0),
+            "ath": t.get("ath", 0),
             "price_ratio": round(t["price"] / t["ath"], 4) if t.get("ath") and t.get("price") else 0,
             "age_hours": round((now_ms - t.get("createdAt", 0)) / 3600000, 2),
             "social_count": t.get("socialCount", 0),
