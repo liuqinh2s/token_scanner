@@ -1,59 +1,48 @@
 """
-BSC Token Scanner v5 — 链上发现 + 队列淘汰制 (Python 版, GitHub Actions 专用)
+BSC Token Scanner v6 — 极速扫描, 以快致胜 (Python 版, GitHub Actions 专用)
 
-数据源: BSC RPC (链上事件) + four.meme API (详情) + DexScreener (价格)
-       + GeckoTerminal (K线) + BSCScan (链上行为) + 币安Web3 (聪明钱信号+代币动态数据)
+数据源: BSC RPC (链上事件) + four.meme API (详情/持币数) + DexScreener (价格)
 
 与 token_trading/scanner.py 的区别:
   - 配置从 config.local.json 加载 (proxy 格式: {host, port})
   - 无 Telegram 推送, 无交易模块
   - 输出 JSON 文件到 data/ 目录 (带时间戳)
   - 队列文件: data/queue.json
-  - 无 GMGN 聪明钱 (GitHub Actions 无法访问)
   - 入场筛同时记录被拒代币 (前端 "入场淘汰" tab)
   - 日志仅输出到 stdout
 
-每轮扫描:
-  1. 链上发现 (~1s): BSC RPC eth_getLogs → four.meme V1 合约 TokenCreated 事件 (新旧两种 topic) → 新代币地址
-  2. 入场筛 (~35s): four.meme Detail API → 淘汰无社交 / 总量≠10亿 / 币龄>48h
-  3. 淘汰检查 (~15s): DexScreener 批量查价 + Detail API 查持币数 → 永久淘汰弃盘币
-  4. 钱包行为分析 (~20s): BscScan tokentx → 开发者行为分析
-     + 币安Web3聪明钱信号 → 交叉验证 + 额外加分
-     + 币安Token Dynamic → 开发者/聪明钱/KOL/专业投资者持仓分布 + 开发者持仓变化追踪
-  5. 精筛 (~10s): K线/价格比/底价区间 + 钱包行为排除/加分 → 输出推荐
-  6. 仿盘检测: 本地队列统计同名代币数量, 有大量仿盘(≥3)则标记加分
+v6 架构: 极速扫描 (1 分钟一轮)
+  1. 链上发现 (~1s): BSC RPC eth_getLogs → four.meme V1 合约 TokenCreated 事件 → 新代币地址
+  2. 入场筛 (~数秒): four.meme Detail API → 淘汰无社交 / 总量≠10亿 / 币龄>5min
+  3. 淘汰检查 (~数秒): DexScreener 批量查价 + Detail API 查持币数 → 永久淘汰弃盘币
+  4. 精筛 (瞬时): 极简三条件直接过滤
+  5. 仿盘检测: 本地统计同名代币数量 (零 API 调用), 有大量仿盘(≥3)则标记
+
+砍掉的慢环节 (v5 → v6):
+  - GeckoTerminal K线 (每个代币 2s+)
+  - BSCScan 钱包行为分析 (开发者/聪明钱)
+  - 币安 Web3 聪明钱信号 + Token Dynamic
+  - GMGN 聪明钱地址
+  - RPC 持币数统计 (改用 four.meme detail 的 holderCount)
 
 淘汰条件 (永久剔除):
   - 价格从峰值跌 90%+
   - 持币地址从 ≥30 跌破 10
   - 无社交媒体
-  - 流动性从 >$1k 跌破 $100 (当前数据源无法提供有效流动性, 实际不生效)
+  - 流动性从 >$1k 跌破 $100
   - 进度 < 1% 且币龄 > 2h
   - 进度 < 5% 且币龄 > 4h
   - 币龄 > 15min 且最高持币数 < 3
   - 币龄 > 1h 且最高持币数 < 5
   - 币龄 > 48h
 
-精筛排除 (钱包行为):
-  - 开发者减仓/清仓/撤流动性
-
-精筛加分 (钱包行为):
-  - 开发者加仓/加流动性
-  - 币安聪明钱买入信号 (smartMoneyCount 越多加分越高, 最多+3)
-  - 币安敏感事件 (鲸鱼买入等)
-  - 币安标注: 聪明钱/KOL/专业投资者持仓
-  - 币安开发者持仓变化追踪 (两轮扫描对比 devHoldingPercent)
-  - 仿盘检测: 本地队列统计同名代币, ≥3 个标记加分
-
-精筛条件:
-  - 持币地址数: ≤1h ≥30, >1h ≥60, >2h ≥150, >4h ≥200
-  - 当前价: ≤1h ≤$0.000005, >1h ≤$0.00005
-  - 历史最高价 ≤ $0.0001
-  - 当前价在历史最高价 50%~90%
-  - 现价比历史最低价高 10%~150%
-    (币龄<1h: 15分钟K线从第二根开始; 币龄≥1h: 1小时K线从第二根开始)
-  - 仿盘检测: ≥3 标记大量仿盘(加分), ≥5 才能通过精筛
-  - 钱包行为: 开发者/聪明钱减仓清仓撤池子排除, 加仓加池子加分
+精筛条件 (两档):
+  快档 (币龄 ≤ 5min):
+  - 持币地址数 ≥ 10
+  - 当前价 < $0.000004
+  慢档 (币龄 > 5min 且 ≤ 15min):
+  - 持币地址数 ≥ 20
+  - 当前价 < $0.000006
 """
 
 from __future__ import annotations
@@ -129,11 +118,6 @@ BINANCE_SMART_SIGNAL = "https://web3.binance.com/bapi/defi/v1/public/wallet-dire
 BINANCE_TOKEN_DYNAMIC = "https://web3.binance.com/bapi/defi/v4/public/wallet-direct/buw/wallet/market/token/dynamic/info/ai"
 BINANCE_TOKEN_META = "https://web3.binance.com/bapi/defi/v1/public/wallet-direct/buw/wallet/dex/market/token/meta/info/ai"
 
-# GMGN API (聪明钱地址发现)
-GMGN_API = "https://openapi.gmgn.ai"
-GMGN_API_KEY = "gmgn_solbscbaseethmonadtron"  # 免费 demo key
-SMART_MONEY_FILE = DATA_DIR / "smart_money.json"
-
 # four.meme 合约地址 (来源: four-flap-meme-sdk v1.9.48)
 # TokenManagerOriginal: 0x5c952063c7fc8610FFDB798152D69F0B9550762b (当前唯一活跃合约)
 # TokenManagerV1:       0xf7F823d0E790219dBf727bDb971837574655fCB0 (已废弃, 无事件)
@@ -168,20 +152,15 @@ BINANCE_HEADERS = {
 
 # 精筛阈值
 MAX_AGE_HOURS = 48
-SCAN_INTERVAL_MIN = 15
+SCAN_INTERVAL_MIN = 15                 # GitHub Actions cron 间隔 (分钟)
 TOTAL_SUPPLY = 1_000_000_000           # 10亿
-MAX_CURRENT_PRICE_YOUNG = 0.000005     # 币龄 ≤ 1h 当前价格上限 (USD)
-MAX_CURRENT_PRICE_OLD = 0.00005        # 币龄 > 1h 当前价格上限 (USD)
-MAX_HIGH_PRICE = 0.0001                # 历史最高价上限 (USD)
-PRICE_RATIO_LOW = 0.5                  # 当前价 ≥ 最高价 * 50%
-PRICE_RATIO_HIGH = 0.9                 # 当前价 ≤ 最高价 * 90%
-FLOOR_RATIO_LOW = 0.1                  # 现价比底价高 ≥ 10%
-FLOOR_RATIO_HIGH = 1.5                 # 现价比底价高 ≤ 150%
-HOLDERS_THRESHOLD_YOUNG = 30           # 币龄 ≤ 1h 时持币地址数阈值
-HOLDERS_THRESHOLD_OLD = 60             # 币龄 > 1h 时持币地址数阈值
-HOLDERS_THRESHOLD_2H = 150             # 币龄 > 2h 时持币地址数阈值
-HOLDERS_THRESHOLD_4H = 200             # 币龄 > 4h 时持币地址数阈值
-COPYCAT_PASS_MIN = 5                   # 仿盘数 ≥5 才能通过精筛
+QUALITY_MAX_AGE_MIN = 5                # 精筛(快档): 币龄 ≤ 5 分钟
+QUALITY_MIN_HOLDERS = 10               # 精筛(快档): 持币地址数 ≥ 10
+QUALITY_MAX_PRICE = 0.000004           # 精筛(快档): 当前价 < $0.000004
+QUALITY_SLOW_MAX_AGE_MIN = 15          # 精筛(慢档): 币龄 ≤ 15 分钟
+QUALITY_SLOW_MIN_HOLDERS = 20          # 精筛(慢档): 持币地址数 ≥ 20
+QUALITY_SLOW_MAX_PRICE = 0.000006      # 精筛(慢档): 当前价 < $0.000006
+COPYCAT_MARK_MIN = 3                   # 仿盘数 ≥3 标记
 MIN_SOCIAL_COUNT = 1                   # 最少关联社交媒体数
 
 # 淘汰阈值
@@ -199,8 +178,6 @@ ELIM_EARLY_AGE_MIN = 0.25             # 15 分钟 = 0.25h
 ELIM_MID_PEAK_HOLDERS = 5             # 币龄>1h 最高持币数 < 5 淘汰
 ELIM_MID_AGE_HOURS = 1                # 1 小时
 
-# GeckoTerminal 动态速率控制
-_gt_rate_delay: float = 2.0
 
 # 已知的 DEX Router 地址 (用于识别买入/卖出行为)
 KNOWN_DEX_ROUTERS = {
@@ -289,7 +266,8 @@ def load_queue() -> dict:
             return data
     except Exception as e:
         log.warning("队列加载失败: %s", e)
-    return {"tokens": [], "eliminated": [], "lastBlock": 0, "lastScanTime": 0}
+    return {"tokens": [], "eliminated": [], "lastBlock": 0, "lastScanTime": 0,
+            "nameIndex": {}}
 
 
 def save_queue(queue: dict):
@@ -297,9 +275,33 @@ def save_queue(queue: dict):
     # 只保留最近 1000 条淘汰记录
     if len(queue.get("eliminated", [])) > 1000:
         queue["eliminated"] = queue["eliminated"][-1000:]
+    # nameIndex 地址列表上限: 每个 key 最多保留 200 个地址 (仿盘检测只需知道数量级)
+    name_idx = queue.get("nameIndex", {})
+    for key in name_idx:
+        addrs = name_idx[key].get("addrs", [])
+        if len(addrs) > 200:
+            name_idx[key]["addrs"] = addrs[-200:]
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     with open(QUEUE_FILE, "w", encoding="utf-8") as f:
         json.dump(queue, f, ensure_ascii=False, indent=2)
+
+
+def update_name_index(queue: dict, tokens: list[dict]):
+    """
+    更新名称索引: 记录所有见过的 name/symbol 及其不同地址数量
+    用于仿盘检测, 不受 eliminated 1000 条上限影响
+    """
+    idx = queue.setdefault("nameIndex", {})
+    for t in tokens:
+        addr = (t.get("address") or "").lower()
+        if not addr:
+            continue
+        for field in ("symbol", "name"):
+            key = _normalize(t.get(field) or "")
+            if key and len(key) >= 2:
+                entry = idx.setdefault(key, {"addrs": []})
+                if addr not in entry["addrs"]:
+                    entry["addrs"].append(addr)
 
 
 # ===================================================================
@@ -314,9 +316,11 @@ def _normalize(text: str) -> str:
 
 
 def detect_copycats(tokens: list[dict],
-                    all_known: list[dict]) -> dict[str, dict]:
+                    all_known: list[dict],
+                    name_index: dict = None) -> dict[str, dict]:
     """
-    本地仿盘检测: 在 all_known (队列存活+已淘汰) 中统计同名/近似名代币
+    本地仿盘检测: 在 all_known (队列存活+已淘汰+入场被拒) 中统计同名/近似名代币
+    同时参考 name_index (持久化的名称索引, 不受 eliminated 1000 条上限影响)
     返回 {address_lower: {count, isCopycat}}
     count: 同名代币数量 (不含自身)
     isCopycat: count >= 3 时标记为有大量仿盘
@@ -328,7 +332,7 @@ def detect_copycats(tokens: list[dict],
     name 和 symbol 统一建索引, 交叉匹配
     """
     result: dict[str, dict] = {}
-    if not tokens or not all_known:
+    if not tokens:
         return result
 
     # 包含匹配最小长度: 中文2字符已有辨识度, 英文需要4字符避免 "AI"/"CZ" 误匹配
@@ -337,7 +341,9 @@ def detect_copycats(tokens: list[dict],
 
     # 统一索引: keyword_lower -> set(addresses)
     keyword_index: dict[str, set[str]] = {}
-    for t in all_known:
+
+    # 从 all_known 列表建索引
+    for t in (all_known or []):
         addr = (t.get("address") or "").lower()
         if not addr:
             continue
@@ -345,6 +351,18 @@ def detect_copycats(tokens: list[dict],
             key = _normalize(t.get(field) or "")
             if key and len(key) >= 2:
                 keyword_index.setdefault(key, set()).add(addr)
+
+    # 合并持久化的 nameIndex (补充被 eliminated 1000 条上限截断的历史数据)
+    if name_index:
+        for key, entry in name_index.items():
+            addrs = entry.get("addrs", [])
+            if key and len(key) >= 2 and addrs:
+                existing = keyword_index.setdefault(key, set())
+                for a in addrs:
+                    existing.add(a.lower())
+
+    if not keyword_index:
+        return result
 
     # 预提取所有索引 key 列表 (用于包含匹配遍历)
     all_keys = list(keyword_index.keys())
@@ -566,13 +584,13 @@ def discover_on_chain(from_block: int) -> tuple[list[dict], int]:
     latest_block = int(block_res["result"], 16)
 
     if from_block <= 0:
-        # 首次运行: 只扫最近 15 分钟 (~2000 blocks)
-        from_block = latest_block - 2000
+        # 首次运行: 只扫最近 15 分钟 (~300 blocks, BSC ~3s/block)
+        from_block = latest_block - 300
 
-    # 安全上限: 不超过 10000 blocks
-    if latest_block - from_block > 10000:
-        log.warning("区块跨度过大 (%d), 截断到最近 10000 blocks", latest_block - from_block)
-        from_block = latest_block - 10000
+    # 安全上限: 不超过 5000 blocks (~4h, GitHub Actions 可能延迟较大)
+    if latest_block - from_block > 5000:
+        log.warning("区块跨度过大 (%d), 截断到最近 5000 blocks", latest_block - from_block)
+        from_block = latest_block - 5000
 
     log.info("链上扫描区块 %d ~ %d (%d blocks), 监听 %d 个工厂合约",
              from_block, latest_block, latest_block - from_block, len(FOUR_MEME_FACTORIES))
@@ -1597,16 +1615,17 @@ def admission_filter(new_tokens: list[dict],
 #  Step 3: 淘汰检查 — DexScreener + four.meme detail + BSCScan
 # ===================================================================
 def elimination_check(queue: list[dict], now_ms: int,
-                      api_key: str) -> tuple[list[dict], list[dict], dict[str, list]]:
+                      api_key: str) -> tuple[list[dict], list[dict]]:
     """
     淘汰检查: 对队列中代币定期检查, 永久淘汰弃盘币
-    返回: (survivors, eliminated, rpc_logs_map)
+    v6: 去掉 K线ATH修正、币安动态、RPC持币数, 只用 DexScreener + detail API
+    返回: (survivors, eliminated)
     """
     survivors = []
     eliminated = []
 
     if not queue:
-        return survivors, eliminated, {}
+        return survivors, eliminated
 
     # 1. 币龄淘汰 (无需 API)
     max_age_ms = MAX_AGE_HOURS * 3600 * 1000
@@ -1622,7 +1641,7 @@ def elimination_check(queue: list[dict], now_ms: int,
         log.info("淘汰: 币龄超限 %d 个", len(eliminated))
 
     if not age_filtered:
-        return survivors, eliminated, {}
+        return survivors, eliminated
 
     # 1b. 本地预淘汰: 用已有数据快速剔除明显垃圾币 (零 API 调用)
     pre_filtered = []
@@ -1645,17 +1664,15 @@ def elimination_check(queue: list[dict], now_ms: int,
         log.info("淘汰: 本地预淘汰 %d 个 (持币数不足)", pre_elim_count)
 
     if not pre_filtered:
-        return survivors, eliminated, {}
+        return survivors, eliminated
 
-    # 2. DexScreener + RPC 持币数 + four.meme detail + 币安动态 并行查询
+    # 2. DexScreener + four.meme detail 并行查询 (v6: 去掉 RPC持币数/K线/币安动态)
     addrs = [t["address"] for t in pre_filtered]
-    token_infos = [{"address": t["address"], "block": t.get("block", 0),
-                    "createdAt": t.get("createdAt", 0)} for t in pre_filtered]
 
     # 新入队代币 (本轮刚加入) 不需要再查 detail, 入场筛已经查过
     need_detail = [t for t in pre_filtered if now_ms - t.get("addedAt", 0) > 60000]
 
-    log.info("淘汰检查: 并行查询 %d 个代币 (DS + RPC + detail(%d个) + 币安动态)...",
+    log.info("淘汰检查: 并行查询 %d 个代币 (DS + detail(%d个))...",
              len(pre_filtered), len(need_detail))
 
     def _fetch_all_details():
@@ -1667,46 +1684,34 @@ def elimination_check(queue: list[dict], now_ms: int,
             time.sleep(0.2)
         return detail_map
 
-    with ThreadPoolExecutor(max_workers=3) as pool:
+    with ThreadPoolExecutor(max_workers=2) as pool:
         ds_future = pool.submit(ds_batch_prices, addrs)
-        rpc_future = pool.submit(rpc_holder_counts, token_infos, True)
         detail_future = pool.submit(_fetch_all_details)
         ds_data = ds_future.result()
-        rpc_holders, rpc_logs_map = rpc_future.result()
         detail_map = detail_future.result()
 
-    # 币安动态: 只查有潜力的代币 (DexScreener 有数据 或 持币数 ≥ 10)
-    bn_candidate_addrs = [t["address"] for t in pre_filtered
-                          if t["address"] in ds_data or t.get("peakHolders", 0) >= 10]
-    bn_dynamic = {}
-    if bn_candidate_addrs:
-        log.info("币安动态: 查询 %d/%d 个有潜力代币", len(bn_candidate_addrs), len(pre_filtered))
-        bn_dynamic = fetch_binance_token_dynamic(bn_candidate_addrs)
-
-    # 4. 逐个检查淘汰条件
+    # 3. 逐个检查淘汰条件
     for t in pre_filtered:
         ds = ds_data.get(t["address"], {})
         detail = detail_map.get(t["address"])
-        bn = bn_dynamic.get(t["address"].lower(), {})
         age_hours = (now_ms - t.get("createdAt", 0)) / 3600000
 
-        # 更新动态数据 (多源取最优: DexScreener > 币安 > detail > 队列缓存)
+        # 更新动态数据 (DexScreener > detail > 队列缓存)
         current_price = (ds.get("price")
-                         or bn.get("price")
                          or (detail["price"] if detail else 0)
                          or t.get("price", 0))
-        rpc_h = rpc_holders.get(t["address"])
-        bn_holders = bn.get("holders", 0)
-        current_holders = rpc_h if rpc_h is not None else (
-            bn_holders if bn_holders > 0 else (
-                detail["holders"] if detail else t.get("holders", 0)))
+        current_holders = ((detail["holders"] if detail else 0)
+                           or t.get("holders", 0))
         current_liq = (ds.get("liquidity")
-                       or bn.get("liquidity")
                        or t.get("liquidity", 0))
         current_progress = (detail["progress"] if detail else 0) or t.get("progress", 0)
 
         t["price"] = current_price
         t["holders"] = current_holders
+        # 记录持币数历史 (只保留最近 5 轮)
+        hist = t.get("holdersHistory", [])
+        hist.append(current_holders)
+        t["holdersHistory"] = hist[-5:]
         t["liquidity"] = current_liq
         t["progress"] = current_progress
         if detail:
@@ -1714,27 +1719,13 @@ def elimination_check(queue: list[dict], now_ms: int,
             t["socialLinks"] = detail["socialLinks"]
             t["day1Vol"] = detail.get("day1Vol") or t.get("day1Vol", 0)
             t["raisedAmount"] = detail.get("raisedAmount") or t.get("raisedAmount", 0)
-            # 用 detail API 的 launchTime 修正 createdAt (队列中的值可能不准)
+            # 用 detail API 的 launchTime 修正 createdAt
             if detail.get("launchTime") and detail["launchTime"] > 0:
                 t["createdAt"] = detail["launchTime"]
                 age_hours = (now_ms - t["createdAt"]) / 3600000
         if ds:
             t["name"] = ds.get("name") or t.get("name", "")
             t["symbol"] = ds.get("symbol") or t.get("symbol", "")
-
-        # 币安动态数据 (持仓分布)
-        if bn:
-            prev_dev_pct = t.get("devHoldPct", -1)
-            t["devHoldPct"] = bn.get("devHoldPct", 0)
-            t["smartMoneyHolders"] = bn.get("smartMoneyHolders", 0)
-            t["smartMoneyHoldPct"] = bn.get("smartMoneyHoldPct", 0)
-            t["kolHolders"] = bn.get("kolHolders", 0)
-            t["proHolders"] = bn.get("proHolders", 0)
-            t["top10Pct"] = bn.get("top10Pct", 0)
-            t["volume1h"] = bn.get("volume1h", 0)
-            # 开发者持仓变化追踪
-            if prev_dev_pct >= 0:
-                t["prevDevHoldPct"] = prev_dev_pct
 
         # 更新峰值
         t["peakPrice"] = max(t.get("peakPrice", 0), current_price)
@@ -1794,7 +1785,7 @@ def elimination_check(queue: list[dict], now_ms: int,
             if age_hours > ELIM_MID_AGE_HOURS and t.get("peakHolders", 0) < ELIM_MID_PEAK_HOLDERS:
                 elim_reason = f"币龄{age_hours:.1f}h 最高持币仅{t.get('peakHolders', 0)}"
 
-        # 9. 修正后币龄 > 48h (detail API 修正 createdAt 后重新检查)
+        # 8. 修正后币龄 > 48h
         if not elim_reason:
             if age_hours > MAX_AGE_HOURS:
                 elim_reason = f"币龄>{MAX_AGE_HOURS}h (修正后{age_hours:.1f}h)"
@@ -1810,118 +1801,56 @@ def elimination_check(queue: list[dict], now_ms: int,
         for e in eliminated[-elim_count:]:
             log.info("  ✗ %s — %s", e.get("name") or e["address"][:16], e["elimReason"])
 
-    return survivors, eliminated, rpc_logs_map
+    return survivors, eliminated
 
 
 # ===================================================================
 #  Step 5: 精筛 — K线 + 价格比 + 钱包行为排除/加分
 # ===================================================================
-def quality_filter(candidates: list[dict], now_ms: int,
-                   wallet_map: dict[str, dict]) -> list[dict]:
+def quality_filter(candidates: list[dict], now_ms: int) -> list[dict]:
     """
-    精筛: 对存活代币执行 K线条件筛选 + 钱包行为排除/加分
-    条件:
-      - 持币地址数: ≤1h ≥30, >1h ≥60, >2h ≥150, >4h ≥200
-      - 当前价: ≤1h ≤$0.000005, >1h ≤$0.00005
-      - 历史最高价 ≤ $0.0001
-      - 当前价在历史最高价 50%~90%
-      - 现价比历史最低价高 10%~150%
-        (币龄<1h: 15分钟K线, 从第二根开始; 币龄≥1h: 1小时K线, 从第二根开始)
-      - 仿盘检测: ≥3 标记大量仿盘(加分), ≥5 才能通过精筛
-      - 钱包行为: 开发者/聪明钱减仓清仓撤池子排除, 加仓加池子加分
+    精筛: 两档条件
+    快档 (币龄 ≤ 5min):
+      - 持币地址数 ≥ 10
+      - 当前价 < $0.000004
+    慢档 (币龄 > 5min 且 ≤ 15min):
+      - 持币地址数 ≥ 20
+      - 当前价 < $0.000006
     """
-    global _gt_rate_delay
     results = []
+    fast_max_ms = QUALITY_MAX_AGE_MIN * 60 * 1000
+    slow_max_ms = QUALITY_SLOW_MAX_AGE_MIN * 60 * 1000
 
-    for i, t in enumerate(candidates):
-        age_hours = (now_ms - t.get("createdAt", 0)) / 3600000
-        create_ts_sec = t.get("createdAt", 0) // 1000
+    for t in candidates:
+        age_ms = now_ms - t.get("createdAt", 0)
         current_price = t.get("price", 0)
-        addr = t.get("address", "")
-        name = t.get("name") or addr[:16]
-
-        # 钱包行为排除检查
-        wa = wallet_map.get(addr)
-        if wa and wa["excluded"]:
-            log.info("精筛: ✗ %s — 钱包排除: %s", name, wa["excludeReason"])
-            continue
-
-        # 仿盘检测: ≥3 标记大量仿盘, 但 ≥5 才能通过精筛
-        cc = t.get("copycat", {})
-        cc_count = cc.get("count", 0)
-        is_copycat = cc.get("isCopycat", False)
-        if is_copycat and cc_count < COPYCAT_PASS_MIN:
-            log.info("精筛: ✗ %s — 仿盘 %d 个, 未达 %d 个通过门槛",
-                     name, cc_count, COPYCAT_PASS_MIN)
-            continue
-
-        # 价格初筛
-        max_price = MAX_CURRENT_PRICE_OLD if age_hours > 1 else MAX_CURRENT_PRICE_YOUNG
-        if current_price > max_price:
-            continue
-
-        # 持币数 (分级阈值)
         holders = t.get("holders", 0)
-        if age_hours > 4 and holders < HOLDERS_THRESHOLD_4H:
-            continue
-        elif age_hours > 2 and holders < HOLDERS_THRESHOLD_2H:
-            continue
-        elif age_hours > 1 and holders < HOLDERS_THRESHOLD_OLD:
-            continue
-        elif age_hours <= 1 and holders < HOLDERS_THRESHOLD_YOUNG:
+        name = t.get("name") or t.get("address", "")[:16]
+
+        if current_price <= 0:
             continue
 
-        # K线 (GeckoTerminal 1h)
-        if i > 0:
-            time.sleep(_gt_rate_delay)
-        candles = gt_ohlcv_direct(addr, 72)
-
-        ath = None
-        if candles:
-            ath = calc_all_time_high(candles)
-
-        # 用 K线 ATH 修正队列中的 peakPrice (解决15分钟快照遗漏峰值的问题)
-        if ath is not None:
-            t["peakPrice"] = max(t.get("peakPrice", 0), ath)
-
-        if ath is None:
-            continue
-
-        if ath > MAX_HIGH_PRICE:
-            continue
-
-        # 现价/最高价比
-        if ath > 0 and current_price:
-            ratio = current_price / ath
-            if ratio < PRICE_RATIO_LOW or ratio > PRICE_RATIO_HIGH:
+        if age_ms <= fast_max_ms:
+            # 快档: 币龄 ≤ 5 分钟
+            if holders < QUALITY_MIN_HOLDERS:
                 continue
+            if current_price >= QUALITY_MAX_PRICE:
+                continue
+            tier = "快档"
+        elif age_ms <= slow_max_ms:
+            # 慢档: 币龄 > 5min 且 ≤ 15min
+            if holders < QUALITY_SLOW_MIN_HOLDERS:
+                continue
+            if current_price >= QUALITY_SLOW_MAX_PRICE:
+                continue
+            tier = "慢档"
+        else:
+            # 币龄 > 15 分钟, 不通过
+            continue
 
-        # 底价检查: 币龄<1h 用15分钟K线从第二根开始, 币龄≥1h 用1小时K线从第二根开始
-        if current_price and candles and len(candles) >= 1:
-            if age_hours < 1:
-                # 币龄<1h: 拿15分钟K线, 从第二根15分钟K线开始统计最低价
-                time.sleep(_gt_rate_delay)
-                candles_15m = gt_ohlcv_15min(addr, 48)
-                min_price = (calc_min_price_exclude_first(candles_15m, create_ts_sec)
-                             if candles_15m and len(candles_15m) >= 2
-                             else None)
-            else:
-                # 币龄≥1h: 用1小时K线, 从第二根1小时K线开始统计最低价
-                min_price = calc_min_price_exclude_first(candles, create_ts_sec)
-            if min_price and min_price > 0:
-                above_min_ratio = current_price / min_price - 1
-                if above_min_ratio < FLOOR_RATIO_LOW or above_min_ratio > FLOOR_RATIO_HIGH:
-                    continue
-
-        results.append({
-            **t,
-            "ath": ath,
-            "walletSignals": wa["signals"] if wa else [],
-            "walletAnalysis": wa,
-        })
-        sig_str = f" 💰 {', '.join(wa['signals'])}" if wa and wa["signals"] else ""
-        log.info("精筛: ✓ %s — ATH %.3e, 现价 %.3e, 持币 %d%s",
-                 name, ath, current_price, holders, sig_str)
+        results.append(t)
+        log.info("精筛: ✓ %s [%s] — 价格 %.3e, 持币 %d, 币龄 %.1fmin",
+                 name, tier, current_price, holders, age_ms / 60000)
 
     return results
 
@@ -1952,7 +1881,7 @@ def cleanup_old_data(max_age_days: int = 7):
 # ===================================================================
 def main():
     log.info("=" * 50)
-    log.info("🚀 BSC Token Scanner v5 (Python, GitHub Actions)")
+    log.info("🚀 BSC Token Scanner v6 极速版 (Python, GitHub Actions)")
     log.info("=" * 50)
 
     # 加载配置
@@ -1963,12 +1892,11 @@ def main():
     DATA_DIR.mkdir(parents=True, exist_ok=True)
 
     # 初始化 HTTP sessions
-    global _fm_session, _gt_session, _bsc_session, _bn_session
+    global _fm_session, _gt_session, _bsc_session
     proxy = cfg.get("proxy")
     _fm_session = _build_session(proxy, FM_HEADERS)
     _gt_session = _build_session(proxy, GT_HEADERS)
     _bsc_session = _build_session(proxy, DS_HEADERS)
-    _bn_session = _build_session(proxy, BINANCE_HEADERS)
 
     # 行情
     ticker = fm_ticker_prices()
@@ -2027,9 +1955,9 @@ def main():
 
     log.info("入队后: %d 个代币", len(queue_state["tokens"]))
 
-    # Step 3: 淘汰检查
+    # Step 3: 淘汰检查 (v6: 返回 survivors, eliminated, 无 rpc_logs_map)
     log.info("\n--- Step 3: 淘汰检查 ---")
-    survivors, eliminated, rpc_logs_map = elimination_check(queue_state["tokens"], now_ms, bscscan_key)
+    survivors, eliminated = elimination_check(queue_state["tokens"], now_ms, bscscan_key)
     queue_state["tokens"] = survivors
     queue_state["eliminated"].extend([{
         "address": e["address"], "name": e.get("name", ""),
@@ -2038,89 +1966,50 @@ def main():
         "createdAt": e.get("createdAt", 0),
     } for e in eliminated])
 
+    # 入场被拒的代币也记入 eliminated (避免重复入场筛)
+    queue_state["eliminated"].extend([{
+        "address": r["token"].get("address", ""),
+        "name": (r.get("detail") or {}).get("name") or r["token"].get("name", ""),
+        "symbol": (r.get("detail") or {}).get("shortName") or r["token"].get("symbol", ""),
+        "elimReason": f"入场拒绝: {r.get('reason', '')}",
+        "eliminatedAt": now_ms,
+        "createdAt": r["token"].get("createdAt", 0),
+    } for r in rejected_at_entry if r["token"].get("address")])
+
     log.info("淘汰后: %d 个存活, %d 个淘汰", len(survivors), len(eliminated))
 
-    # Step 4: 钱包分析 + 精筛 + 仿盘检测
-    log.info("\n--- Step 4: 钱包分析 + 精筛 ---")
+    # Step 4: 仿盘检测 + 精筛
+    log.info("\n--- Step 4: 仿盘检测 + 精筛 ---")
 
-    wallet_map = {}
-    binance_signals = {}
+    # 仿盘检测 (本地队列统计, 零 API 调用)
+    rejected_as_known = []
+    for r in rejected_at_entry:
+        token = r.get("token", {})
+        detail = r.get("detail") or {}
+        rejected_as_known.append({
+            "address": token.get("address", ""),
+            "name": detail.get("name") or token.get("name", ""),
+            "symbol": detail.get("shortName") or token.get("symbol", ""),
+        })
+    all_known = queue_state.get("tokens", []) + queue_state.get("eliminated", []) + rejected_as_known
 
-    # GMGN 聪明钱地址收集 (每轮扫描都拉, 累积存文件)
-    smart_addresses = fetch_gmgn_smart_money()
+    # 更新持久化名称索引
+    update_name_index(queue_state, all_known)
 
-    if survivors:
-        # 币安聪明钱信号 (不依赖 BSCScan, 独立获取)
-        binance_signals = fetch_binance_smart_signals()
-        bn_match = sum(1 for t in survivors if t.get("address", "").lower() in binance_signals)
-        if binance_signals:
-            log.info("币安聪明钱信号: %d 个, 命中队列 %d 个", len(binance_signals), bn_match)
-
-    if bscscan_key and survivors:
-        log.info("分析 %d 个代币的开发者/聪明钱行为...", len(survivors))
-        wallet_map = batch_wallet_analysis(survivors, bscscan_key, binance_signals,
-                                           smart_addresses, rpc_logs_map)
-        excluded_count = sum(1 for w in wallet_map.values() if w["excluded"])
-        signal_count = sum(1 for w in wallet_map.values() if w["signals"])
-        log.info("钱包分析: 排除 %d, 有加分信号 %d", excluded_count, signal_count)
-    elif survivors and binance_signals:
-        # 即使没有 BSCScan key, 也用币安信号做基础分析
-        for t in survivors:
-            addr = t.get("address", "").lower()
-            bn = binance_signals.get(addr)
-            if bn:
-                direction = bn.get("direction", "")
-                sm_count = bn.get("smartMoneyCount", 0)
-                status = bn.get("status", "")
-                max_gain = bn.get("maxGain", "0")
-                exit_rate = bn.get("exitRate", 0)
-                details = []
-                signals = []
-                bonus = 0
-                if direction == "buy":
-                    detail_str = f"币安聪明钱买入 ({sm_count}个地址"
-                    if status == "active":
-                        detail_str += ", 活跃"
-                    if max_gain and float(max_gain) > 0:
-                        detail_str += f", 最高涨{float(max_gain):.1f}%"
-                    detail_str += ")"
-                    details.append(detail_str)
-                    signals.append("币安聪明钱买入")
-                    bonus = min(sm_count, 3)
-                elif direction == "sell":
-                    details.append(f"币安聪明钱卖出 ({sm_count}个地址, 退出率{exit_rate}%)")
-                    signals.append("币安聪明钱卖出")
-                wallet_map[addr] = {
-                    "excluded": False,
-                    "excludeReason": "",
-                    "signals": signals,
-                    "bonus": bonus,
-                    "details": details,
-                }
-
-    # 仿盘检测 (本地队列统计, 零 API 调用, 对所有代币打标记)
-    all_known = queue_state.get("tokens", []) + queue_state.get("eliminated", [])
     all_to_check = survivors + eliminated
-    copycat_map = detect_copycats(all_to_check, all_known)
+    copycat_map = detect_copycats(all_to_check, all_known,
+                                  queue_state.get("nameIndex"))
     for t in survivors:
         cc = copycat_map.get(t.get("address", "").lower())
         if cc:
             t["copycat"] = cc
-            if cc["isCopycat"]:
-                addr = t.get("address", "")
-                wa = wallet_map.get(addr) or {"excluded": False, "excludeReason": "",
-                                               "signals": [], "bonus": 0, "details": []}
-                wa["signals"].append(f"大量仿盘({cc['count']}个)")
-                wa["details"].append(f"仿盘 {cc['count']} 个")
-                wa["bonus"] += 2
-                wallet_map[addr] = wa
     for t in eliminated:
         cc = copycat_map.get(t.get("address", "").lower())
         if cc:
             t["copycat"] = cc
 
-    # 精筛
-    quality_results = quality_filter(survivors, now_ms, wallet_map)
+    # 精筛 (v6: 极简三条件, 无钱包分析)
+    quality_results = quality_filter(survivors, now_ms)
 
     # 按持币数排序
     quality_results.sort(key=lambda x: (x.get("holders", 0)), reverse=True)
@@ -2142,7 +2031,6 @@ def main():
     out_tokens = []
     for t in quality_results:
         cc = t.get("copycat", {})
-        wa = t.get("walletAnalysis") or {}
         out_tokens.append({
             "address": t.get("address", ""),
             "name": t.get("name", ""),
@@ -2152,8 +2040,6 @@ def main():
             "total_supply": t.get("totalSupply", 0),
             "price": t.get("price", 0),
             "max_price": t.get("peakPrice", 0),
-            "ath": t.get("ath", 0),
-            "price_ratio": round(t["price"] / t["ath"], 4) if t.get("ath") and t.get("price") else 0,
             "age_hours": round((now_ms - t.get("createdAt", 0)) / 3600000, 2),
             "social_count": t.get("socialCount", 0),
             "social_links": t.get("socialLinks", {}),
@@ -2163,13 +2049,6 @@ def main():
             "progress": t.get("progress", 0),
             "liquidity": t.get("liquidity", 0),
             "raised_amount": t.get("raisedAmount", 0),
-            "market_cap": t.get("marketCap", 0),
-            "wallet_signals": t.get("walletSignals", []),
-            "dev_hold_pct": t.get("devHoldPct", 0),
-            "smart_money_holders": t.get("smartMoneyHolders", 0),
-            "kol_holders": t.get("kolHolders", 0),
-            "pro_holders": t.get("proHolders", 0),
-            "top10_pct": t.get("top10Pct", 0),
         })
 
     # queue: 存活快照
@@ -2188,17 +2067,11 @@ def main():
             "liquidity": t.get("liquidity", 0),
             "peak_liquidity": t.get("peakLiquidity", 0),
             "raised_amount": t.get("raisedAmount", 0),
-            "market_cap": t.get("marketCap", 0),
             "progress": t.get("progress", 0),
             "social_count": t.get("socialCount", 0),
             "social_links": t.get("socialLinks", {}),
             "age_hours": round((now_ms - t.get("createdAt", 0)) / 3600000, 2),
             "consec_drops": t.get("consecDrops", 0),
-            "dev_hold_pct": t.get("devHoldPct", 0),
-            "smart_money_holders": t.get("smartMoneyHolders", 0),
-            "kol_holders": t.get("kolHolders", 0),
-            "pro_holders": t.get("proHolders", 0),
-            "top10_pct": t.get("top10Pct", 0),
             "copycat_count": cc.get("count", 0),
             "is_copycat": cc.get("isCopycat", False),
         })
