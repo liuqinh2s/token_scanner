@@ -1337,10 +1337,10 @@ def ds_get_pairs(token_address: str) -> list[dict] | None:
 
 
 def ds_batch_prices(addresses: list[str]) -> dict[str, dict]:
-    """DexScreener 批量查价格+流动性 (最多 30 个地址/请求)"""
+    """DexScreener 批量查价格+流动性 (最多 10 个地址/请求, 避免 URL 过长被拒)"""
     _ensure_sessions()
     result = {}
-    batch_size = 30
+    batch_size = 10
 
     for i in range(0, len(addresses), batch_size):
         batch = addresses[i:i + batch_size]
@@ -2036,7 +2036,8 @@ def main():
     save_queue(queue_state)
 
     # --- 构建输出 JSON ---
-    now_dt = datetime.now(timezone.utc)
+    from datetime import timedelta
+    now_dt = datetime.now(timezone(timedelta(hours=8)))  # 北京时间
     scan_time_str = now_dt.strftime("%-Y-%-m-%-d %H:%M:%S")
     file_ts = now_dt.strftime("%Y-%m-%dT%H-%M-%S")
 
