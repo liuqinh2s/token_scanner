@@ -14,7 +14,7 @@ BSC Token Scanner v5 — 链上发现 + 队列淘汰制 (Python 版, GitHub Acti
   - 日志仅输出到 stdout
 
 每轮扫描:
-  1. 链上发现 (~1s): BSC RPC eth_getLogs → four.meme TokenCreated 事件 → 新代币地址
+  1. 链上发现 (~1s): BSC RPC eth_getLogs → four.meme TokenCreated 事件 (多版本合约) → 新代币地址
   2. 入场筛 (~35s): four.meme Detail API → 淘汰无社交 / 总量≠10亿
   3. 淘汰检查 (~15s): DexScreener 批量查价 + Detail API 查持币数 → 永久淘汰弃盘币
   4. 钱包行为分析 (~20s): BscScan tokentx → 开发者行为分析
@@ -125,10 +125,18 @@ GMGN_API = "https://openapi.gmgn.ai"
 GMGN_API_KEY = "gmgn_solbscbaseethmonadtron"  # 免费 demo key
 SMART_MONEY_FILE = DATA_DIR / "smart_money.json"
 
-# four.meme 合约地址 (用于链上事件发现)
-FOUR_MEME_CONTRACT = "0x5c952063c7fc8610ffdb798152d69f0b9550762b"
-TOKEN_CREATE_TOPIC = "0x396d5e902b675b032348d3d2e9517ee8f0c4a926603fbc075d3d282ff00cad20"
+# four.meme 合约地址 (用于链上事件发现, 支持多版本合约)
+FOUR_MEME_CONTRACT = "0x5c952063c7fc8610ffdb798152d69f0b9550762b"       # 旧版工厂
+FOUR_MEME_CONTRACT_V2 = "0xd36b6d646ac6e23672e9eedec558164c7f2d6deb"    # 新版工厂 (2025-2026)
+TOKEN_CREATE_TOPIC = "0x396d5e902b675b032348d3d2e9517ee8f0c4a926603fbc075d3d282ff00cad20"      # 旧版 TokenCreate
+TOKEN_CREATE_TOPIC_V2 = "0x20efd6d5195b7b50273f01cd79a27989255356f9f13293edc53ee142accfdb75"   # 新版事件
 ERC20_TRANSFER_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+
+# 所有 four.meme 工厂合约 + 对应事件 (新增合约时只需在此追加)
+FOUR_MEME_FACTORIES = [
+    (FOUR_MEME_CONTRACT, TOKEN_CREATE_TOPIC),
+    (FOUR_MEME_CONTRACT_V2, TOKEN_CREATE_TOPIC_V2),
+]
 
 FM_HEADERS = {
     "Content-Type": "application/json",
@@ -206,6 +214,7 @@ KNOWN_EXCLUDE_ADDRESSES = {
     "0xe9e7cea3dedca5984780bafc599bd69add087d56",  # BUSD
     "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",  # USDC
     FOUR_MEME_CONTRACT.lower(),
+    FOUR_MEME_CONTRACT_V2.lower(),
 }
 
 
@@ -448,9 +457,67 @@ def _rpc_call(method: str, params: list) -> dict | None:
         return None
 
 
+def _parse_token_from_log(log_entry: dict) -> dict | None:
+    """
+    从 eth_getLogs 返回的单条日志中解析代币信息。
+    兼容新旧合约的 data 结构, 解析失败的字段留空 (后续 detail API 补全)。
+    """
+    try:
+        data = log_entry["data"][2:]  # 去掉 0x 前缀
+        if len(data) < 128:
+            return None
+
+        # 尝试从 data 中提取 token 地址 (word[1], offset 88:128)
+        token_addr = ("0x" + data[88:128]).lower()
+        # 只保留 four.meme 代币 (后缀 4444 或 ffff)
+        if not token_addr.endswith("4444") and not token_addr.endswith("ffff"):
+            return None
+
+        # creator 地址 (word[0] 的低 20 字节, offset 24:64)
+        creator_addr = ("0x" + data[24:64]).lower() if len(data) >= 64 else ""
+
+        # 创建时间戳 — 旧合约在 word[6], 新合约结构可能不同, 容错处理
+        create_ts = 0
+        try:
+            if len(data) >= 448:
+                create_ts = int(data[384:448], 16)  # word[6]
+        except Exception:
+            pass
+
+        # 解码名称和符号 — 容错, 失败不影响入队
+        name, symbol = "", ""
+        try:
+            if len(data) >= 576:
+                name_len = int(data[512:576], 16)  # word[8]
+                if 0 < name_len < 200:
+                    name = bytes.fromhex(data[576:576 + name_len * 2]).decode("utf-8", errors="replace")
+                name_words = max(1, (name_len + 31) // 32)
+                sym_len_offset = (9 + name_words) * 64
+                if sym_len_offset + 64 <= len(data):
+                    sym_len = int(data[sym_len_offset:sym_len_offset + 64], 16)
+                    if 0 < sym_len < 100:
+                        symbol = bytes.fromhex(
+                            data[sym_len_offset + 64:sym_len_offset + 64 + sym_len * 2]
+                        ).decode("utf-8", errors="replace")
+        except Exception:
+            pass  # 解码失败, 后续从 detail API 获取
+
+        return {
+            "address": token_addr,
+            "creator": creator_addr,
+            "createdAt": create_ts * 1000 if create_ts else 0,  # 毫秒
+            "name": name,
+            "symbol": symbol,
+            "block": int(log_entry["blockNumber"], 16),
+        }
+    except Exception:
+        return None
+
+
 def discover_on_chain(from_block: int) -> tuple[list[dict], int]:
     """
-    链上发现: 通过 BSC RPC eth_getLogs 查询 four.meme TokenCreated 事件
+    链上发现: 通过 BSC RPC eth_getLogs 查询所有 four.meme 工厂合约的代币创建事件
+    支持多版本合约 (FOUR_MEME_FACTORIES), 新增合约只需在常量区追加即可。
     返回: (新代币列表, 最新区块号)
     """
     # 获取最新区块号
@@ -469,80 +536,50 @@ def discover_on_chain(from_block: int) -> tuple[list[dict], int]:
         log.warning("区块跨度过大 (%d), 截断到最近 10000 blocks", latest_block - from_block)
         from_block = latest_block - 10000
 
-    log.info("链上扫描区块 %d ~ %d (%d blocks)", from_block, latest_block, latest_block - from_block)
+    log.info("链上扫描区块 %d ~ %d (%d blocks), 监听 %d 个工厂合约",
+             from_block, latest_block, latest_block - from_block, len(FOUR_MEME_FACTORIES))
 
     tokens = []
+    seen_addrs = set()  # 去重 (理论上不同合约不会创建同一代币, 但防御性编程)
     chunk = 10000
     current = from_block
 
     while current <= latest_block:
         end = min(current + chunk - 1, latest_block)
-        try:
-            res = _rpc_call("eth_getLogs", [{
-                "address": FOUR_MEME_CONTRACT,
-                "fromBlock": hex(current),
-                "toBlock": hex(end),
-                "topics": [TOKEN_CREATE_TOPIC],
-            }])
 
-            if not res:
-                current = end + 1
-                continue
+        # 对每个工厂合约 + 事件组合分别查询
+        for factory_addr, event_topic in FOUR_MEME_FACTORIES:
+            try:
+                res = _rpc_call("eth_getLogs", [{
+                    "address": factory_addr,
+                    "fromBlock": hex(current),
+                    "toBlock": hex(end),
+                    "topics": [event_topic],
+                }])
 
-            if res.get("error"):
-                err_msg = res["error"].get("message", "")
-                if "pruned" in err_msg:
-                    current = end + 50000
-                    continue
-                log.warning("RPC error: %s", err_msg)
-                current = end + 1
-                continue
-
-            for log_entry in (res.get("result") or []):
-                data = log_entry["data"][2:]  # 去掉 0x 前缀
-                token_addr = ("0x" + data[88:128]).lower()
-                # 只保留 four.meme 代币 (后缀 4444 或 ffff)
-                if not token_addr.endswith("4444") and not token_addr.endswith("ffff"):
+                if not res:
                     continue
 
-                creator_addr = ("0x" + data[24:64]).lower()
-                create_ts = int(data[384:448], 16)  # word[6]
+                if res.get("error"):
+                    err_msg = res["error"].get("message", "")
+                    if "pruned" in err_msg:
+                        continue
+                    log.warning("RPC error (%s): %s", factory_addr[:10], err_msg)
+                    continue
 
-                # 解码名称和符号
-                name, symbol = "", ""
-                try:
-                    name_len = int(data[512:576], 16)  # word[8]
-                    if 0 < name_len < 200:
-                        name = bytes.fromhex(data[576:576 + name_len * 2]).decode("utf-8", errors="replace")
-                    # symbol 位置取决于 name 长度 (动态编码)
-                    name_words = max(1, (name_len + 31) // 32)
-                    sym_len_offset = (9 + name_words) * 64
-                    if sym_len_offset + 64 <= len(data):
-                        sym_len = int(data[sym_len_offset:sym_len_offset + 64], 16)
-                        if 0 < sym_len < 100:
-                            symbol = bytes.fromhex(
-                                data[sym_len_offset + 64:sym_len_offset + 64 + sym_len * 2]
-                            ).decode("utf-8", errors="replace")
-                except Exception:
-                    pass  # 解码失败, 后续从 detail API 获取
+                for log_entry in (res.get("result") or []):
+                    parsed = _parse_token_from_log(log_entry)
+                    if parsed and parsed["address"] not in seen_addrs:
+                        seen_addrs.add(parsed["address"])
+                        tokens.append(parsed)
 
-                tokens.append({
-                    "address": token_addr,
-                    "creator": creator_addr,
-                    "createdAt": create_ts * 1000,  # 毫秒
-                    "name": name,
-                    "symbol": symbol,
-                    "block": int(log_entry["blockNumber"], 16),
-                })
-
-        except Exception as e:
-            log.warning("链上扫描异常: %s", e)
-            time.sleep(1)
+            except Exception as e:
+                log.warning("链上扫描异常 (%s): %s", factory_addr[:10], e)
 
         current = end + 1
         time.sleep(0.1)
 
-    log.info("链上发现 %d 个新代币", len(tokens))
+    log.info("链上发现 %d 个新代币 (来自 %d 个工厂合约)", len(tokens), len(FOUR_MEME_FACTORIES))
     return tokens, latest_block
 
 
