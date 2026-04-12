@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "npx live-server site --watch=site/data",
     "build": "node scripts/build.js",
-    "scan": "node scripts/scan.js",
+    "scan": "python3 scripts/scan.py",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

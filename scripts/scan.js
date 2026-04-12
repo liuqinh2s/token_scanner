@@ -1078,64 +1078,73 @@ async function fetchBinanceSmartSignals() {
   const signalMap = new Map();
 
   try {
-    for (let page = 1; page <= 3; page++) {
-      const resp = await fetchJSON(BINANCE_SMART_SIGNAL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept-Encoding": "identity",
-          "User-Agent": "binance-web3/1.1 (Skill)",
-        },
-        body: JSON.stringify({ smartSignalType: "", page, pageSize: 100, chainId: "56" }),
-        timeout: 15000,
-      });
+    // 先用第一页探测可用性, 超时 5 秒快速失败
+    const resp = await fetchJSON(BINANCE_SMART_SIGNAL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept-Encoding": "identity",
+        "User-Agent": "binance-web3/1.1 (Skill)",
+      },
+      body: JSON.stringify({ smartSignalType: "", page: 1, pageSize: 100, chainId: "56" }),
+      timeout: 5000,
+    });
 
-      if (resp.status !== 200 || !resp.data) break;
-      const data = resp.data;
-      if (data.code !== "000000" || !data.data) break;
+    if (resp.status !== 200 || !resp.data || resp.data.code !== "000000" || !resp.data.data) {
+      console.log(`${_ts()} [币安信号] 不可用 (status=${resp.status}), 跳过`);
+      binanceSignalCache = { ts: now, signals: signalMap };
+      return signalMap;
+    }
 
-      const items = data.data;
+    // 第一页成功, 处理数据
+    function processItems(items) {
       for (const item of items) {
         const addr = (item.contractAddress || "").toLowerCase();
         if (!addr || addr.length !== 42) continue;
-
-        // 解析 tokenTag 中的敏感事件
         const tagEvents = [];
-        const tokenTag = item.tokenTag || {};
-        for (const evt of (tokenTag["Sensitive Events"] || [])) {
+        for (const evt of ((item.tokenTag || {})["Sensitive Events"] || [])) {
           if (evt.tagName) tagEvents.push(evt.tagName);
         }
-
         const signal = {
-          direction: item.direction || "",
-          smartMoneyCount: item.smartMoneyCount || 0,
-          exitRate: item.exitRate || 0,
-          maxGain: item.maxGain || "0",
-          status: item.status || "",
-          alertPrice: item.alertPrice || "0",
-          currentPrice: item.currentPrice || "0",
-          totalTokenValue: item.totalTokenValue || "0",
-          signalTriggerTime: item.signalTriggerTime || 0,
-          ticker: item.ticker || "",
-          tagEvents,
+          direction: item.direction || "", smartMoneyCount: item.smartMoneyCount || 0,
+          exitRate: item.exitRate || 0, maxGain: item.maxGain || "0",
+          status: item.status || "", alertPrice: item.alertPrice || "0",
+          currentPrice: item.currentPrice || "0", totalTokenValue: item.totalTokenValue || "0",
+          signalTriggerTime: item.signalTriggerTime || 0, ticker: item.ticker || "", tagEvents,
         };
-
-        // 同一代币保留 smartMoneyCount 最大的
         const existing = signalMap.get(addr);
         if (!existing || signal.smartMoneyCount > existing.smartMoneyCount) {
           signalMap.set(addr, signal);
         }
       }
+    }
 
-      if (items.length < 100) break;
-      await sleep(300);
+    const firstItems = resp.data.data;
+    processItems(firstItems);
+
+    // 继续拉后续页
+    if (firstItems.length >= 100) {
+      for (let page = 2; page <= 3; page++) {
+        try {
+          const r = await fetchJSON(BINANCE_SMART_SIGNAL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Accept-Encoding": "identity", "User-Agent": "binance-web3/1.1 (Skill)" },
+            body: JSON.stringify({ smartSignalType: "", page, pageSize: 100, chainId: "56" }),
+            timeout: 10000,
+          });
+          if (r.status !== 200 || !r.data || r.data.code !== "000000" || !r.data.data) break;
+          processItems(r.data.data);
+          if (r.data.data.length < 100) break;
+          await sleep(300);
+        } catch (e) { break; }
+      }
     }
 
     if (signalMap.size > 0) {
       console.log(`${_ts()} [币安信号] 获取 ${signalMap.size} 个 BSC 聪明钱信号`);
     }
   } catch (e) {
-    console.log(`${_ts()} [币安信号] 获取失败: ${e.message}`);
+    console.log(`${_ts()} [币安信号] 不可用: ${e.message}`);
   }
 
   binanceSignalCache = { ts: now, signals: signalMap };
@@ -1155,15 +1164,23 @@ async function fetchBinanceTokenDynamic(addresses) {
     "User-Agent": "binance-web3/1.1 (Skill)",
   };
 
+  let consecFails = 0;
   for (let i = 0; i < addresses.length; i++) {
+    // 连续 3 次失败 → 币安 API 不可用, 放弃剩余
+    if (consecFails >= 3) {
+      console.log(`${_ts()} [币安动态] 连续失败 ${consecFails} 次, 跳过剩余 ${addresses.length - i} 个`);
+      break;
+    }
+
     const addr = addresses[i];
     try {
       const url = `${BINANCE_TOKEN_DYNAMIC}?chainId=56&contractAddress=${addr}`;
-      const resp = await fetchJSON(url, { headers: BN_HEADERS, timeout: 10000 });
-      if (resp.status !== 200 || !resp.data) continue;
+      const resp = await fetchJSON(url, { headers: BN_HEADERS, timeout: 5000 });
+      if (resp.status !== 200 || !resp.data) { consecFails++; continue; }
       const body = resp.data;
-      if (body.code !== "000000" || !body.data) continue;
+      if (body.code !== "000000" || !body.data) { consecFails++; continue; }
 
+      consecFails = 0; // 成功, 重置计数
       const d = body.data;
       result.set(addr.toLowerCase(), {
         price: parseFloat(d.price || 0),
@@ -1183,9 +1200,8 @@ async function fetchBinanceTokenDynamic(addresses) {
         proHolders: parseInt(d.proHolders || 0),
         proHoldPct: parseFloat(d.proHoldingPercent || 0),
       });
-    } catch (e) { /* skip */ }
+    } catch (e) { consecFails++; }
 
-    // 限流: ~5 req/s
     if (i < addresses.length - 1) await sleep(250);
   }
 

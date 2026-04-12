@@ -27,7 +27,7 @@ for (const d of [SITE_DIR, SITE_DATA_DIR, SCANS_DIR]) {
 
 // Read all scan files from data/, sorted newest first
 const scanFiles = fs.readdirSync(DATA_DIR)
-  .filter(f => f.endsWith(".json") && f !== "queue.json")
+  .filter(f => f.endsWith(".json") && f !== "queue.json" && f !== "smart_money.json")
   .sort()
   .reverse();
 
