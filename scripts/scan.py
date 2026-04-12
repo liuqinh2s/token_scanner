@@ -1698,6 +1698,10 @@ def elimination_check(queue: list[dict], now_ms: int,
             t["socialCount"] = detail["socialCount"]
             t["socialLinks"] = detail["socialLinks"]
             t["day1Vol"] = detail.get("day1Vol") or t.get("day1Vol", 0)
+            # 用 detail API 的 launchTime 修正 createdAt (队列中的值可能不准)
+            if detail.get("launchTime") and detail["launchTime"] > 0:
+                t["createdAt"] = detail["launchTime"]
+                age_hours = (now_ms - t["createdAt"]) / 3600000
         if ds:
             t["name"] = ds.get("name") or t.get("name", "")
             t["symbol"] = ds.get("symbol") or t.get("symbol", "")
@@ -1778,6 +1782,11 @@ def elimination_check(queue: list[dict], now_ms: int,
         if not elim_reason:
             if age_hours > ELIM_MID_AGE_HOURS and t.get("peakHolders", 0) < ELIM_MID_PEAK_HOLDERS:
                 elim_reason = f"币龄{age_hours:.1f}h 最高持币仅{t.get('peakHolders', 0)}"
+
+        # 9. 修正后币龄 > 48h (detail API 修正 createdAt 后重新检查)
+        if not elim_reason:
+            if age_hours > MAX_AGE_HOURS:
+                elim_reason = f"币龄>{MAX_AGE_HOURS}h (修正后{age_hours:.1f}h)"
 
         if elim_reason:
             eliminated.append({**t, "eliminatedAt": now_ms, "elimReason": elim_reason})
