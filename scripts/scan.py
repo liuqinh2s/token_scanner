@@ -418,7 +418,7 @@ def fm_detail(address: str) -> dict | None:
             "descr": raw.get("descr", ""),
             "name": raw.get("name", ""),
             "shortName": raw.get("shortName", ""),
-            "progress": float(raw.get("progress", 0) or 0),
+            "progress": float(tp.get("progress", 0) or raw.get("progress", 0) or 0),
             "day1Vol": float(tp.get("day1Vol", 0) or raw.get("day1Vol", 0) or 0),
             "liquidity": float(tp.get("liquidity", 0) or 0),
             "launchTime": launch_ts,
