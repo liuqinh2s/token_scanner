@@ -476,13 +476,20 @@ def _parse_token_from_log(log_entry: dict) -> dict | None:
         # creator 地址 (word[0] 的低 20 字节, offset 24:64)
         creator_addr = ("0x" + data[24:64]).lower() if len(data) >= 64 else ""
 
-        # 创建时间戳 — 旧合约在 word[6], 新合约结构可能不同, 容错处理
+        # 创建时间戳 — 不同合约版本时间戳位置不同, 依次尝试多个 word 位置
+        # 合理范围: 2020-01-01 ~ 2030-01-01 (Unix 秒)
         create_ts = 0
-        try:
-            if len(data) >= 448:
-                create_ts = int(data[384:448], 16)  # word[6]
-        except Exception:
-            pass
+        TS_MIN, TS_MAX = 1577808000, 1893456000
+        for word_idx in (6, 5, 7, 4):
+            try:
+                offset = word_idx * 64
+                if len(data) >= offset + 64:
+                    val = int(data[offset:offset + 64], 16)
+                    if TS_MIN <= val <= TS_MAX:
+                        create_ts = val
+                        break
+            except Exception:
+                continue
 
         # 解码名称和符号 — 容错, 失败不影响入队
         name, symbol = "", ""
@@ -580,6 +587,26 @@ def discover_on_chain(from_block: int) -> tuple[list[dict], int]:
         time.sleep(0.1)
 
     log.info("链上发现 %d 个新代币 (来自 %d 个工厂合约)", len(tokens), len(FOUR_MEME_FACTORIES))
+
+    # 回退: 对 createdAt=0 的代币, 用区块时间戳补全
+    need_block_ts = [t for t in tokens if t.get("createdAt", 0) == 0]
+    if need_block_ts:
+        block_nums = list({t["block"] for t in need_block_ts})
+        log.info("补全 %d 个代币的创建时间 (查 %d 个区块时间戳)", len(need_block_ts), len(block_nums))
+        block_ts_map = {}
+        for bn in block_nums:
+            res = _rpc_call("eth_getBlockByNumber", [hex(bn), False])
+            if res and res.get("result"):
+                ts = int(res["result"].get("timestamp", "0x0"), 16)
+                if ts > 0:
+                    block_ts_map[bn] = ts
+            time.sleep(0.05)
+        for t in need_block_ts:
+            ts = block_ts_map.get(t["block"], 0)
+            if ts > 0:
+                t["createdAt"] = ts * 1000
+                log.info("  补全 %s 创建时间: %d", t.get("name") or t["address"][:16], ts)
+
     return tokens, latest_block
 
 
