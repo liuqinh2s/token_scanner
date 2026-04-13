@@ -66,15 +66,26 @@ if (scanFiles.length === 0) {
   });
   fs.writeFileSync(path.join(SITE_DATA_DIR, "history.json"), JSON.stringify(history));
 
-  // search-index.json - deduplicated tokens across all scans for client-side search
+  // search-index.json - 包含所有时间点的代币快照，支持历史时间线查看
+  // 同一地址在不同扫描时间点保留多条记录，但做采样：同一地址+来源 每30分钟最多保留一条
   // 包含所有四类代币: 精筛结果、队列存活、本轮淘汰、入场淘汰
-  const seen = new Set();
   const searchIndex = [];
+  const lastSeen = {}; // key: addr+source -> 上次记录的时间戳
+
+  const SAMPLE_INTERVAL_MS = 14 * 60 * 1000; // 14分钟采样间隔（扫描周期15分钟，实际不丢弃任何记录）
 
   function addToIndex(t, source, scanTime) {
     const addr = t.address || '';
-    if (!addr || seen.has(addr)) return;
-    seen.add(addr);
+    if (!addr) return;
+
+    // 采样: 同一地址+来源，30分钟内只保留一条（淘汰/拒绝类不采样，因为只出现一次）
+    if (source === 'queue' || source === 'filtered') {
+      const key = addr + '|' + source;
+      const scanTs = new Date(scanTime).getTime() || 0;
+      if (lastSeen[key] && scanTs - lastSeen[key] < SAMPLE_INTERVAL_MS) return;
+      lastSeen[key] = scanTs;
+    }
+
     searchIndex.push({
       a: addr,
       n: t.name || '',
@@ -105,7 +116,9 @@ if (scanFiles.length === 0) {
     });
   }
 
-  scanFiles.forEach((file) => {
+  // 按时间正序遍历（oldest first），这样采样保留的是最早的记录
+  const scanFilesAsc = [...scanFiles].reverse();
+  scanFilesAsc.forEach((file) => {
     const data = JSON.parse(fs.readFileSync(path.join(DATA_DIR, file), "utf-8"));
     const st = data.scanTime;
     for (const t of (data.tokens || [])) addToIndex(t, 'filtered', st);
@@ -114,8 +127,10 @@ if (scanFiles.length === 0) {
     for (const t of (data.rejectedAtEntry || [])) addToIndex(t, 'rejected', st);
   });
   searchIndex.sort((a, b) => (b.c || 0) - (a.c || 0));
+  // 统计唯一地址数
+  const uniqueAddrs = new Set(searchIndex.map(t => t.a)).size;
   fs.writeFileSync(path.join(SITE_DATA_DIR, "search-index.json"), JSON.stringify(searchIndex));
-  console.log(`[BUILD] Search index: ${searchIndex.length} unique tokens.`);
+  console.log(`[BUILD] Search index: ${searchIndex.length} records, ${uniqueAddrs} unique tokens.`);
   console.log(`[BUILD] Generated data for ${scanFiles.length} scans.`);
 }
 

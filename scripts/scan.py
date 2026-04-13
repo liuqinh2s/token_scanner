@@ -2023,15 +2023,15 @@ def quality_filter(candidates: list[dict], now_ms: int) -> list[dict]:
 
 
 # ===================================================================
-#  数据文件清理 — 删除 7 天前的 JSON 文件
+#  数据文件清理 — 删除 48 小时前的 JSON 文件
 # ===================================================================
-def cleanup_old_data(max_age_days: int = 7):
-    """删除 data/ 目录下超过 max_age_days 天的 JSON 文件 (排除 queue.json)"""
+def cleanup_old_data(max_age_days: int = 2):
+    """删除 data/ 目录下超过 max_age_days 天的 JSON 文件 (排除 queue.json, smart_money.json)"""
     now = time.time()
     cutoff = now - max_age_days * 86400
     count = 0
     for f in DATA_DIR.glob("*.json"):
-        if f.name == "queue.json":
+        if f.name in ("queue.json", "smart_money.json"):
             continue
         try:
             if f.stat().st_mtime < cutoff:
@@ -2313,7 +2313,7 @@ def main():
     log.info("输出: %s", out_path)
 
     # 清理过期数据文件
-    cleanup_old_data(7)
+    cleanup_old_data(2)
 
     # 打印摘要
     log.info("=" * 50)
