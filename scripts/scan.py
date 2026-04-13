@@ -2034,13 +2034,12 @@ def cleanup_old_data(max_age_days: int = 2):
             continue
         # 从文件名解析时间: 2026-04-10T12-34-56.json → 2026-04-10T12:34:56
         try:
-            ts_str = f.stem.replace("T", " ").replace("-", ":", 2).replace(" ", "T", 1)
-            # 结果: 2026-04-10T12:34:56
-            parts = ts_str.split("T")
-            if len(parts) == 2:
-                time_part = parts[1].replace("-", ":")
-                ts_str = parts[0] + "T" + time_part
-            file_dt = datetime.fromisoformat(ts_str).replace(tzinfo=timezone.utc)
+            parts = f.stem.split("T")
+            if len(parts) != 2:
+                continue
+            date_part = parts[0]              # 2026-04-10 (已是合法格式)
+            time_part = parts[1].replace("-", ":")  # 12-34-56 → 12:34:56
+            file_dt = datetime.fromisoformat(f"{date_part}T{time_part}").replace(tzinfo=timezone.utc)
             if file_dt < cutoff:
                 f.unlink()
                 count += 1
