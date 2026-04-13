@@ -16,7 +16,7 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
    four.meme Detail API → 淘汰无社交 / 总量≠10亿
 
 3. 淘汰检查 (~15s)
-   DexScreener 批量查价 + RPC Transfer事件/BscScan 查持币数 + Detail API → 永久淘汰弃盘币
+   DexScreener 批量查价 + RPC Transfer事件查持币数 + Detail API → 永久淘汰弃盘币
 
 4. 钱包行为分析 (~20s)
    BscScan tokentx → 开发者行为 (DEX Router/LP token mint-burn)
@@ -34,7 +34,7 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 | BSC RPC (publicnode) | 链上 TokenCreated 事件发现 | 无硬限制 |
 | four.meme Detail API | 社交链接/进度 | ~5 req/s |
 | BscScan API (Etherscan V2) | tokentx 开发者行为 + Top Holders 聪明钱自动发现 | ~5 req/s |
-| BSC RPC Transfer 事件 | 持币地址数 (免费, 替代 BscScan PRO 端点) | 无硬限制 |
+| BSC RPC Transfer 事件 | 持币地址数 (链上实时计算, 优先级最高) | 无硬限制 |
 | DexScreener API | 批量价格+流动性查询 | ~300 req/min |
 | GeckoTerminal OHLCV | K线数据（精筛用） | ~30 req/min |
 | 本地队列统计 | 仿盘检测：同名/近似名代币数量（零 API 调用） | 无 |

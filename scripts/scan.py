@@ -1,7 +1,7 @@
 """
 BSC Token Scanner v6 — 极速扫描, 以快致胜 (Python 版, GitHub Actions 专用)
 
-数据源: BSC RPC (链上事件) + four.meme API (详情/持币数) + DexScreener (价格)
+数据源: BSC RPC (链上事件 + 持币数) + four.meme API (详情) + DexScreener (价格)
 
 与 token_trading/scanner.py 的区别:
   - 配置从 config.local.json 加载 (proxy 格式: {host, port})
@@ -14,7 +14,7 @@ BSC Token Scanner v6 — 极速扫描, 以快致胜 (Python 版, GitHub Actions 
 v6 架构: 极速扫描 (1 分钟一轮)
   1. 链上发现 (~1s): BSC RPC eth_getLogs → four.meme V1 合约 TokenCreated 事件 → 新代币地址
   2. 入场筛 (~数秒): four.meme Detail API → 淘汰无社交 / 总量≠10亿 / 币龄>5min
-  3. 淘汰检查 (~数秒): DexScreener 批量查价 + Detail API 查持币数 → 永久淘汰弃盘币
+  3. 淘汰检查 (~数秒): DexScreener 批量查价 + RPC 持币数 + Detail API → 永久淘汰弃盘币
   4. 精筛 (瞬时): 极简三条件直接过滤
   5. 仿盘检测: 本地统计同名代币数量 (零 API 调用), 有大量仿盘(≥3)则标记
 
@@ -23,7 +23,6 @@ v6 架构: 极速扫描 (1 分钟一轮)
   - BSCScan 钱包行为分析 (开发者/聪明钱)
   - 币安 Web3 聪明钱信号 + Token Dynamic
   - GMGN 聪明钱地址
-  - RPC 持币数统计 (改用 four.meme detail 的 holderCount)
 
 淘汰条件 (永久剔除):
   - 价格从峰值跌 90%+
@@ -1669,13 +1668,17 @@ def elimination_check(queue: list[dict], now_ms: int,
     if not pre_filtered:
         return survivors, eliminated
 
-    # 2. DexScreener + four.meme detail 并行查询 (v6: 去掉 RPC持币数/K线/币安动态)
+    # 2. DexScreener + four.meme detail + RPC持币数 并行查询
     addrs = [t["address"] for t in pre_filtered]
 
     # 新入队代币 (本轮刚加入) 不需要再查 detail, 入场筛已经查过
     need_detail = [t for t in pre_filtered if now_ms - t.get("addedAt", 0) > 60000]
 
-    log.info("淘汰检查: 并行查询 %d 个代币 (DS + detail(%d个))...",
+    # RPC 持币数查询的输入 (所有代币都查, 包括刚入队的)
+    rpc_infos = [{"address": t["address"], "block": t.get("block", 0)}
+                 for t in pre_filtered]
+
+    log.info("淘汰检查: 并行查询 %d 个代币 (DS + detail(%d个) + RPC持币数)...",
              len(pre_filtered), len(need_detail))
 
     def _fetch_all_details():
@@ -1687,11 +1690,13 @@ def elimination_check(queue: list[dict], now_ms: int,
             time.sleep(0.2)
         return detail_map
 
-    with ThreadPoolExecutor(max_workers=2) as pool:
+    with ThreadPoolExecutor(max_workers=3) as pool:
         ds_future = pool.submit(ds_batch_prices, addrs)
         detail_future = pool.submit(_fetch_all_details)
+        rpc_future = pool.submit(rpc_holder_counts, rpc_infos)
         ds_data = ds_future.result()
         detail_map = detail_future.result()
+        rpc_holders = rpc_future.result()
 
     # 3. 逐个检查淘汰条件
     for t in pre_filtered:
@@ -1703,7 +1708,8 @@ def elimination_check(queue: list[dict], now_ms: int,
         current_price = (ds.get("price")
                          or (detail["price"] if detail else 0)
                          or t.get("price", 0))
-        current_holders = ((detail["holders"] if detail else 0)
+        current_holders = (rpc_holders.get(t["address"])
+                           or (detail["holders"] if detail else 0)
                            or t.get("holders", 0))
         current_liq = (ds.get("liquidity")
                        or t.get("liquidity", 0))
