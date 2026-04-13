@@ -1516,10 +1516,8 @@ def bscscan_scrape_holder_count(token_address: str) -> int | None:
         r = _bsc_session.get(url, headers=headers, timeout=15)
         if r.status_code != 200:
             return None
-        # BSCScan 页面结构: <div>Holders</div> ... <div>378</div>
-        m = re.search(
-            r'Holders\s*</\w+>\s*</\w+>\s*<\w+[^>]*>\s*<\w+[^>]*>\s*([\d,]+)',
-            r.text)
+        # BSCScan 页面 meta 标签: "Holders: 369 | As at ..."
+        m = re.search(r'Holders:\s*([\d,]+)', r.text)
         if m:
             return int(m.group(1).replace(",", ""))
     except Exception as e:
