@@ -21,7 +21,7 @@
     }
 
     #app {
-      max-width: 1200px;
+      max-width: 1600px;
       margin: 0 auto;
       padding: 20px;
       display: flex;
@@ -228,6 +228,11 @@
       background: #1e2a3a;
     }
 
+    .hist-row.active {
+      background: #1e2a3a;
+      border-left: 3px solid #f0b90b;
+    }
+
     .hist-row .ht {
       color: #7a8599;
     }
@@ -235,6 +240,57 @@
     .hist-row .hv {
       color: #f0b90b;
       font-weight: 600;
+    }
+
+    /* 桌面端双栏布局 */
+    @media (min-width: 769px) {
+      .desktop-split {
+        display: flex;
+        gap: 12px;
+        flex: 1;
+        min-height: 0;
+      }
+
+      .desktop-split .history-sidebar {
+        width: 340px;
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+
+      .desktop-split .history-sidebar .history-panel {
+        flex: 1;
+        max-height: none;
+        margin: 0;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .desktop-split .history-sidebar .history-panel #historyListDesktop {
+        flex: 1;
+        overflow-y: auto;
+      }
+
+      .desktop-split .detail-main {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+
+      .desktop-split .detail-main .scroll-area {
+        flex: 1;
+        overflow-y: auto;
+        min-height: 0;
+      }
+
+      /* 双栏模式下隐藏旧的历史面板 */
+      .desktop-split #historyPanelOld {
+        display: none;
+      }
     }
 
     .search-bar {
@@ -483,6 +539,36 @@
       display: none;
     }
 
+    /* 桌面端: 隐藏手机历史面板, 显示侧栏 */
+    @media (min-width: 769px) {
+      #historyPanel {
+        display: none !important;
+      }
+
+      #btnHistory {
+        display: none;
+      }
+
+      #btnLatest {
+        display: inline-block;
+      }
+    }
+
+    /* 手机端: 隐藏桌面侧栏 */
+    @media (max-width: 768px) {
+      .desktop-split {
+        display: block !important;
+      }
+
+      .history-sidebar {
+        display: none !important;
+      }
+
+      .detail-main {
+        display: block !important;
+      }
+    }
+
     @media (max-width: 768px) {
 
       /* 手机端头部精简 */
@@ -727,7 +813,16 @@
       <div id="historyList"></div>
     </div>
 
-    <div class="scroll-area">
+    <!-- 桌面端双栏布局: 左侧历史 + 右侧详情 -->
+    <div class="desktop-split" id="desktopSplit">
+      <div class="history-sidebar" id="historySidebar">
+        <div class="history-panel" style="display:flex;flex-direction:column;">
+          <h3>扫描历史</h3>
+          <div id="historyListDesktop" style="flex:1;overflow-y:auto;"></div>
+        </div>
+      </div>
+      <div class="detail-main">
+        <div class="scroll-area">
     <div id="tokenTable">
       <!-- Filtered results table -->
       <table>
@@ -818,6 +913,8 @@
       <div id="rejectedCardList" class="card-list"></div>
     </div>
     </div>
+    </div> <!-- /detail-main -->
+    </div> <!-- /desktop-split -->
   </div>
 
   <div id="toast" class="toast hidden"></div>
@@ -826,7 +923,9 @@
     let historyVisible = false;
     let currentTab = 'filtered';
     let currentData = null;
+    let activeHistoryId = null;
     const cache = {};
+    const isDesktop = () => window.innerWidth > 768;
 
     async function cachedFetch(url, bustCache) {
       if (!bustCache && cache[url]) return cache[url];
@@ -1239,31 +1338,54 @@
     }
 
     async function toggleHistory() {
+      // 手机端: 切换历史面板显示
       const panel = document.getElementById('historyPanel');
       historyVisible = !historyVisible;
       if (historyVisible) {
         panel.classList.remove('hidden');
-        const rows = await cachedFetch('/api/history');
-        const list = document.getElementById('historyList');
-        if (rows.length === 0) {
-          list.innerHTML = '<p style="color:#5a6a80;font-size:12px;">暂无历史记录。</p>';
-          return;
-        }
-        list.innerHTML = rows.map(r => `
-      <div class="hist-row" onclick="loadScan(${r.id})">
+        await renderHistoryList('historyList');
+      } else {
+        panel.classList.add('hidden');
+      }
+    }
+
+    // 渲染历史列表到指定容器
+    async function renderHistoryList(containerId) {
+      const rows = await cachedFetch('/api/history');
+      const list = document.getElementById(containerId);
+      if (!list) return;
+      if (rows.length === 0) {
+        list.innerHTML = '<p style="color:#5a6a80;font-size:12px;">暂无历史记录。</p>';
+        return;
+      }
+      list.innerHTML = rows.map(r => `
+      <div class="hist-row${activeHistoryId === r.id ? ' active' : ''}" onclick="loadScan(${r.id})" data-id="${r.id}">
         <span class="ht">${r.scan_time}</span>
         <span>队列: ${r.queue_size != null ? r.queue_size : r.total_tokens} | 淘汰: ${r.eliminated_count || 0} | 精筛: <span class="hv">${r.filtered_tokens}</span></span>
       </div>
     `).join('');
-      } else {
-        panel.classList.add('hidden');
+    }
+
+    // 桌面端初始化历史侧栏
+    async function initDesktopHistory() {
+      if (isDesktop()) {
+        await renderHistoryList('historyListDesktop');
       }
+    }
+
+    // 更新历史行高亮
+    function updateHistoryHighlight(id) {
+      activeHistoryId = id;
+      document.querySelectorAll('.hist-row').forEach(row => {
+        row.classList.toggle('active', row.dataset.id == id);
+      });
     }
 
     async function loadScan(id) {
       try {
         const data = await cachedFetch('/api/scan/' + id);
         renderData(data);
+        updateHistoryHighlight(id);
         showToast('已加载扫描 #' + id);
       } catch (e) { showToast('加载失败'); }
     }
@@ -1272,6 +1394,7 @@
       try {
         const data = await cachedFetch('/api/latest', true);
         renderData(data);
+        updateHistoryHighlight(null);
         showToast('已回到最新数据');
       } catch (e) { showToast('加载失败'); }
     }
@@ -1378,6 +1501,7 @@
 
     // Init
     loadLatest();
+    initDesktopHistory();
   </script>
 </body>
 
