@@ -642,13 +642,20 @@ def discover_on_chain(from_block: int) -> tuple[list[dict], int]:
         block_nums = list({t["block"] for t in need_block_ts})
         log.info("补全 %d 个代币的创建时间 (查 %d 个区块时间戳)", len(need_block_ts), len(block_nums))
         block_ts_map = {}
-        for bn in block_nums:
+
+        def _fetch_block_ts(bn: int) -> tuple[int, int]:
             res = _rpc_call("eth_getBlockByNumber", [hex(bn), False])
             if res and res.get("result"):
                 ts = int(res["result"].get("timestamp", "0x0"), 16)
                 if ts > 0:
+                    return bn, ts
+            return bn, 0
+
+        with ThreadPoolExecutor(max_workers=10) as pool:
+            for bn, ts in pool.map(_fetch_block_ts, block_nums):
+                if ts > 0:
                     block_ts_map[bn] = ts
-            time.sleep(0.05)
+
         now_sec = int(time.time())
         for t in need_block_ts:
             ts = block_ts_map.get(t["block"], 0)
@@ -1656,39 +1663,53 @@ def admission_filter(new_tokens: list[dict],
 
     log.info("入场筛: 对 %d 个新代币调 detail API...", len(fresh))
 
-    batch_size = 5
     now_ms = int(time.time() * 1000)
     max_age_ms = MAX_AGE_HOURS * 3600 * 1000
-    for i in range(0, len(fresh), batch_size):
-        batch = fresh[i:i + batch_size]
-        for t in batch:
-            detail = fm_detail(t["address"])
-            if not detail:
-                rejected.append({"token": t, "detail": None, "reason": "detail API 无数据"})
-                continue
 
-            # 用 detail API 的 launchTime 修正 createdAt (链上解析可能不准)
-            if detail.get("launchTime") and detail["launchTime"] > 0:
-                t["createdAt"] = detail["launchTime"]
+    # 并发查询 detail (5 线程)
+    detail_map = {}
+    def _query_detail(addr: str) -> tuple[str, dict | None]:
+        d = fm_detail(addr)
+        if d is None:
+            time.sleep(0.5)
+            d = fm_detail(addr)  # 重试 1 次
+        return addr, d
 
-            # 入场条件: 币龄不超过 MAX_AGE_HOURS
-            token_age_ms = now_ms - t.get("createdAt", 0)
-            if t.get("createdAt", 0) <= 0 or token_age_ms > max_age_ms:
-                age_desc = f"币龄{token_age_ms / 3600000:.1f}h" if t.get("createdAt", 0) > 0 else "创建时间未知"
-                rejected.append({"token": t, "detail": detail, "reason": f"币龄过大 ({age_desc})"})
-                continue
+    with ThreadPoolExecutor(max_workers=5) as pool:
+        futures = [pool.submit(_query_detail, t["address"]) for t in fresh]
+        for f in as_completed(futures):
+            addr, detail = f.result()
+            if detail:
+                detail_map[addr] = detail
 
-            # 入场条件: 社交 ≥ 1, 总供应量 = 10亿
-            reasons = []
-            if detail["socialCount"] < MIN_SOCIAL_COUNT:
-                reasons.append("无社交媒体")
-            if detail["totalSupply"] != TOTAL_SUPPLY:
-                reasons.append(f"总量≠10亿 ({detail['totalSupply']})")
-            if reasons:
-                rejected.append({"token": t, "detail": detail, "reason": ", ".join(reasons)})
-                continue
-            admitted.append({"token": t, "detail": detail})
-            time.sleep(0.2)
+    # 逐个判断入场条件
+    for t in fresh:
+        detail = detail_map.get(t["address"])
+        if not detail:
+            rejected.append({"token": t, "detail": None, "reason": "detail API 无数据"})
+            continue
+
+        # 用 detail API 的 launchTime 修正 createdAt (链上解析可能不准)
+        if detail.get("launchTime") and detail["launchTime"] > 0:
+            t["createdAt"] = detail["launchTime"]
+
+        # 入场条件: 币龄不超过 MAX_AGE_HOURS
+        token_age_ms = now_ms - t.get("createdAt", 0)
+        if t.get("createdAt", 0) <= 0 or token_age_ms > max_age_ms:
+            age_desc = f"币龄{token_age_ms / 3600000:.1f}h" if t.get("createdAt", 0) > 0 else "创建时间未知"
+            rejected.append({"token": t, "detail": detail, "reason": f"币龄过大 ({age_desc})"})
+            continue
+
+        # 入场条件: 社交 ≥ 1, 总供应量 = 10亿
+        reasons = []
+        if detail["socialCount"] < MIN_SOCIAL_COUNT:
+            reasons.append("无社交媒体")
+        if detail["totalSupply"] != TOTAL_SUPPLY:
+            reasons.append(f"总量≠10亿 ({detail['totalSupply']})")
+        if reasons:
+            rejected.append({"token": t, "detail": detail, "reason": ", ".join(reasons)})
+            continue
+        admitted.append({"token": t, "detail": detail})
 
     log.info("入场筛: 通过 %d/%d (淘汰 %d: 无社交/总量不符)",
              len(admitted), len(fresh), len(rejected))
@@ -1764,12 +1785,20 @@ def elimination_check(queue: list[dict], now_ms: int,
              len(pre_filtered), len(need_detail), len(graduated_addrs))
 
     def _fetch_all_details():
+        """并发查询 fm_detail, 5 线程, 失败重试 1 次"""
         detail_map = {}
-        for t in need_detail:
-            detail = fm_detail(t["address"])
-            if detail:
-                detail_map[t["address"]] = detail
-            time.sleep(0.2)
+        def _query_one(addr: str) -> tuple[str, dict | None]:
+            detail = fm_detail(addr)
+            if detail is None:
+                time.sleep(0.5)
+                detail = fm_detail(addr)  # 重试 1 次
+            return addr, detail
+        with ThreadPoolExecutor(max_workers=5) as inner_pool:
+            futures = [inner_pool.submit(_query_one, t["address"]) for t in need_detail]
+            for f in as_completed(futures):
+                addr, detail = f.result()
+                if detail:
+                    detail_map[addr] = detail
         return detail_map
 
     with ThreadPoolExecutor(max_workers=3) as pool:
@@ -2036,6 +2065,9 @@ def main():
     _gt_session = _build_session(proxy, GT_HEADERS)
     _bsc_session = _build_session(proxy, DS_HEADERS)
 
+    # 计时开始
+    _t_start = time.time()
+
     # 行情
     ticker = fm_ticker_prices()
     bnb = ticker.get("BNB", 0)
@@ -2167,7 +2199,7 @@ def main():
     # --- 构建输出 JSON ---
     from datetime import timedelta
     now_dt = datetime.now(timezone(timedelta(hours=8)))  # 北京时间
-    scan_time_str = now_dt.strftime("%-Y-%-m-%-d %H:%M:%S")
+    scan_time_str = now_dt.strftime("%Y-%m-%d %H:%M:%S")
     file_ts = now_dt.strftime("%Y-%m-%dT%H-%M-%S")
 
     # tokens: 精筛结果
@@ -2290,6 +2322,7 @@ def main():
     log.info("  入场通过: %d, 入场淘汰: %d", len(admitted), len(rejected_at_entry))
     log.info("  队列淘汰: %d, 队列存活: %d", len(eliminated), len(survivors))
     log.info("  精筛通过: %d", len(quality_results))
+    log.info("  总耗时: %.1f 秒", time.time() - _t_start)
     log.info("=" * 50)
 
 
