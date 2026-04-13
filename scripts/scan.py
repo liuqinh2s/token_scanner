@@ -28,7 +28,7 @@ v6 架构: 极速扫描 (1 分钟一轮)
   - 价格从峰值跌 90%+
   - 持币地址从 ≥30 跌破 10
   - 无社交媒体
-  - 流动性从 >$1k 跌破 $100
+  - 流动性从 >$1k 跌破 $100 (仅已毕业代币)
   - 进度 < 1% 且币龄 > 2h
   - 进度 < 5% 且币龄 > 4h
   - 币龄 > 15min 且最高持币数 < 3
@@ -1899,8 +1899,8 @@ def elimination_check(queue: list[dict], now_ms: int,
         if not elim_reason and detail and detail["socialCount"] < MIN_SOCIAL_COUNT:
             elim_reason = "无社交媒体"
 
-        # 4. 流动性从 >$1k 跌破 $100
-        if not elim_reason:
+        # 4. 流动性从 >$1k 跌破 $100 (仅已毕业代币, 未毕业流动性数据不准确)
+        if not elim_reason and is_graduated:
             if (t.get("peakLiquidity", 0) >= ELIM_LIQ_PEAK_MIN
                     and current_liq < ELIM_LIQ_FLOOR):
                 elim_reason = f"流动性 ${t.get('peakLiquidity', 0):.0f}→${current_liq:.0f}"
@@ -2212,6 +2212,9 @@ def main():
     out_tokens = []
     for t in quality_results:
         cc = t.get("copycat", {})
+        _price = t.get("price", 0)
+        _peak = t.get("peakPrice", 0)
+        _ratio = _price / _peak if _peak > 0 and _price > 0 else None
         out_tokens.append({
             "address": t.get("address", ""),
             "name": t.get("name", ""),
@@ -2219,8 +2222,9 @@ def main():
             "holders": t.get("holders", 0),
             "created_at": t.get("createdAt", 0),
             "total_supply": t.get("totalSupply", 0),
-            "price": t.get("price", 0),
-            "max_price": t.get("peakPrice", 0),
+            "price": _price,
+            "max_price": _peak,
+            "price_ratio": _ratio,
             "age_hours": round((now_ms - t.get("createdAt", 0)) / 3600000, 2),
             "social_count": t.get("socialCount", 0),
             "social_links": t.get("socialLinks", {}),

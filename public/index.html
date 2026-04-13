@@ -305,23 +305,29 @@
       background: #1c2128;
     }
 
-    /* 名称列 */
+    /* 名称列 - symbol为主，name为副，两行显示 */
     .name-cell {
       max-width: 160px;
+      overflow: hidden;
+      line-height: 1.4;
+    }
+
+    .name-symbol-primary {
+      color: #c9d1d9;
+      font-weight: 500;
+      display: block;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
 
-    .name-primary {
-      color: #c9d1d9;
-      font-weight: 500;
-    }
-
-    .name-symbol {
+    .name-secondary {
       color: #6e7681;
-      font-size: 11px;
-      margin-left: 4px;
+      font-size: 10px;
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     /* 合约地址列 */
@@ -430,7 +436,8 @@
 
     /* 标签 */
     .tag {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
       font-size: 9px;
       padding: 1px 6px;
       border-radius: 3px;
@@ -438,6 +445,8 @@
       font-weight: 600;
       white-space: nowrap;
       letter-spacing: 0.2px;
+      line-height: 1.4;
+      vertical-align: middle;
     }
 
     .tag a {
@@ -486,6 +495,10 @@
 
     .tags-cell {
       max-width: 220px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 2px;
     }
 
     /* 淘汰原因 */
@@ -1013,7 +1026,7 @@
         </div>
         <p class="filter-desc" id="filterDesc">
           链上扫描 four.meme TokenCreated 事件 → 入场筛(社交≥1、总量10亿) →
-          队列淘汰(价格跌90%/持币30→10/无社交/流动性1k→100/进度&lt;1%且币龄&gt;2h/进度&lt;5%且币龄&gt;4h/5min峰值持币&lt;3/15min峰值持币&lt;5/1h峰值持币&lt;10/币龄&gt;48h)
+          队列淘汰(价格跌90%/持币30→10/无社交/流动性1k→100(仅毕业)/进度&lt;1%且币龄&gt;2h/进度&lt;5%且币龄&gt;4h/5min峰值持币&lt;3/15min峰值持币&lt;5/1h峰值持币&lt;10/币龄&gt;48h)
           →
           钱包分析(开发者/聪明钱加减仓) → 精筛(价格/K线/底价区间/持币增长趋势)<br>
           数据源: DexScreener + GeckoTerminal K线 · BscScan 链上持币 · BscScan tokentx 钱包行为<br>
@@ -1191,9 +1204,11 @@
 
     function fmtLiq(t) {
       const liq = t.liquidity || 0;
-      const mc = t.market_cap || 0;
       const ra = t.raised_amount || 0;
-      if (liq > 0 && mc === 0) return '$' + fmtNum(liq);
+      const progress = t.progress || 0;
+      // 已毕业 (progress >= 1) 且有流动性数据: 显示美元值
+      if (progress >= 1 && liq > 0) return '$' + fmtNum(liq);
+      // 未毕业: 流动性数据不准确, 显示募集 BNB 或内盘
       if (ra > 0) return '<span style="color:#484f58">募</span>' + ra.toFixed(2) + ' BNB';
       return '<span style="color:#484f58">内盘</span>';
     }
@@ -1292,7 +1307,7 @@
         const scanTimeHtml = searchMode && t._scanTime ? `<span class="search-scan-time">📍 ${esc(t._scanTime)}</span>` : '';
         return `<tr>
       <td>${i + 1}</td>
-      <td><div class="name-cell"><span class="name-primary">${esc(t.name || '--')}</span><span class="name-symbol">${esc(t.symbol || '')}</span>${scanTimeHtml}</div></td>
+      <td><div class="name-cell"><span class="name-symbol-primary">${esc(t.symbol || '--')}</span><span class="name-secondary">${esc(t.name || '--')}</span>${scanTimeHtml}</div></td>
       <td>${addrHtml(addr)}</td>
       <td style="text-align:right"><span class="holders-val">${t.holders || 0}</span></td>
       <td>
@@ -1315,7 +1330,7 @@
         return `<div class="token-card">
           ${scanTimeHtml}
           <div class="card-top">
-            <span><span class="card-name">${esc(t.name || '--')}</span><span class="card-symbol">${esc(t.symbol || '--')}</span></span>
+            <span><span class="card-name">${esc(t.symbol || '--')}</span><span class="card-symbol">${esc(t.name || '--')}</span></span>
             <span class="card-holders">${t.holders || 0}</span>
           </div>
           <div class="card-addr-row">
@@ -1356,7 +1371,7 @@
         const scanTimeHtml = searchMode && t._scanTime ? `<span class="search-scan-time">📍 ${esc(t._scanTime)}</span>` : '';
         return `<tr>
           <td>${i + 1}</td>
-          <td><div class="name-cell"><span class="name-primary">${esc(t.name || '--')}</span><span class="name-symbol">${esc(t.symbol || '')}</span>${scanTimeHtml}</div></td>
+          <td><div class="name-cell"><span class="name-symbol-primary">${esc(t.symbol || '--')}</span><span class="name-secondary">${esc(t.name || '--')}</span>${scanTimeHtml}</div></td>
           <td>${addrHtml(addr)}</td>
           <td style="text-align:right"><span class="holders-val">${t.holders || 0}</span>${t.peak_holders ? '<br><span class="holders-peak">峰' + t.peak_holders + '</span>' : ''}</td>
           <td><div class="price-info"><span class="price-label">现</span> ${fmtPrice(t.price)}</div><div class="price-info"><span class="price-label">峰</span> ${fmtPrice(t.peak_price)}</div></td>
@@ -1376,7 +1391,7 @@
         return `<div class="token-card">
           ${scanTimeHtml}
           <div class="card-top">
-            <span><span class="card-name">${esc(t.name || '--')}</span><span class="card-symbol">${esc(t.symbol || '--')}</span></span>
+            <span><span class="card-name">${esc(t.symbol || '--')}</span><span class="card-symbol">${esc(t.name || '--')}</span></span>
             <span class="card-holders">${t.holders || 0}</span>
           </div>
           <div class="card-addr-row">
@@ -1419,7 +1434,7 @@
         const scanTimeHtml = searchMode && t._scanTime ? `<span class="search-scan-time">📍 ${esc(t._scanTime)}</span>` : '';
         return `<tr>
           <td>${i + 1}</td>
-          <td><div class="name-cell"><span class="name-primary">${esc(t.name || '--')}</span><span class="name-symbol">${esc(t.symbol || '')}</span>${scanTimeHtml}</div></td>
+          <td><div class="name-cell"><span class="name-symbol-primary">${esc(t.symbol || '--')}</span><span class="name-secondary">${esc(t.name || '--')}</span>${scanTimeHtml}</div></td>
           <td>${addrHtml(addr)}</td>
           <td style="text-align:right"><span class="holders-val">${t.holders || 0}</span></td>
           <td><div class="price-info"><span class="price-label">现</span> ${fmtPrice(t.price)}</div><div class="price-info"><span class="price-label">峰</span> ${fmtPrice(t.peak_price)}</div></td>
@@ -1436,7 +1451,7 @@
         return `<div class="token-card">
           ${scanTimeHtml}
           <div class="card-top">
-            <span><span class="card-name">${esc(t.name || '--')}</span><span class="card-symbol">${esc(t.symbol || '--')}</span></span>
+            <span><span class="card-name">${esc(t.symbol || '--')}</span><span class="card-symbol">${esc(t.name || '--')}</span></span>
             <span class="card-holders">${t.holders || 0}</span>
           </div>
           <div class="card-addr-row">
@@ -1477,7 +1492,7 @@
         const scanTimeHtml = searchMode && t._scanTime ? `<span class="search-scan-time">📍 ${esc(t._scanTime)}</span>` : '';
         return `<tr>
           <td>${i + 1}</td>
-          <td><div class="name-cell"><span class="name-primary">${esc(t.name || '--')}</span><span class="name-symbol">${esc(t.symbol || '')}</span>${scanTimeHtml}</div></td>
+          <td><div class="name-cell"><span class="name-symbol-primary">${esc(t.symbol || '--')}</span><span class="name-secondary">${esc(t.name || '--')}</span>${scanTimeHtml}</div></td>
           <td>${addrHtml(addr)}</td>
           <td style="text-align:right"><span class="holders-val">${t.holders || 0}</span></td>
           <td><div class="price-info">${fmtPrice(t.price)}</div></td>
@@ -1496,7 +1511,7 @@
         return `<div class="token-card">
           ${scanTimeHtml}
           <div class="card-top">
-            <span><span class="card-name">${esc(t.name || '--')}</span><span class="card-symbol">${esc(t.symbol || '--')}</span></span>
+            <span><span class="card-name">${esc(t.symbol || '--')}</span><span class="card-symbol">${esc(t.name || '--')}</span></span>
             <span class="card-holders">${t.holders || 0}</span>
           </div>
           <div class="card-addr-row">
