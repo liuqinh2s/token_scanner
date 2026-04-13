@@ -13,12 +13,11 @@
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
-      background: #0a0e17;
-      color: #e1e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0b0f19;
+      color: #c9d1d9;
       height: 100dvh;
       height: 100vh;
-      /* fallback */
       overflow: hidden;
       overscroll-behavior-y: contain;
     }
@@ -30,14 +29,13 @@
     }
 
     #app {
-      max-width: 1600px;
+      max-width: 1800px;
       margin: 0 auto;
-      padding: 20px;
+      padding: 12px 20px;
       display: flex;
       flex-direction: column;
       height: 100dvh;
       height: 100vh;
-      /* fallback */
     }
 
     @supports (height: 100dvh) {
@@ -46,178 +44,510 @@
       }
     }
 
-    /* 固定头部区域 */
     .fixed-header {
       flex-shrink: 0;
     }
 
-    /* 列表滚动区域 */
     .scroll-area {
       flex: 1;
       overflow-y: auto;
       min-height: 0;
     }
 
+    /* ===== 头部 ===== */
     header {
       text-align: center;
-      padding: 24px 0 16px;
+      padding: 6px 0 2px;
+    }
+
+    .header-title {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
     }
 
     h1 {
-      font-size: 28px;
+      font-size: 18px;
       color: #f0b90b;
-      letter-spacing: 1px;
+      letter-spacing: 0.5px;
+      font-weight: 700;
     }
 
     .subtitle {
-      color: #7a8599;
-      font-size: 13px;
-      margin-top: 4px;
+      color: #6e7681;
+      font-size: 11px;
+    }
+
+    /* 筛选规则折叠 */
+    .filter-toggle {
+      display: inline-block;
+      color: #484f58;
+      font-size: 10px;
+      cursor: pointer;
+      padding: 2px 8px;
+      border-radius: 3px;
+      transition: color .2s;
+      user-select: none;
+    }
+
+    .filter-toggle:hover {
+      color: #8b949e;
     }
 
     .filter-desc {
-      color: #5a6a80;
-      font-size: 11px;
-      margin-top: 6px;
-      line-height: 1.6;
-      max-width: 800px;
+      color: #484f58;
+      font-size: 10px;
+      margin-top: 4px;
+      line-height: 1.5;
+      max-width: 900px;
       margin-left: auto;
       margin-right: auto;
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height .3s ease, opacity .3s ease;
+      opacity: 0;
     }
 
+    .filter-desc.expanded {
+      max-height: 200px;
+      opacity: 1;
+    }
+
+    /* ===== 统计栏 ===== */
     .stats-bar {
       display: flex;
-      gap: 12px;
+      gap: 6px;
       justify-content: center;
-      flex-wrap: wrap;
-      margin: 16px 0;
+      margin: 6px 0;
     }
 
     .stat {
-      background: #141924;
-      border: 1px solid #1e2a3a;
+      background: linear-gradient(135deg, #161b22 0%, #0d1117 100%);
+      border: 1px solid #21262d;
       border-radius: 8px;
-      padding: 12px 20px;
+      padding: 6px 16px;
       text-align: center;
-      min-width: 140px;
+      min-width: 100px;
+      transition: border-color .2s;
+    }
+
+    .stat:hover {
+      border-color: #30363d;
     }
 
     .stat .label {
       display: block;
-      font-size: 11px;
-      color: #5a6a80;
+      font-size: 10px;
+      color: #484f58;
+      letter-spacing: .3px;
       text-transform: uppercase;
-      letter-spacing: .5px;
     }
 
     .stat .val {
       display: block;
-      font-size: 18px;
+      font-size: 15px;
       font-weight: 700;
-      color: #e1e8f0;
-      margin-top: 4px;
+      color: #c9d1d9;
+      margin-top: 1px;
     }
 
-    .actions {
+    /* ===== 操作栏 + Tab + 搜索 合并为一行 ===== */
+    .toolbar {
       display: flex;
-      gap: 10px;
+      align-items: center;
       justify-content: center;
-      margin: 16px 0;
+      gap: 8px;
+      margin: 6px 0;
+      flex-wrap: wrap;
     }
 
     button {
-      background: #1e2a3a;
-      color: #e1e8f0;
-      border: 1px solid #2a3a50;
+      background: #161b22;
+      color: #c9d1d9;
+      border: 1px solid #21262d;
       border-radius: 6px;
-      padding: 8px 18px;
+      padding: 5px 14px;
       cursor: pointer;
-      font-size: 13px;
-      transition: all .2s;
+      font-size: 12px;
+      transition: all .15s;
     }
 
     button:hover {
       background: #f0b90b;
-      color: #0a0e17;
+      color: #0b0f19;
       border-color: #f0b90b;
     }
 
+    .tab-bar {
+      display: inline-flex;
+      gap: 0;
+    }
+
+    .tab-btn {
+      background: #161b22;
+      color: #6e7681;
+      border: 1px solid #21262d;
+      border-radius: 0;
+      padding: 5px 16px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all .15s;
+    }
+
+    .tab-btn:first-child {
+      border-radius: 6px 0 0 6px;
+    }
+
+    .tab-btn:last-child {
+      border-radius: 0 6px 6px 0;
+    }
+
+    .tab-btn.active {
+      background: #f0b90b;
+      color: #0b0f19;
+      border-color: #f0b90b;
+      font-weight: 600;
+    }
+
+    .tab-btn:hover:not(.active) {
+      background: #1c2128;
+      color: #c9d1d9;
+    }
+
+    .search-inline {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .search-inline input {
+      background: #0d1117;
+      border: 1px solid #21262d;
+      border-radius: 6px;
+      padding: 5px 10px;
+      color: #c9d1d9;
+      font-size: 12px;
+      width: 240px;
+      outline: none;
+      transition: border-color .2s;
+    }
+
+    .search-inline input:focus {
+      border-color: #f0b90b;
+    }
+
+    .search-inline input::placeholder {
+      color: #484f58;
+    }
+
+    .search-results-info {
+      text-align: center;
+      font-size: 11px;
+      color: #6e7681;
+      margin: 4px 0;
+    }
+
+    .search-results-info .highlight {
+      color: #f0b90b;
+      font-weight: 600;
+    }
+
+    .search-results-info .clear-search {
+      color: #58a6ff;
+      cursor: pointer;
+      margin-left: 8px;
+      text-decoration: underline;
+    }
+
+    .search-scan-time {
+      font-size: 10px;
+      color: #484f58;
+      display: block;
+    }
+
+    /* ===== 表格 ===== */
     table {
       width: 100%;
-      border-collapse: collapse;
-      margin-top: 12px;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin-top: 4px;
     }
 
     th {
-      background: #141924;
-      color: #7a8599;
+      background: #161b22;
+      color: #6e7681;
       font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: .5px;
-      padding: 10px 8px;
+      font-weight: 600;
+      letter-spacing: .3px;
+      padding: 8px 10px;
       text-align: left;
-      border-bottom: 1px solid #1e2a3a;
+      border-bottom: 2px solid #21262d;
       position: sticky;
       top: 0;
       z-index: 1;
+      white-space: nowrap;
     }
 
     td {
-      padding: 10px 8px;
-      border-bottom: 1px solid #111827;
-      font-size: 13px;
+      padding: 7px 10px;
+      border-bottom: 1px solid #161b22;
+      font-size: 12px;
+      vertical-align: middle;
     }
 
-    tr:hover td {
-      background: #111827;
+    /* 交替行 */
+    tbody tr:nth-child(even) td {
+      background: #0d1117;
     }
 
+    tbody tr:hover td {
+      background: #1c2128;
+    }
+
+    /* 名称列 */
+    .name-cell {
+      max-width: 160px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .name-primary {
+      color: #c9d1d9;
+      font-weight: 500;
+    }
+
+    .name-symbol {
+      color: #6e7681;
+      font-size: 11px;
+      margin-left: 4px;
+    }
+
+    /* 合约地址列 */
     .addr-cell {
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
+      flex-wrap: nowrap;
     }
 
     .addr-text {
-      font-family: monospace;
-      font-size: 12px;
-      color: #8ecdf7;
-      word-break: break-all;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 11px;
+      color: #58a6ff;
+      white-space: nowrap;
+      letter-spacing: -0.3px;
+    }
+
+    .addr-links {
+      display: inline-flex;
+      gap: 3px;
+      align-items: center;
+    }
+
+    .addr-links a,
+    .copy-btn {
+      font-size: 10px;
+      padding: 1px 5px;
+      border-radius: 3px;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: all .15s;
+      border: 1px solid transparent;
     }
 
     .copy-btn {
       background: none;
-      border: 1px solid #2a3a50;
-      color: #7a8599;
-      border-radius: 4px;
-      padding: 2px 8px;
-      font-size: 11px;
+      border-color: #21262d;
+      color: #6e7681;
       cursor: pointer;
-      white-space: nowrap;
       min-width: auto;
+      font-size: 10px;
+      padding: 1px 5px;
     }
 
     .copy-btn:hover {
       background: #f0b90b;
-      color: #0a0e17;
+      color: #0b0f19;
       border-color: #f0b90b;
+    }
+
+    .link-bsc {
+      color: #58a6ff;
+    }
+
+    .link-bsc:hover {
+      background: #58a6ff22;
+      border-color: #58a6ff44;
+    }
+
+    .link-4m {
+      color: #f0b90b;
+    }
+
+    .link-4m:hover {
+      background: #f0b90b22;
+      border-color: #f0b90b44;
+    }
+
+    .link-bn {
+      color: #4caf50;
+    }
+
+    .link-bn:hover {
+      background: #4caf5022;
+      border-color: #4caf5044;
+    }
+
+    /* 持币数 */
+    .holders-val {
+      color: #f0b90b;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .holders-peak {
+      color: #484f58;
+      font-size: 10px;
+    }
+
+    /* 价格 */
+    .price-info {
+      font-size: 11px;
+      color: #8b949e;
+      line-height: 1.5;
+    }
+
+    .price-label {
+      color: #484f58;
+    }
+
+    .price-ratio {
+      font-size: 10px;
+      color: #f0b90b;
+    }
+
+    /* 标签 */
+    .tag {
+      display: inline-block;
+      font-size: 9px;
+      padding: 1px 6px;
+      border-radius: 3px;
+      margin: 1px 2px;
+      font-weight: 600;
+      white-space: nowrap;
+      letter-spacing: 0.2px;
+    }
+
+    .tag a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .tag a:hover {
+      text-decoration: underline;
+    }
+
+    .tag-dev-buy {
+      background: #238636;
+      color: #fff;
+    }
+
+    .tag-dev-lp {
+      background: #1f6feb;
+      color: #fff;
+    }
+
+    .tag-smart-buy {
+      background: #8957e5;
+      color: #fff;
+    }
+
+    .tag-copycat {
+      background: #da3633;
+      color: #fff;
+    }
+
+    .tag-twitter {
+      background: #1d9bf0;
+      color: #fff;
+    }
+
+    .tag-telegram {
+      background: #229ed9;
+      color: #fff;
+    }
+
+    .tag-website {
+      background: #238636;
+      color: #fff;
+    }
+
+    .tags-cell {
+      max-width: 220px;
+    }
+
+    /* 淘汰原因 */
+    .elim-reason {
+      display: inline-block;
+      background: #da363322;
+      color: #f85149;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      border: 1px solid #da363344;
+    }
+
+    /* 进度条 */
+    .progress-bar {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .progress-track {
+      width: 40px;
+      height: 6px;
+      background: #21262d;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #f0b90b, #f7d060);
+      border-radius: 3px;
+    }
+
+    .progress-text {
+      font-size: 10px;
+      color: #6e7681;
+    }
+
+    /* 币龄 */
+    .age-text {
+      color: #6e7681;
+      font-size: 11px;
+      white-space: nowrap;
     }
 
     .no-data {
       text-align: center;
       padding: 40px;
-      color: #5a6a80;
+      color: #484f58;
     }
 
     .hidden {
       display: none !important;
     }
 
+    /* ===== 历史侧栏 ===== */
     .history-panel {
-      background: #141924;
-      border: 1px solid #1e2a3a;
+      background: #0d1117;
+      border: 1px solid #21262d;
       border-radius: 8px;
-      padding: 16px;
+      padding: 12px;
       margin: 0 0 8px;
       max-height: 30vh;
       overflow-y: auto;
@@ -226,32 +556,34 @@
 
     .history-panel h3 {
       color: #f0b90b;
-      font-size: 14px;
-      margin-bottom: 12px;
+      font-size: 12px;
+      margin-bottom: 8px;
+      font-weight: 600;
     }
 
     .hist-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 8px 10px;
-      border-bottom: 1px solid #1e2a3a;
-      font-size: 12px;
+      padding: 6px 8px;
+      border-bottom: 1px solid #161b22;
+      font-size: 11px;
       cursor: pointer;
       border-radius: 4px;
+      transition: background .15s;
     }
 
     .hist-row:hover {
-      background: #1e2a3a;
+      background: #161b22;
     }
 
     .hist-row.active {
-      background: #1e2a3a;
+      background: #161b22;
       border-left: 3px solid #f0b90b;
     }
 
     .hist-row .ht {
-      color: #7a8599;
+      color: #6e7681;
     }
 
     .hist-row .hv {
@@ -259,86 +591,7 @@
       font-weight: 600;
     }
 
-    /* 桌面端头部压缩 — 让主体内容区域更大 */
-    @media (min-width: 769px) {
-      header {
-        padding: 8px 0 4px;
-      }
-
-      h1 {
-        font-size: 20px;
-      }
-
-      .subtitle {
-        font-size: 11px;
-        margin-top: 2px;
-      }
-
-      .filter-desc {
-        font-size: 10px;
-        margin-top: 2px;
-        line-height: 1.4;
-      }
-
-      .stats-bar {
-        margin: 6px 0;
-        gap: 8px;
-      }
-
-      .stat {
-        padding: 6px 14px;
-        min-width: 110px;
-        border-radius: 6px;
-      }
-
-      .stat .label {
-        font-size: 10px;
-      }
-
-      .stat .val {
-        font-size: 14px;
-        margin-top: 2px;
-      }
-
-      .actions {
-        margin: 4px 0;
-        gap: 6px;
-      }
-
-      .actions button {
-        padding: 4px 14px;
-        font-size: 12px;
-      }
-
-      .tab-bar {
-        margin: 4px 0;
-      }
-
-      .tab-btn {
-        padding: 5px 16px;
-        font-size: 12px;
-      }
-
-      .search-bar {
-        margin: 4px 0;
-      }
-
-      .search-bar input {
-        padding: 5px 10px;
-        font-size: 12px;
-      }
-
-      .search-bar button {
-        padding: 5px 14px;
-        font-size: 12px;
-      }
-
-      #app {
-        padding: 8px 20px;
-      }
-    }
-
-    /* 桌面端双栏布局 */
+    /* ===== 桌面端 ===== */
     @media (min-width: 769px) {
       .desktop-split {
         display: flex;
@@ -348,7 +601,7 @@
       }
 
       .desktop-split .history-sidebar {
-        width: 340px;
+        width: 280px;
         flex-shrink: 0;
         display: flex;
         flex-direction: column;
@@ -383,134 +636,24 @@
         min-height: 0;
       }
 
-      /* 双栏模式下隐藏旧的历史面板 */
-      .desktop-split #historyPanelOld {
+      #historyPanel {
+        display: none !important;
+      }
+
+      #btnHistory {
         display: none;
+      }
+
+      #btnLatest {
+        display: inline-block;
       }
     }
 
-    .search-bar {
-      display: flex;
-      gap: 8px;
-      justify-content: center;
-      margin: 12px 0;
-    }
-
-    .search-bar input {
-      background: #141924;
-      border: 1px solid #2a3a50;
-      border-radius: 6px;
-      padding: 8px 14px;
-      color: #e1e8f0;
-      font-size: 13px;
-      width: 340px;
-      outline: none;
-      transition: border-color .2s;
-    }
-
-    .search-bar input:focus {
-      border-color: #f0b90b;
-    }
-
-    .search-bar input::placeholder {
-      color: #5a6a80;
-    }
-
-    .search-bar button {
-      min-width: 70px;
-    }
-
-    .search-results-info {
-      text-align: center;
-      font-size: 12px;
-      color: #7a8599;
-      margin: 8px 0;
-    }
-
-    .search-results-info .highlight {
-      color: #f0b90b;
-      font-weight: 600;
-    }
-
-    .search-results-info .clear-search {
-      color: #5a9fd4;
-      cursor: pointer;
-      margin-left: 8px;
-      text-decoration: underline;
-    }
-
-    .search-scan-time {
-      font-size: 10px;
-      color: #5a6a80;
-      display: block;
-    }
-
-    .tab-bar {
-      display: flex;
-      gap: 0;
-      justify-content: center;
-      margin: 16px 0 8px;
-    }
-
-    .tab-btn {
-      background: #141924;
-      color: #7a8599;
-      border: 1px solid #1e2a3a;
-      border-radius: 0;
-      padding: 8px 22px;
-      cursor: pointer;
-      font-size: 13px;
-      transition: all .2s;
-    }
-
-    .tab-btn:first-child {
-      border-radius: 6px 0 0 6px;
-    }
-
-    .tab-btn:last-child {
-      border-radius: 0 6px 6px 0;
-    }
-
-    .tab-btn.active {
-      background: #f0b90b;
-      color: #0a0e17;
-      border-color: #f0b90b;
-      font-weight: 600;
-    }
-
-    .tab-btn:hover:not(.active) {
-      background: #1e2a3a;
-      color: #e1e8f0;
-    }
-
-    .elim-reason {
-      display: inline-block;
-      background: #3a1a1a;
-      color: #ff6b6b;
-      font-size: 10px;
-      padding: 2px 6px;
-      border-radius: 3px;
-    }
-
-    .queue-progress {
-      display: inline-block;
-      background: #1a2a1a;
-      height: 4px;
-      border-radius: 2px;
-      margin-top: 4px;
-    }
-
-    .queue-progress-inner {
-      height: 100%;
-      background: #f0b90b;
-      border-radius: 2px;
-    }
-
-    /* 下拉刷新指示器 */
+    /* ===== 下拉刷新 ===== */
     .pull-indicator {
       text-align: center;
       font-size: 12px;
-      color: #7a8599;
+      color: #6e7681;
       padding: 0;
       height: 0;
       overflow: hidden;
@@ -535,7 +678,7 @@
       display: inline-block;
       width: 14px;
       height: 14px;
-      border: 2px solid #2a3a50;
+      border: 2px solid #21262d;
       border-top-color: #f0b90b;
       border-radius: 50%;
       animation: spin .6s linear infinite;
@@ -554,145 +697,20 @@
       left: 50%;
       transform: translateX(-50%);
       background: #f0b90b;
-      color: #0a0e17;
-      padding: 8px 20px;
+      color: #0b0f19;
+      padding: 6px 18px;
       border-radius: 6px;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
       z-index: 999;
       transition: opacity .3s;
     }
 
-    .bscscan-link {
-      color: #5a9fd4;
-      text-decoration: none;
-      font-size: 11px;
-    }
-
-    .bscscan-link:hover {
-      text-decoration: underline;
-    }
-
-    .fourmeme-link {
-      color: #f0b90b;
-      text-decoration: none;
-      font-size: 11px;
-    }
-
-    .fourmeme-link:hover {
-      text-decoration: underline;
-    }
-
-    .binance-link {
-      color: #4caf50;
-      text-decoration: none;
-      font-size: 11px;
-    }
-
-    .binance-link:hover {
-      text-decoration: underline;
-    }
-
-    /* 统一标签系统 */
-    .tag {
-      display: inline-block;
-      font-size: 10px;
-      padding: 2px 8px;
-      border-radius: 4px;
-      margin: 1px 3px;
-      font-weight: 600;
-      cursor: default;
-      transition: all .15s;
-      white-space: nowrap;
-    }
-
-    .tag:hover {
-      opacity: 0.85;
-      transform: scale(1.05);
-    }
-
-    /* 钱包行为标签 */
-    .tag-dev-buy {
-      background: #00c853;
-      color: #fff;
-    }
-
-    .tag-dev-lp {
-      background: #00bcd4;
-      color: #fff;
-    }
-
-    .tag-smart-buy {
-      background: #7c4dff;
-      color: #fff;
-    }
-
-    /* 仿盘标签 */
-    .tag-copycat {
-      background: #ff4d4f;
-      color: #fff;
-    }
-
-    /* 社交媒体标签 */
-    .tag-twitter {
-      background: #1d9bf0;
-      color: #fff;
-    }
-
-    .tag-telegram {
-      background: #229ed9;
-      color: #fff;
-    }
-
-    .tag-website {
-      background: #4caf50;
-      color: #fff;
-    }
-
-    .tag a {
-      color: inherit;
-      text-decoration: none;
-    }
-
-    .tag a:hover {
-      text-decoration: underline;
-    }
-
-    .tags-cell {
-      max-width: 280px;
-    }
-
-    .price-info {
-      font-size: 11px;
-      color: #7a8599;
-    }
-
-    .price-ratio {
-      font-size: 10px;
-      color: #f0b90b;
-    }
-
-    /* Mobile card layout */
+    /* ===== Mobile card layout ===== */
     .card-list {
       display: none;
     }
 
-    /* 桌面端: 隐藏手机历史面板, 显示侧栏 */
-    @media (min-width: 769px) {
-      #historyPanel {
-        display: none !important;
-      }
-
-      #btnHistory {
-        display: none;
-      }
-
-      #btnLatest {
-        display: inline-block;
-      }
-    }
-
-    /* 手机端: 隐藏桌面侧栏 */
     @media (max-width: 768px) {
       .desktop-split {
         display: flex !important;
@@ -721,34 +739,28 @@
         -webkit-overflow-scrolling: touch;
         padding-bottom: 60px;
       }
-    }
 
-    @media (max-width: 768px) {
-
-      /* 手机端头部精简 */
       h1 {
-        font-size: 16px;
+        font-size: 15px;
       }
 
-      .subtitle {
-        display: none;
-      }
-
+      .subtitle,
+      .filter-toggle,
       .filter-desc {
         display: none;
       }
 
       header {
-        padding: 6px 0 4px;
+        padding: 4px 0 2px;
       }
 
       .stats-bar {
-        margin: 4px 0;
-        gap: 4px;
+        margin: 3px 0;
+        gap: 3px;
       }
 
       .stat {
-        padding: 4px 6px;
+        padding: 3px 6px;
         min-width: 0;
         flex: 1;
         border-radius: 4px;
@@ -756,46 +768,33 @@
 
       .stat .label {
         font-size: 8px;
-        letter-spacing: 0;
       }
 
       .stat .val {
-        font-size: 12px;
-        margin-top: 1px;
+        font-size: 11px;
+        margin-top: 0;
       }
 
-      .actions {
-        margin: 4px 0;
+      .toolbar {
+        margin: 3px 0;
         gap: 4px;
       }
 
-      .actions button {
-        padding: 4px 10px;
-        font-size: 11px;
-      }
-
-      .tab-bar {
-        margin: 4px 0;
-      }
-
+      .toolbar button,
       .tab-btn {
-        padding: 5px 10px;
+        padding: 4px 10px;
         font-size: 10px;
       }
 
-      .search-bar {
-        margin: 4px 0;
-      }
-
-      .search-bar input {
+      .search-inline input {
         width: 100%;
-        padding: 5px 8px;
-        font-size: 11px;
+        padding: 4px 8px;
+        font-size: 10px;
       }
 
-      .search-bar button {
-        padding: 5px 10px;
-        font-size: 11px;
+      .search-inline button {
+        padding: 4px 8px;
+        font-size: 10px;
       }
 
       .history-panel {
@@ -805,17 +804,17 @@
       }
 
       .history-panel h3 {
-        font-size: 12px;
-        margin-bottom: 6px;
+        font-size: 11px;
+        margin-bottom: 4px;
       }
 
       .hist-row {
-        padding: 5px 6px;
-        font-size: 11px;
+        padding: 4px 6px;
+        font-size: 10px;
       }
 
       #app {
-        padding: 8px;
+        padding: 6px 8px;
       }
 
       #tokenTable table,
@@ -830,34 +829,34 @@
       }
 
       .token-card {
-        background: #141924;
-        border: 1px solid #1e2a3a;
+        background: #161b22;
+        border: 1px solid #21262d;
         border-radius: 10px;
-        padding: 14px;
-        margin-bottom: 10px;
+        padding: 12px;
+        margin-bottom: 8px;
       }
 
       .card-top {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
       }
 
       .card-name {
-        font-size: 15px;
+        font-size: 14px;
         font-weight: 600;
-        color: #e1e8f0;
+        color: #c9d1d9;
       }
 
       .card-symbol {
-        color: #7a8599;
-        font-size: 12px;
+        color: #6e7681;
+        font-size: 11px;
         margin-left: 6px;
       }
 
       .card-holders {
-        font-size: 16px;
+        font-size: 15px;
         font-weight: 700;
         color: #f0b90b;
       }
@@ -865,17 +864,17 @@
       .card-addr-row {
         display: flex;
         align-items: center;
-        gap: 8px;
-        margin: 8px 0;
+        gap: 6px;
+        margin: 6px 0;
         background: #0d1117;
         border-radius: 6px;
-        padding: 8px 10px;
+        padding: 6px 8px;
       }
 
       .card-addr-text {
         font-family: monospace;
-        font-size: 13px;
-        color: #8ecdf7;
+        font-size: 12px;
+        color: #58a6ff;
         flex: 1;
         min-width: 0;
         overflow: hidden;
@@ -884,34 +883,32 @@
       }
 
       .card-addr-row .copy-btn,
-      .card-addr-row .bscscan-link,
-      .card-addr-row .fourmeme-link,
-      .card-addr-row .binance-link {
+      .card-addr-row a {
         flex-shrink: 0;
-        font-size: 12px;
+        font-size: 11px;
       }
 
       .card-meta {
         display: flex;
         justify-content: space-between;
-        font-size: 11px;
-        color: #5a6a80;
-        margin-top: 6px;
+        font-size: 10px;
+        color: #484f58;
+        margin-top: 4px;
       }
 
       .card-social {
-        margin-top: 6px;
+        margin-top: 4px;
       }
 
       .card-price-row {
         display: flex;
         flex-wrap: wrap;
         align-items: baseline;
-        gap: 4px 12px;
-        font-size: 11px;
-        color: #7a8599;
-        margin-top: 4px;
-        line-height: 1.6;
+        gap: 3px 10px;
+        font-size: 10px;
+        color: #8b949e;
+        margin-top: 3px;
+        line-height: 1.5;
       }
     }
   </style>
@@ -921,15 +918,18 @@
   <div id="app">
     <div class="fixed-header">
       <header>
-        <h1>BSC Token Scanner</h1>
-        <p class="subtitle">链上发现 · 队列淘汰制 · 钱包行为分析 · 每15分钟扫描</p>
-        <p class="filter-desc">
-          链上扫描 four.meme TokenCreated 事件发现新代币 → 入场筛(社交≥1、总量10亿) →
+        <div class="header-title">
+          <h1>BSC Token Scanner</h1>
+          <span class="subtitle">链上发现 · 队列淘汰 · 钱包分析 · 15min</span>
+          <span class="filter-toggle" onclick="toggleFilterDesc()" id="filterToggle">▶ 规则</span>
+        </div>
+        <p class="filter-desc" id="filterDesc">
+          链上扫描 four.meme TokenCreated 事件 → 入场筛(社交≥1、总量10亿) →
           队列淘汰(价格跌90%/持币30→10/无社交/流动性1k→100/进度&lt;1%且币龄&gt;2h/进度&lt;5%且币龄&gt;4h/5min峰值持币&lt;3/15min峰值持币&lt;5/1h峰值持币&lt;10/币龄&gt;48h)
           →
           钱包分析(开发者/聪明钱加减仓) → 精筛(价格/K线/底价区间/持币增长趋势)<br>
-          价格数据: DexScreener + GeckoTerminal K线 · 持币数据: BscScan 链上 · 钱包行为: BscScan tokentx<br>
-          🔥 = 有大量仿盘(热门原版豁免) · 💰 = 开发者加仓 · 🏊 = 开发者加池子 · 🧠 = 聪明钱加仓
+          数据源: DexScreener + GeckoTerminal K线 · BscScan 链上持币 · BscScan tokentx 钱包行为<br>
+          🔥仿盘(热门原版豁免) · 💰开发者加仓 · 🏊开发者加池子 · 🧠聪明钱加仓
         </p>
       </header>
 
@@ -941,23 +941,20 @@
         <div class="stat"><span class="label">精筛通过</span><span class="val" id="filteredTokens">--</span></div>
       </div>
 
-      <div class="actions">
-        <button id="btnHistory" onclick="toggleHistory()">历史记录</button>
+      <div class="toolbar">
+        <button id="btnHistory" onclick="toggleHistory()">历史</button>
         <button id="btnLatest" onclick="goLatest()">回到当前</button>
-      </div>
-
-      <!-- Tab bar -->
-      <div class="tab-bar" id="tabBar">
-        <button class="tab-btn active" data-tab="filtered" onclick="switchTab('filtered')">精筛结果</button>
-        <button class="tab-btn" data-tab="queue" onclick="switchTab('queue')">队列存活</button>
-        <button class="tab-btn" data-tab="eliminated" onclick="switchTab('eliminated')">本轮淘汰</button>
-        <button class="tab-btn" data-tab="rejected" onclick="switchTab('rejected')">入场淘汰</button>
-      </div>
-
-      <div class="search-bar">
-        <input type="text" id="searchInput" placeholder="搜索代币名称、代号或合约地址..." aria-label="搜索代币"
-          onkeydown="if(event.key==='Enter')doSearch()">
-        <button onclick="doSearch()">搜索</button>
+        <div class="tab-bar" id="tabBar">
+          <button class="tab-btn active" data-tab="filtered" onclick="switchTab('filtered')">精筛结果</button>
+          <button class="tab-btn" data-tab="queue" onclick="switchTab('queue')">队列存活</button>
+          <button class="tab-btn" data-tab="eliminated" onclick="switchTab('eliminated')">本轮淘汰</button>
+          <button class="tab-btn" data-tab="rejected" onclick="switchTab('rejected')">入场淘汰</button>
+        </div>
+        <div class="search-inline">
+          <input type="text" id="searchInput" placeholder="搜索名称、代号或地址..." aria-label="搜索代币"
+            onkeydown="if(event.key==='Enter')doSearch()">
+          <button onclick="doSearch()">搜索</button>
+        </div>
       </div>
       <div id="searchInfo" class="search-results-info hidden"></div>
     </div>
@@ -967,7 +964,6 @@
       <div id="historyList"></div>
     </div>
 
-    <!-- 桌面端双栏布局: 左侧历史 + 右侧详情 -->
     <div class="desktop-split" id="desktopSplit">
       <div class="history-sidebar" id="historySidebar">
         <div class="history-panel" style="display:flex;flex-direction:column;">
@@ -979,97 +975,87 @@
         <div id="pullIndicator" class="pull-indicator">↓ 下拉刷新</div>
         <div class="scroll-area" id="scrollArea">
           <div id="tokenTable">
-            <!-- Filtered results table -->
             <table>
               <thead>
                 <tr>
-                  <th>#</th>
+                  <th style="width:30px">#</th>
                   <th>名称</th>
-                  <th>代号</th>
-                  <th>合约地址</th>
-                  <th>持币</th>
-                  <th>价格/最高/2h高</th>
+                  <th>合约</th>
+                  <th style="text-align:right">持币</th>
+                  <th>价格</th>
                   <th>标签</th>
-                  <th>币龄</th>
+                  <th style="text-align:right">币龄</th>
                 </tr>
               </thead>
               <tbody id="tokenBody"></tbody>
             </table>
-            <p id="noData" class="no-data hidden">暂无符合筛选条件的代币。</p>
+            <p id="noData" class="no-data hidden">暂无符合筛选条件的代币</p>
             <div id="cardList" class="card-list"></div>
           </div>
 
-          <!-- Queue survivors table -->
           <div id="queueTable" class="hidden">
             <table>
               <thead>
                 <tr>
-                  <th>#</th>
+                  <th style="width:30px">#</th>
                   <th>名称</th>
-                  <th>代号</th>
-                  <th>合约地址</th>
-                  <th>持币</th>
+                  <th>合约</th>
+                  <th style="text-align:right">持币</th>
                   <th>价格</th>
-                  <th>峰值价</th>
                   <th>流动性</th>
                   <th>进度</th>
-                  <th>社交</th>
-                  <th>币龄</th>
+                  <th>标签</th>
+                  <th style="text-align:right">币龄</th>
                 </tr>
               </thead>
               <tbody id="queueBody"></tbody>
             </table>
-            <p id="noQueue" class="no-data hidden">队列为空。</p>
+            <p id="noQueue" class="no-data hidden">队列为空</p>
             <div id="queueCardList" class="card-list"></div>
           </div>
 
-          <!-- Eliminated tokens table -->
           <div id="elimTable" class="hidden">
             <table>
               <thead>
                 <tr>
-                  <th>#</th>
+                  <th style="width:30px">#</th>
                   <th>名称</th>
-                  <th>代号</th>
-                  <th>合约地址</th>
-                  <th>持币</th>
+                  <th>合约</th>
+                  <th style="text-align:right">持币</th>
                   <th>价格</th>
-                  <th>峰值价</th>
                   <th>淘汰原因</th>
-                  <th>币龄</th>
+                  <th style="text-align:right">币龄</th>
                 </tr>
               </thead>
               <tbody id="elimBody"></tbody>
             </table>
-            <p id="noElim" class="no-data hidden">本轮无淘汰。</p>
+            <p id="noElim" class="no-data hidden">本轮无淘汰</p>
             <div id="elimCardList" class="card-list"></div>
           </div>
 
-          <!-- Rejected at entry tokens table -->
           <div id="rejectedTable" class="hidden">
             <table>
               <thead>
                 <tr>
-                  <th>#</th>
+                  <th style="width:30px">#</th>
                   <th>名称</th>
-                  <th>代号</th>
-                  <th>合约地址</th>
-                  <th>持币</th>
+                  <th>合约</th>
+                  <th style="text-align:right">持币</th>
                   <th>价格</th>
                   <th>进度</th>
                   <th>淘汰原因</th>
                   <th>社交</th>
-                  <th>币龄</th>
+                  <th style="text-align:right">币龄</th>
                 </tr>
               </thead>
               <tbody id="rejectedBody"></tbody>
             </table>
-            <p id="noRejected" class="no-data hidden">本轮无入场淘汰。</p>
+            <p id="noRejected" class="no-data hidden">本轮无入场淘汰</p>
             <div id="rejectedCardList" class="card-list"></div>
           </div>
         </div>
-      </div> <!-- /detail-main -->
-    </div> <!-- /desktop-split -->
+      </div>
+    </div>
   </div>
 
   <div id="toast" class="toast hidden"></div>
@@ -1081,6 +1067,13 @@
     let activeHistoryId = null;
     const cache = {};
     const isDesktop = () => window.innerWidth > 768;
+
+    function toggleFilterDesc() {
+      const desc = document.getElementById('filterDesc');
+      const toggle = document.getElementById('filterToggle');
+      desc.classList.toggle('expanded');
+      toggle.textContent = desc.classList.contains('expanded') ? '▼ 规则' : '▶ 规则';
+    }
 
     async function cachedFetch(url, bustCache) {
       if (!bustCache && cache[url]) return cache[url];
@@ -1101,7 +1094,6 @@
     function fmtPrice(p) {
       if (!p || p === 0) return '--';
       if (p < 0.000001) {
-        // 计算需要的小数位数，保证至少显示3位有效数字
         const digits = Math.max(8, Math.ceil(-Math.log10(p)) + 3);
         return p.toFixed(digits);
       }
@@ -1109,16 +1101,13 @@
       return p.toFixed(6);
     }
 
-    // 流动性格式化: 有真实 DEX 流动性显示"$xxx", 内盘阶段不显示不靠谱的市值
     function fmtLiq(t) {
       const liq = t.liquidity || 0;
       const mc = t.market_cap || 0;
       const ra = t.raised_amount || 0;
-      // 有真实 DEX 流动性 (market_cap=0 说明不是内盘 marketCap 替代值)
       if (liq > 0 && mc === 0) return '$' + fmtNum(liq);
-      // 内盘阶段: 只显示已募集 BNB
-      if (ra > 0) return '<span style="color:#5a6a80;font-size:10px">募</span>' + ra.toFixed(2) + ' BNB';
-      return '<span style="color:#5a6a80">内盘</span>';
+      if (ra > 0) return '<span style="color:#484f58">募</span>' + ra.toFixed(2) + ' BNB';
+      return '<span style="color:#484f58">内盘</span>';
     }
 
     function fmtNum(n) {
@@ -1127,45 +1116,59 @@
       return n.toFixed(0);
     }
 
+    function shortAddr(addr) {
+      if (!addr || addr.length <= 16) return addr;
+      return addr.slice(0, 6) + '…' + addr.slice(-4);
+    }
+
     function fmtAge(hours) {
       if (hours == null) return '--';
       if (hours < 0) return '刚创建';
-      if (hours < 1) return Math.round(hours * 60) + '分钟';
-      if (hours < 24) return hours.toFixed(1) + '小时';
+      if (hours < 1) return Math.round(hours * 60) + '分';
+      if (hours < 24) return hours.toFixed(1) + 'h';
       return (hours / 24).toFixed(1) + '天';
+    }
+
+    function addrHtml(addr) {
+      return `<div class="addr-cell">
+        <span class="addr-text" title="${addr}">${shortAddr(addr)}</span>
+        <span class="addr-links">
+          <button class="copy-btn" onclick="copyAddr('${addr}')">Copy</button>
+          <a class="link-bsc" href="https://bscscan.com/token/${addr}" target="_blank" rel="noopener">BSC</a>
+          <a class="link-4m" href="https://four.meme/token/${addr}" target="_blank" rel="noopener">4M</a>
+          <a class="link-bn" href="https://web3.binance.com/zh-CN/token/bsc/${addr}" target="_blank" rel="noopener">币安</a>
+        </span>
+      </div>`;
     }
 
     function buildAllTags(token) {
       let html = '';
-      // 钱包行为标签
       if (token.wallet_signals && token.wallet_signals.length > 0) {
         const iconMap = { '开发者加仓': ['💰', 'tag-dev-buy'], '开发者加池子': ['🏊', 'tag-dev-lp'], '聪明钱加仓': ['🧠', 'tag-smart-buy'] };
         for (const s of token.wallet_signals) {
           const [icon, cls] = iconMap[s] || ['💰', 'tag-dev-buy'];
-          html += `<span class="tag ${cls}" title="${esc(s)}">${icon} ${esc(s)}</span>`;
+          html += `<span class="tag ${cls}" title="${esc(s)}">${icon}${esc(s)}</span>`;
         }
       }
-      // 仿盘标签
       if (token.is_copycat && token.copycat_count > 0) {
-        html += `<span class="tag tag-copycat" title="有 ${token.copycat_count} 个同名仿盘">🔥 仿盘${token.copycat_count}个</span>`;
+        html += `<span class="tag tag-copycat" title="${token.copycat_count}个同名仿盘">🔥${token.copycat_count}仿</span>`;
       }
-      // 社交媒体标签
       const sl = token.social_links;
       if (sl) {
         if (sl.twitter) html += `<span class="tag tag-twitter"><a href="${esc(sl.twitter)}" target="_blank" rel="noopener">𝕏</a></span>`;
         if (sl.telegram) html += `<span class="tag tag-telegram"><a href="${esc(sl.telegram)}" target="_blank" rel="noopener">TG</a></span>`;
         if (sl.website) html += `<span class="tag tag-website"><a href="${esc(sl.website)}" target="_blank" rel="noopener">Web</a></span>`;
       }
-      return html || '<span style="color:#5a6a80">--</span>';
+      return html || '<span style="color:#484f58">--</span>';
     }
 
     function buildSocialOnly(socialLinks) {
-      if (!socialLinks) return '<span style="color:#5a6a80">--</span>';
+      if (!socialLinks) return '<span style="color:#484f58">--</span>';
       let html = '';
       if (socialLinks.twitter) html += `<span class="tag tag-twitter"><a href="${esc(socialLinks.twitter)}" target="_blank" rel="noopener">𝕏</a></span>`;
       if (socialLinks.telegram) html += `<span class="tag tag-telegram"><a href="${esc(socialLinks.telegram)}" target="_blank" rel="noopener">TG</a></span>`;
       if (socialLinks.website) html += `<span class="tag tag-website"><a href="${esc(socialLinks.website)}" target="_blank" rel="noopener">Web</a></span>`;
-      return html || '<span style="color:#5a6a80">--</span>';
+      return html || '<span style="color:#484f58">--</span>';
     }
 
     function renderData(data) {
@@ -1175,7 +1178,6 @@
       document.getElementById('elimCount').textContent = (data.eliminatedThisRound || []).length || data.eliminatedCount || '0';
       document.getElementById('rejectedCount').textContent = (data.rejectedAtEntry || []).length || '0';
       document.getElementById('filteredTokens').textContent = data.filteredTokens != null ? data.filteredTokens.toLocaleString() : '--';
-
       renderFiltered(data);
       renderQueue(data);
       renderEliminated(data);
@@ -1202,34 +1204,23 @@
         const scanTimeHtml = searchMode && t._scanTime ? `<span class="search-scan-time">📍 ${esc(t._scanTime)}</span>` : '';
         return `<tr>
       <td>${i + 1}</td>
-      <td>${esc(t.name || '--')}${scanTimeHtml}</td>
-      <td>${esc(t.symbol || '--')}</td>
+      <td><div class="name-cell"><span class="name-primary">${esc(t.name || '--')}</span><span class="name-symbol">${esc(t.symbol || '')}</span>${scanTimeHtml}</div></td>
+      <td>${addrHtml(addr)}</td>
+      <td style="text-align:right"><span class="holders-val">${t.holders || 0}</span></td>
       <td>
-        <div class="addr-cell">
-          <span class="addr-text">${addr}</span>
-          <button class="copy-btn" onclick="copyAddr('${addr}')">Copy</button>
-          <a class="bscscan-link" href="https://bscscan.com/token/${addr}" target="_blank" rel="noopener">BscScan</a>
-          <a class="fourmeme-link" href="https://four.meme/token/${addr}" target="_blank" rel="noopener">4meme</a>
-          <a class="binance-link" href="https://web3.binance.com/zh-CN/token/bsc/${addr}" target="_blank" rel="noopener">币安</a>
-        </div>
-      </td>
-      <td>${t.holders || 0}</td>
-      <td>
-        <div class="price-info">现:${fmtPrice(t.price)}</div>
-        <div class="price-info" style="color:#5a6a80">高:${fmtPrice(t.max_price)}</div>
-        <div class="price-info" style="color:#5a6a80">ATH:${fmtPrice(t.ath || t.max_price)}</div>
-        <div class="price-ratio">现/高:${priceRatio}</div>
+        <div class="price-info"><span class="price-label">现</span> ${fmtPrice(t.price)}</div>
+        <div class="price-info"><span class="price-label">高</span> ${fmtPrice(t.max_price)}</div>
+        <div class="price-ratio">现/高 ${priceRatio}</div>
       </td>
       <td class="tags-cell">${tags}</td>
-      <td>${fmtAge(t.age_hours)}</td>
+      <td style="text-align:right"><span class="age-text">${fmtAge(t.age_hours)}</span></td>
     </tr>`;
       }).join('');
 
-      // Mobile card view
       const cardList = document.getElementById('cardList');
       cardList.innerHTML = tokens.map((t, i) => {
         const addr = t.address || '';
-        const shortAddr = addr.length > 16 ? addr.slice(0, 8) + '...' + addr.slice(-6) : addr;
+        const shortA = addr.length > 16 ? addr.slice(0, 8) + '...' + addr.slice(-6) : addr;
         const tags = buildAllTags(t);
         const priceRatio = t.price_ratio != null ? (t.price_ratio * 100).toFixed(1) + '%' : '--';
         const scanTimeHtml = searchMode && t._scanTime ? `<div class="search-scan-time" style="margin-bottom:4px">📍 ${esc(t._scanTime)}</div>` : '';
@@ -1237,25 +1228,21 @@
           ${scanTimeHtml}
           <div class="card-top">
             <span><span class="card-name">${esc(t.name || '--')}</span><span class="card-symbol">${esc(t.symbol || '--')}</span></span>
-            <span class="card-holders">${t.holders || 0} 持币</span>
+            <span class="card-holders">${t.holders || 0}</span>
           </div>
           <div class="card-addr-row">
-            <span class="card-addr-text">${shortAddr}</span>
+            <span class="card-addr-text">${shortA}</span>
             <button class="copy-btn" onclick="copyAddr('${addr}')">Copy</button>
-            <a class="bscscan-link" href="https://bscscan.com/token/${addr}" target="_blank" rel="noopener">BscScan</a>
-            <a class="fourmeme-link" href="https://four.meme/token/${addr}" target="_blank" rel="noopener">4meme</a>
-            <a class="binance-link" href="https://web3.binance.com/zh-CN/token/bsc/${addr}" target="_blank" rel="noopener">币安</a>
+            <a class="link-bsc" href="https://bscscan.com/token/${addr}" target="_blank" rel="noopener">BSC</a>
+            <a class="link-4m" href="https://four.meme/token/${addr}" target="_blank" rel="noopener">4M</a>
           </div>
           <div class="card-price-row">
             <span>现:${fmtPrice(t.price)}</span>
             <span>高:${fmtPrice(t.max_price)}</span>
-            <span>ATH:${fmtPrice(t.ath || t.max_price)}</span>
             <span>现/高:${priceRatio}</span>
           </div>
           <div class="card-social">${tags}</div>
-          <div class="card-meta">
-            <span>#${i + 1} · 币龄 ${fmtAge(t.age_hours)}</span>
-          </div>
+          <div class="card-meta"><span>#${i + 1} · ${fmtAge(t.age_hours)}</span></div>
         </div>`;
       }).join('');
     }
@@ -1276,35 +1263,25 @@
 
       tbody.innerHTML = items.map((t, i) => {
         const addr = t.address || '';
-        const socialHtml = buildSocialOnly(t.social_links);
         const tagsHtml = buildAllTags(t);
         const pctProgress = ((t.progress || 0) * 100).toFixed(1);
         const scanTimeHtml = searchMode && t._scanTime ? `<span class="search-scan-time">📍 ${esc(t._scanTime)}</span>` : '';
         return `<tr>
           <td>${i + 1}</td>
-          <td>${esc(t.name || '--')}${scanTimeHtml}</td>
-          <td>${esc(t.symbol || '--')}</td>
-          <td><div class="addr-cell">
-            <span class="addr-text">${addr}</span>
-            <button class="copy-btn" onclick="copyAddr('${addr}')">Copy</button>
-            <a class="bscscan-link" href="https://bscscan.com/token/${addr}" target="_blank" rel="noopener">BscScan</a>
-            <a class="fourmeme-link" href="https://four.meme/token/${addr}" target="_blank" rel="noopener">4meme</a>
-            <a class="binance-link" href="https://web3.binance.com/zh-CN/token/bsc/${addr}" target="_blank" rel="noopener">币安</a>
-          </div></td>
-          <td>${t.holders || 0}${t.peak_holders ? ' <span style="color:#5a6a80;font-size:10px">峰' + t.peak_holders + '</span>' : ''}</td>
-          <td><div class="price-info">${fmtPrice(t.price)}</div></td>
-          <td><div class="price-info" style="color:#5a6a80">${fmtPrice(t.peak_price)}</div></td>
+          <td><div class="name-cell"><span class="name-primary">${esc(t.name || '--')}</span><span class="name-symbol">${esc(t.symbol || '')}</span>${scanTimeHtml}</div></td>
+          <td>${addrHtml(addr)}</td>
+          <td style="text-align:right"><span class="holders-val">${t.holders || 0}</span>${t.peak_holders ? '<br><span class="holders-peak">峰' + t.peak_holders + '</span>' : ''}</td>
+          <td><div class="price-info"><span class="price-label">现</span> ${fmtPrice(t.price)}</div><div class="price-info"><span class="price-label">峰</span> ${fmtPrice(t.peak_price)}</div></td>
           <td><div class="price-info">${fmtLiq(t)}</div></td>
-          <td><div style="display:flex;align-items:center;gap:4px"><div class="queue-progress" style="width:50px;height:12px;border-radius:3px"><div class="queue-progress-inner" style="width:${Math.min(parseFloat(pctProgress), 100)}%;border-radius:3px"></div></div><span style="font-size:10px">${pctProgress}%</span></div></td>
-          <td>${tagsHtml || socialHtml}</td>
-          <td>${fmtAge(t.age_hours)}</td>
+          <td><div class="progress-bar"><div class="progress-track"><div class="progress-fill" style="width:${Math.min(parseFloat(pctProgress), 100)}%"></div></div><span class="progress-text">${pctProgress}%</span></div></td>
+          <td class="tags-cell">${tagsHtml}</td>
+          <td style="text-align:right"><span class="age-text">${fmtAge(t.age_hours)}</span></td>
         </tr>`;
       }).join('');
 
-      // 手机卡片视图
       queueCardList.innerHTML = items.map((t, i) => {
         const addr = t.address || '';
-        const shortAddr = addr.length > 16 ? addr.slice(0, 8) + '...' + addr.slice(-6) : addr;
+        const shortA = addr.length > 16 ? addr.slice(0, 8) + '...' + addr.slice(-6) : addr;
         const tagsHtml = buildAllTags(t);
         const pctProgress = ((t.progress || 0) * 100).toFixed(1);
         const scanTimeHtml = searchMode && t._scanTime ? `<div class="search-scan-time" style="margin-bottom:4px">📍 ${esc(t._scanTime)}</div>` : '';
@@ -1312,14 +1289,13 @@
           ${scanTimeHtml}
           <div class="card-top">
             <span><span class="card-name">${esc(t.name || '--')}</span><span class="card-symbol">${esc(t.symbol || '--')}</span></span>
-            <span class="card-holders">${t.holders || 0} 持币</span>
+            <span class="card-holders">${t.holders || 0}</span>
           </div>
           <div class="card-addr-row">
-            <span class="card-addr-text">${shortAddr}</span>
+            <span class="card-addr-text">${shortA}</span>
             <button class="copy-btn" onclick="copyAddr('${addr}')">Copy</button>
-            <a class="bscscan-link" href="https://bscscan.com/token/${addr}" target="_blank" rel="noopener">BscScan</a>
-            <a class="fourmeme-link" href="https://four.meme/token/${addr}" target="_blank" rel="noopener">4meme</a>
-            <a class="binance-link" href="https://web3.binance.com/zh-CN/token/bsc/${addr}" target="_blank" rel="noopener">币安</a>
+            <a class="link-bsc" href="https://bscscan.com/token/${addr}" target="_blank" rel="noopener">BSC</a>
+            <a class="link-4m" href="https://four.meme/token/${addr}" target="_blank" rel="noopener">4M</a>
           </div>
           <div class="card-price-row">
             <span>现:${fmtPrice(t.price)}</span>
@@ -1329,8 +1305,8 @@
           </div>
           ${tagsHtml ? '<div class="card-social">' + tagsHtml + '</div>' : ''}
           <div class="card-meta">
-            <span>#${i + 1} · 币龄 ${fmtAge(t.age_hours)}</span>
-            ${t.peak_holders ? '<span>峰值持币 ' + t.peak_holders + '</span>' : ''}
+            <span>#${i + 1} · ${fmtAge(t.age_hours)}</span>
+            ${t.peak_holders ? '<span>峰值 ' + t.peak_holders + '</span>' : ''}
           </div>
         </div>`;
       }).join('');
@@ -1355,51 +1331,39 @@
         const scanTimeHtml = searchMode && t._scanTime ? `<span class="search-scan-time">📍 ${esc(t._scanTime)}</span>` : '';
         return `<tr>
           <td>${i + 1}</td>
-          <td>${esc(t.name || '--')}${scanTimeHtml}</td>
-          <td>${esc(t.symbol || '--')}</td>
-          <td><div class="addr-cell">
-            <span class="addr-text">${addr}</span>
-            <button class="copy-btn" onclick="copyAddr('${addr}')">Copy</button>
-            <a class="bscscan-link" href="https://bscscan.com/token/${addr}" target="_blank" rel="noopener">BscScan</a>
-            <a class="fourmeme-link" href="https://four.meme/token/${addr}" target="_blank" rel="noopener">4meme</a>
-            <a class="binance-link" href="https://web3.binance.com/zh-CN/token/bsc/${addr}" target="_blank" rel="noopener">币安</a>
-          </div></td>
-          <td>${t.holders || 0}</td>
-          <td><div class="price-info">${fmtPrice(t.price)}</div></td>
-          <td><div class="price-info" style="color:#5a6a80">${fmtPrice(t.peak_price)}</div></td>
+          <td><div class="name-cell"><span class="name-primary">${esc(t.name || '--')}</span><span class="name-symbol">${esc(t.symbol || '')}</span>${scanTimeHtml}</div></td>
+          <td>${addrHtml(addr)}</td>
+          <td style="text-align:right"><span class="holders-val">${t.holders || 0}</span></td>
+          <td><div class="price-info"><span class="price-label">现</span> ${fmtPrice(t.price)}</div><div class="price-info"><span class="price-label">峰</span> ${fmtPrice(t.peak_price)}</div></td>
           <td><span class="elim-reason">${esc(t.reason || '--')}</span></td>
-          <td>${fmtAge(t.age_hours)}</td>
+          <td style="text-align:right"><span class="age-text">${fmtAge(t.age_hours)}</span></td>
         </tr>`;
       }).join('');
 
-      // 手机卡片视图
       elimCardList.innerHTML = items.map((t, i) => {
         const addr = t.address || '';
-        const shortAddr = addr.length > 16 ? addr.slice(0, 8) + '...' + addr.slice(-6) : addr;
+        const shortA = addr.length > 16 ? addr.slice(0, 8) + '...' + addr.slice(-6) : addr;
         const tagsHtml = buildAllTags(t);
         const scanTimeHtml = searchMode && t._scanTime ? `<div class="search-scan-time" style="margin-bottom:4px">📍 ${esc(t._scanTime)}</div>` : '';
         return `<div class="token-card">
           ${scanTimeHtml}
           <div class="card-top">
             <span><span class="card-name">${esc(t.name || '--')}</span><span class="card-symbol">${esc(t.symbol || '--')}</span></span>
-            <span class="card-holders">${t.holders || 0} 持币</span>
+            <span class="card-holders">${t.holders || 0}</span>
           </div>
           <div class="card-addr-row">
-            <span class="card-addr-text">${shortAddr}</span>
+            <span class="card-addr-text">${shortA}</span>
             <button class="copy-btn" onclick="copyAddr('${addr}')">Copy</button>
-            <a class="bscscan-link" href="https://bscscan.com/token/${addr}" target="_blank" rel="noopener">BscScan</a>
-            <a class="fourmeme-link" href="https://four.meme/token/${addr}" target="_blank" rel="noopener">4meme</a>
-            <a class="binance-link" href="https://web3.binance.com/zh-CN/token/bsc/${addr}" target="_blank" rel="noopener">币安</a>
+            <a class="link-bsc" href="https://bscscan.com/token/${addr}" target="_blank" rel="noopener">BSC</a>
+            <a class="link-4m" href="https://four.meme/token/${addr}" target="_blank" rel="noopener">4M</a>
           </div>
           <div class="card-price-row">
             <span>现:${fmtPrice(t.price)}</span>
             <span>峰:${fmtPrice(t.peak_price)}</span>
           </div>
           ${tagsHtml ? '<div class="card-social">' + tagsHtml + '</div>' : ''}
-          <div style="margin-top:6px"><span class="elim-reason">${esc(t.reason || '--')}</span></div>
-          <div class="card-meta">
-            <span>#${i + 1} · 币龄 ${fmtAge(t.age_hours)}</span>
-          </div>
+          <div style="margin-top:4px"><span class="elim-reason">${esc(t.reason || '--')}</span></div>
+          <div class="card-meta"><span>#${i + 1} · ${fmtAge(t.age_hours)}</span></div>
         </div>`;
       }).join('');
     }
@@ -1425,47 +1389,37 @@
         const scanTimeHtml = searchMode && t._scanTime ? `<span class="search-scan-time">📍 ${esc(t._scanTime)}</span>` : '';
         return `<tr>
           <td>${i + 1}</td>
-          <td>${esc(t.name || '--')}${scanTimeHtml}</td>
-          <td>${esc(t.symbol || '--')}</td>
-          <td><div class="addr-cell">
-            <span class="addr-text">${addr}</span>
-            <button class="copy-btn" onclick="copyAddr('${addr}')">Copy</button>
-            <a class="bscscan-link" href="https://bscscan.com/token/${addr}" target="_blank" rel="noopener">BscScan</a>
-            <a class="fourmeme-link" href="https://four.meme/token/${addr}" target="_blank" rel="noopener">4meme</a>
-            <a class="binance-link" href="https://web3.binance.com/zh-CN/token/bsc/${addr}" target="_blank" rel="noopener">币安</a>
-          </div></td>
-          <td>${t.holders || 0}</td>
+          <td><div class="name-cell"><span class="name-primary">${esc(t.name || '--')}</span><span class="name-symbol">${esc(t.symbol || '')}</span>${scanTimeHtml}</div></td>
+          <td>${addrHtml(addr)}</td>
+          <td style="text-align:right"><span class="holders-val">${t.holders || 0}</span></td>
           <td><div class="price-info">${fmtPrice(t.price)}</div></td>
-          <td><span style="font-size:10px">${pctProgress}%</span></td>
+          <td><span class="progress-text">${pctProgress}%</span></td>
           <td><span class="elim-reason">${esc(t.reason || '--')}</span></td>
           <td>${socialHtml}</td>
-          <td>${fmtAge(t.age_hours)}</td>
+          <td style="text-align:right"><span class="age-text">${fmtAge(t.age_hours)}</span></td>
         </tr>`;
       }).join('');
 
       rejectedCardList.innerHTML = items.map((t, i) => {
         const addr = t.address || '';
-        const shortAddr = addr.length > 16 ? addr.slice(0, 8) + '...' + addr.slice(-6) : addr;
+        const shortA = addr.length > 16 ? addr.slice(0, 8) + '...' + addr.slice(-6) : addr;
         const tagsHtml = buildAllTags(t);
         const scanTimeHtml = searchMode && t._scanTime ? `<div class="search-scan-time" style="margin-bottom:4px">📍 ${esc(t._scanTime)}</div>` : '';
         return `<div class="token-card">
           ${scanTimeHtml}
           <div class="card-top">
             <span><span class="card-name">${esc(t.name || '--')}</span><span class="card-symbol">${esc(t.symbol || '--')}</span></span>
-            <span class="card-holders">${t.holders || 0} 持币</span>
+            <span class="card-holders">${t.holders || 0}</span>
           </div>
           <div class="card-addr-row">
-            <span class="card-addr-text">${shortAddr}</span>
+            <span class="card-addr-text">${shortA}</span>
             <button class="copy-btn" onclick="copyAddr('${addr}')">Copy</button>
-            <a class="bscscan-link" href="https://bscscan.com/token/${addr}" target="_blank" rel="noopener">BscScan</a>
-            <a class="fourmeme-link" href="https://four.meme/token/${addr}" target="_blank" rel="noopener">4meme</a>
-            <a class="binance-link" href="https://web3.binance.com/zh-CN/token/bsc/${addr}" target="_blank" rel="noopener">币安</a>
+            <a class="link-bsc" href="https://bscscan.com/token/${addr}" target="_blank" rel="noopener">BSC</a>
+            <a class="link-4m" href="https://four.meme/token/${addr}" target="_blank" rel="noopener">4M</a>
           </div>
-          <div style="margin-top:6px"><span class="elim-reason">${esc(t.reason || '--')}</span></div>
+          <div style="margin-top:4px"><span class="elim-reason">${esc(t.reason || '--')}</span></div>
           ${tagsHtml ? '<div class="card-social">' + tagsHtml + '</div>' : ''}
-          <div class="card-meta">
-            <span>#${i + 1} · 币龄 ${fmtAge(t.age_hours)}</span>
-          </div>
+          <div class="card-meta"><span>#${i + 1} · ${fmtAge(t.age_hours)}</span></div>
         </div>`;
       }).join('');
     }
@@ -1486,14 +1440,14 @@
     }
 
     function copyAddr(addr) {
-      navigator.clipboard.writeText(addr).then(() => showToast('已复制!')).catch(() => {
+      navigator.clipboard.writeText(addr).then(() => showToast('已复制')).catch(() => {
         const ta = document.createElement('textarea');
         ta.value = addr;
         document.body.appendChild(ta);
         ta.select();
         document.execCommand('copy');
         document.body.removeChild(ta);
-        showToast('已复制!');
+        showToast('已复制');
       });
     }
 
@@ -1505,7 +1459,6 @@
     }
 
     async function toggleHistory() {
-      // 手机端: 切换历史面板显示
       const panel = document.getElementById('historyPanel');
       historyVisible = !historyVisible;
       if (historyVisible) {
@@ -1516,31 +1469,28 @@
       }
     }
 
-    // 渲染历史列表到指定容器
     async function renderHistoryList(containerId) {
       const rows = await cachedFetch('/api/history');
       const list = document.getElementById(containerId);
       if (!list) return;
       if (rows.length === 0) {
-        list.innerHTML = '<p style="color:#5a6a80;font-size:12px;">暂无历史记录。</p>';
+        list.innerHTML = '<p style="color:#484f58;font-size:11px;">暂无历史记录</p>';
         return;
       }
       list.innerHTML = rows.map(r => `
       <div class="hist-row${activeHistoryId === r.id ? ' active' : ''}" onclick="loadScan(${r.id})" data-id="${r.id}">
         <span class="ht">${r.scan_time}</span>
-        <span>队列: ${r.queue_size != null ? r.queue_size : r.total_tokens} | 淘汰: ${r.eliminated_count || 0} | 精筛: <span class="hv">${r.filtered_tokens}</span></span>
+        <span>队列:${r.queue_size != null ? r.queue_size : r.total_tokens} | 淘汰:${r.eliminated_count || 0} | 精筛:<span class="hv">${r.filtered_tokens}</span></span>
       </div>
     `).join('');
     }
 
-    // 桌面端初始化历史侧栏
     async function initDesktopHistory() {
       if (isDesktop()) {
         await renderHistoryList('historyListDesktop');
       }
     }
 
-    // 更新历史行高亮
     function updateHistoryHighlight(id) {
       activeHistoryId = id;
       document.querySelectorAll('.hist-row').forEach(row => {
@@ -1553,7 +1503,7 @@
         const data = await cachedFetch('/api/scan/' + id);
         renderData(data);
         updateHistoryHighlight(id);
-        showToast('已加载扫描 #' + id);
+        showToast('已加载 #' + id);
       } catch (e) { showToast('加载失败'); }
     }
 
@@ -1562,26 +1512,14 @@
         const data = await cachedFetch('/api/latest', true);
         renderData(data);
         updateHistoryHighlight(null);
-        showToast('已回到最新数据');
+        showToast('已回到最新');
       } catch (e) { showToast('加载失败'); }
     }
 
-    // Search across all history scans
     let searchMode = false;
 
-    // 判断是否为合约地址搜索（0x开头且长度>=10）
     function isAddressQuery(q) {
       return q.startsWith('0x') && q.length >= 10;
-    }
-
-    // 来源标签映射
-    function srcLabel(src) {
-      const map = { filtered: '精筛', queue: '队列', eliminated: '淘汰', rejected: '入场淘汰' };
-      return map[src] || src;
-    }
-    function srcColor(src) {
-      const map = { filtered: '#f0b90b', queue: '#4caf50', eliminated: '#ff6b6b', rejected: '#ff9800' };
-      return map[src] || '#7a8599';
     }
 
     async function doSearch() {
@@ -1590,8 +1528,6 @@
 
       showToast('搜索中...');
       searchMode = true;
-
-      // 合约地址搜索: 保留所有时间点记录; 名称搜索: 按地址去重只保留最新
       const addrSearch = isAddressQuery(q);
 
       try {
@@ -1605,7 +1541,6 @@
             return n.includes(q) || s.includes(q) || a.includes(q);
           });
 
-          // 名称搜索时去重，只保留每个地址最新的一条
           let toMap;
           if (addrSearch) {
             toMap = matched;
@@ -1648,7 +1583,6 @@
             for (const { list, src } of sources) {
               for (const t of list) {
                 const key = t.address || '';
-                // 合约地址搜索不去重
                 if (!addrSearch && seen.has(key)) continue;
                 const name = (t.name || '').toLowerCase();
                 const symbol = (t.symbol || '').toLowerCase();
@@ -1662,19 +1596,14 @@
           }
         }
 
-        // 按来源分类
         const filtered = allResults.filter(t => t._source === 'filtered');
         const queue = allResults.filter(t => t._source === 'queue');
         const eliminated = allResults.filter(t => t._source === 'eliminated');
         const rejected = allResults.filter(t => t._source === 'rejected');
 
-        // 合约地址搜索: 按扫描时间倒序; 名称搜索: 按创建时间倒序
         if (addrSearch) {
-          allResults.sort((a, b) => (b._scanTime || '').localeCompare(a._scanTime || ''));
-          filtered.sort((a, b) => (b._scanTime || '').localeCompare(a._scanTime || ''));
-          queue.sort((a, b) => (b._scanTime || '').localeCompare(a._scanTime || ''));
-          eliminated.sort((a, b) => (b._scanTime || '').localeCompare(a._scanTime || ''));
-          rejected.sort((a, b) => (b._scanTime || '').localeCompare(a._scanTime || ''));
+          [allResults, filtered, queue, eliminated, rejected].forEach(arr =>
+            arr.sort((a, b) => (b._scanTime || '').localeCompare(a._scanTime || '')));
         } else {
           allResults.sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
         }
@@ -1688,9 +1617,9 @@
         if (eliminated.length) parts.push(`淘汰${eliminated.length}`);
         if (rejected.length) parts.push(`入场淘汰${rejected.length}`);
         const countDesc = addrSearch
-          ? `<span class="highlight">${uniqueAddrs}</span> 个代币, <span class="highlight">${allResults.length}</span> 条记录`
-          : `<span class="highlight">${allResults.length}</span> 个代币`;
-        info.innerHTML = `搜索 "<span class="highlight">${esc(q)}</span>" 找到 ${countDesc} (${parts.join(' · ')})<span class="clear-search" onclick="clearSearch()">清除搜索</span>`;
+          ? `<span class="highlight">${uniqueAddrs}</span>个代币, <span class="highlight">${allResults.length}</span>条记录`
+          : `<span class="highlight">${allResults.length}</span>个代币`;
+        info.innerHTML = `"<span class="highlight">${esc(q)}</span>" ${countDesc} (${parts.join(' · ')})<span class="clear-search" onclick="clearSearch()">清除</span>`;
 
         renderData({
           scanTime: '搜索结果',
@@ -1701,7 +1630,7 @@
           eliminatedThisRound: eliminated,
           rejectedAtEntry: rejected,
         });
-        showToast('找到 ' + allResults.length + ' 条结果');
+        showToast(allResults.length + ' 条结果');
       } catch (e) {
         console.error(e);
         showToast('搜索失败');
@@ -1721,34 +1650,19 @@
       const indicator = document.getElementById('pullIndicator');
       if (!scrollArea || !indicator) return;
 
-      let startY = 0;
-      let pulling = false;
-      let refreshing = false;
-      const threshold = 60; // 触发刷新的下拉距离
+      let startY = 0, pulling = false, refreshing = false;
+      const threshold = 60;
 
       scrollArea.addEventListener('touchstart', function (e) {
         if (refreshing) return;
-        if (scrollArea.scrollTop <= 0) {
-          startY = e.touches[0].clientY;
-          pulling = true;
-        }
+        if (scrollArea.scrollTop <= 0) { startY = e.touches[0].clientY; pulling = true; }
       }, { passive: true });
 
       scrollArea.addEventListener('touchmove', function (e) {
         if (!pulling || refreshing) return;
         const dy = e.touches[0].clientY - startY;
-        if (dy < 0) { // 向上滑，不处理
-          indicator.style.height = '0';
-          indicator.classList.remove('visible');
-          return;
-        }
-        // 只在列表顶部时才拦截
-        if (scrollArea.scrollTop > 0) {
-          pulling = false;
-          indicator.style.height = '0';
-          indicator.classList.remove('visible');
-          return;
-        }
+        if (dy < 0) { indicator.style.height = '0'; indicator.classList.remove('visible'); return; }
+        if (scrollArea.scrollTop > 0) { pulling = false; indicator.style.height = '0'; indicator.classList.remove('visible'); return; }
         const pull = Math.min(dy * 0.4, 80);
         indicator.style.height = pull + 'px';
         indicator.classList.add('visible');
@@ -1760,14 +1674,11 @@
         pulling = false;
         const h = parseFloat(indicator.style.height) || 0;
         if (h >= threshold * 0.4) {
-          // 触发刷新
           refreshing = true;
           indicator.innerHTML = '<span class="spinner"></span>刷新中...';
           indicator.classList.add('refreshing');
           indicator.style.height = '36px';
-          try {
-            await goLatest();
-          } catch (_) { }
+          try { await goLatest(); } catch (_) { }
           refreshing = false;
           indicator.classList.remove('refreshing', 'visible');
           indicator.style.height = '0';
@@ -1779,7 +1690,6 @@
       });
     })();
 
-    // Init
     loadLatest();
     initDesktopHistory();
   </script>
