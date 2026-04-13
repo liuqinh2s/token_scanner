@@ -1501,6 +1501,70 @@ def gt_holder_counts(addresses: list[str]) -> dict[str, int]:
     return result
 
 
+def bscscan_scrape_holder_count(token_address: str) -> int | None:
+    """
+    爬取 BSCScan 网页获取持币地址数 (降级备选)
+    BSCScan 网页端有持币数显示, 但 API 免费 key 不支持
+    """
+    _ensure_sessions()
+    try:
+        url = f"https://bscscan.com/token/{token_address}"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "Accept": "text/html",
+        }
+        r = _bsc_session.get(url, headers=headers, timeout=15)
+        if r.status_code != 200:
+            return None
+        # BSCScan 页面结构: <div>Holders</div> ... <div>378</div>
+        m = re.search(
+            r'Holders\s*</\w+>\s*</\w+>\s*<\w+[^>]*>\s*<\w+[^>]*>\s*([\d,]+)',
+            r.text)
+        if m:
+            return int(m.group(1).replace(",", ""))
+    except Exception as e:
+        log.debug("BSCScan 网页爬取失败 [%s]: %s", token_address[:16], e)
+    return None
+
+
+def graduated_holder_counts(addresses: list[str]) -> dict[str, int]:
+    """
+    已毕业代币持币数查询: BSCScan 网页爬取 (并发, ~2s/个)
+    BSCScan 网页端有持币数, 免费 API 不支持, 直接爬网页
+    GeckoTerminal 作为备选 (太慢, 仅在 BSCScan 失败时使用)
+    """
+    result = {}
+    if not addresses:
+        return result
+
+    # 并发爬取 BSCScan 网页 (3 线程, 避免被限流)
+    def _scrape_one(addr: str) -> tuple[str, int | None]:
+        count = bscscan_scrape_holder_count(addr)
+        return addr, count
+
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        futures = [pool.submit(_scrape_one, addr) for addr in addresses]
+        for f in as_completed(futures):
+            addr, count = f.result()
+            if count is not None and count > 0:
+                result[addr] = count
+
+    log.info("BSCScan 网页查到 %d/%d 个已毕业代币持币数", len(result), len(addresses))
+
+    # BSCScan 没查到的, 用 GT 补 (逐个查, 较慢, 仅补漏)
+    missing = [a for a in addresses if a not in result]
+    if missing and len(missing) <= 5:
+        log.info("BSCScan 未覆盖 %d 个, 尝试 GT 补全...", len(missing))
+        gt_result = gt_holder_counts(missing)
+        result.update(gt_result)
+        if gt_result:
+            log.info("GT 补全 %d 个", len(gt_result))
+    elif missing:
+        log.info("BSCScan 未覆盖 %d 个, 跳过 GT (数量过多)", len(missing))
+
+    return result
+
+
 def gt_ohlcv_direct(token_address: str, limit: int = 72) -> list[list]:
     """直接用 tokenAddress 当 poolAddress 拿 1h K线"""
     url = f"{GT_BASE}/networks/bsc/pools/{token_address}/ohlcv/hour?aggregate=1&limit={limit}"
@@ -1688,14 +1752,18 @@ def elimination_check(queue: list[dict], now_ms: int,
     if not pre_filtered:
         return survivors, eliminated
 
-    # 2. DexScreener + four.meme detail + GeckoTerminal持币数 并行查询
+    # 2. DexScreener + four.meme detail + 已毕业代币持币数 并行查询
     addrs = [t["address"] for t in pre_filtered]
 
     # 新入队代币 (本轮刚加入) 不需要再查 detail, 入场筛已经查过
     need_detail = [t for t in pre_filtered if now_ms - t.get("addedAt", 0) > 60000]
 
-    log.info("淘汰检查: 并行查询 %d 个代币 (DS + detail(%d个) + GT持币数)...",
-             len(pre_filtered), len(need_detail))
+    # 已毕业代币 (progress >= 1) 需要用 GT/BSCScan 查持币数
+    graduated_addrs = [t["address"] for t in pre_filtered
+                       if t.get("progress", 0) >= 1]
+
+    log.info("淘汰检查: 并行查询 %d 个代币 (DS + detail(%d个) + 已毕业持币数(%d个))...",
+             len(pre_filtered), len(need_detail), len(graduated_addrs))
 
     def _fetch_all_details():
         detail_map = {}
@@ -1709,10 +1777,10 @@ def elimination_check(queue: list[dict], now_ms: int,
     with ThreadPoolExecutor(max_workers=3) as pool:
         ds_future = pool.submit(ds_batch_prices, addrs)
         detail_future = pool.submit(_fetch_all_details)
-        gt_future = pool.submit(gt_holder_counts, addrs)
+        grad_future = pool.submit(graduated_holder_counts, graduated_addrs)
         ds_data = ds_future.result()
         detail_map = detail_future.result()
-        gt_holders = gt_future.result()
+        grad_holders = grad_future.result()
 
     # 3. 逐个检查淘汰条件
     for t in pre_filtered:
@@ -1724,20 +1792,26 @@ def elimination_check(queue: list[dict], now_ms: int,
         current_price = (ds.get("price")
                          or (detail["price"] if detail else 0)
                          or t.get("price", 0))
-        # 持币数优先级: GeckoTerminal (链上索引, 最准确) > detail API (bonding curve 阶段) > 缓存
-        # 注: GT 对已毕业代币准确; detail API 对 bonding curve 阶段准确, 毕业后返回 0
-        _gt_h = gt_holders.get(t["address"])
+        # 持币数优先级:
+        # 已毕业: GT/BSCScan (链上索引) > 缓存 (detail 毕业后返回 0, 不用)
+        # 未毕业: detail API (bonding curve 内部记账) > 缓存
+        _grad_h = grad_holders.get(t["address"])
         _det_h = detail["holders"] if detail else 0
         _cache_h = t.get("holders", 0)
-        current_holders = _gt_h or _det_h or _cache_h
-        # 调试: 记录持币数来源 (仅对持币数有变化或首次查询的代币)
+        is_graduated = t.get("progress", 0) >= 1
+        if is_graduated:
+            current_holders = _grad_h or _cache_h
+        else:
+            current_holders = _det_h or _cache_h
+        # 调试: 记录持币数来源 (仅对持币数有变化的代币)
         if current_holders != _cache_h:
-            _src = ("GT" if _gt_h else
-                    "detail" if _det_h else "缓存")
-            log.info("  持币数更新 %s: %d→%d (来源:%s, GT=%s det=%s)",
+            if is_graduated:
+                _src = "GT/BSCScan" if _grad_h else "缓存"
+            else:
+                _src = "detail" if _det_h else "缓存"
+            log.info("  持币数更新 %s: %d→%d (来源:%s)",
                      t.get("name", t["address"][:16]),
-                     _cache_h, current_holders, _src,
-                     _gt_h, _det_h)
+                     _cache_h, current_holders, _src)
         current_liq = (ds.get("liquidity")
                        or t.get("liquidity", 0))
         current_progress = (detail["progress"] if detail else 0) or t.get("progress", 0)

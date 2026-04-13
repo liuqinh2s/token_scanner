@@ -41,13 +41,16 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 
 持币数是筛选和淘汰的核心指标，但 four.meme 代币的生命周期跨越 bonding curve 和 DEX 两个阶段，没有单一数据源能覆盖全程。当前采用多源互补策略：
 
-**优先级: GeckoTerminal > four.meme Detail API > 缓存**
+**优先级: GeckoTerminal > BSCScan 网页爬取 > four.meme Detail API > 缓存**
 
 | 数据源 | 覆盖阶段 | 说明 |
 |--------|----------|------|
 | GeckoTerminal `/tokens/{addr}/info` | 已毕业 (DEX 阶段) | 免费、无需 key，返回 `holders.count`，链上索引数据，最准确 |
+| BSCScan 网页爬取 | 已毕业 (DEX 阶段) | GT 查不到时的降级备选，爬取 `bscscan.com/token/{addr}` 页面 |
 | four.meme Detail API `holderCount` | Bonding curve 阶段 | 平台内部记账，毕业后返回 0 |
 | 队列缓存 | 兜底 | 上一轮的持币数，避免数据断档 |
+
+注意：只对已毕业代币（progress ≥ 1）发起 GT/BSCScan 查询，未毕业代币直接用 detail API，避免浪费请求。
 
 **已验证不可用的方案及原因：**
 
@@ -61,7 +64,7 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 
 **备选方案（未实现）：**
 
-- 爬取 BSCScan 网页版 (`https://bscscan.com/token/{addr}`)：网页端有持币数显示，可作为 GeckoTerminal 的降级备选
+- CoinGecko 付费 API：Token Info 端点支持 holders，但需要 API key
 
 ## 淘汰规则（永久剔除）
 
