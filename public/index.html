@@ -561,6 +561,7 @@
         flex-direction: column;
         flex: 1;
         min-height: 0;
+        overflow: hidden;
       }
 
       .history-sidebar {
@@ -572,6 +573,14 @@
         flex-direction: column;
         flex: 1;
         min-height: 0;
+        overflow: hidden;
+      }
+
+      .detail-main .scroll-area {
+        flex: 1;
+        overflow-y: auto;
+        min-height: 0;
+        -webkit-overflow-scrolling: touch;
       }
     }
 
