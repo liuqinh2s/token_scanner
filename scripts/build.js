@@ -185,7 +185,7 @@ function startAutoRefresh() {
     } catch(e) { console.error(e); }
   }, AUTO_REFRESH_INTERVAL);
   const btn = document.getElementById('btnAutoRefresh');
-  if (btn) { btn.textContent = '自动刷新: ON'; btn.style.borderColor = '#f0b90b'; }
+  if (btn) { btn.textContent = '自动刷新: ON'; btn.style.borderColor = 'var(--accent)'; }
 }
 
 function stopAutoRefresh() {
@@ -204,7 +204,7 @@ function toggleAutoRefresh() {
 // Add auto-refresh button in actions div (match Chinese button text)
 html = html.replace(
   /<button id="btnLatest"/,
-  '<button id="btnAutoRefresh" onclick="toggleAutoRefresh()" style="border-color:#f0b90b">自动刷新: ON</button>\n      <button id="btnLatest"'
+  '<button id="btnAutoRefresh" onclick="toggleAutoRefresh()" style="border-color:var(--accent)">自动刷新: ON</button>\n      <button id="btnLatest"'
 );
 
 // Inject auto-refresh code before renderData function
