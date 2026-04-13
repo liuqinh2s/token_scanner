@@ -15,7 +15,7 @@ v6 架构: 极速扫描 (1 分钟一轮)
   1. 链上发现 (~1s): BSC RPC eth_getLogs → four.meme V1 合约 TokenCreated 事件 → 新代币地址
   2. 入场筛 (~数秒): four.meme Detail API → 淘汰无社交 / 总量≠10亿 / 币龄>5min
   3. 淘汰检查 (~数秒): DexScreener 批量查价 + RPC 持币数 + Detail API → 永久淘汰弃盘币
-  4. 精筛 (瞬时): 极简三条件直接过滤
+  4. 精筛 (瞬时): 动量筛选, 从存活币中找起飞信号
   5. 仿盘检测: 本地统计同名代币数量 (零 API 调用), 有大量仿盘(≥3)则标记
 
 砍掉的慢环节 (v5 → v6):
@@ -35,12 +35,13 @@ v6 架构: 极速扫描 (1 分钟一轮)
   - 币龄 > 1h 且最高持币数 < 5
   - 币龄 > 48h
 
-精筛条件:
-  - 持币地址数 ≥ 20
-  - 币龄 ≤ 15 分钟
-  - 当前价 < $0.000008
-  - 持币地址数近 2 轮扫描递增 (不足 2 轮不通过)
-  - 价格近 2 轮扫描递增 (不足 2 轮不通过)
+精筛条件 (动量筛选):
+  - 币龄 ≥ 3 分钟 (数据稳定后再判断)
+  - 持币地址数 ≥ 15
+  - 价格动量: 当前价 ≥ 入队价 × 1.5 或 当前价 ≥ 历史最低价 × 2.0
+  - 持币增长: 当前持币 ≥ 入队持币 × 1.5 或 近 3 轮持续递增
+  - 进度 ≥ 3%
+  - 仿盘数 < 3
 """
 
 from __future__ import annotations
@@ -152,10 +153,13 @@ BINANCE_HEADERS = {
 MAX_AGE_HOURS = 48
 SCAN_INTERVAL_MIN = 15                 # GitHub Actions cron 间隔 (分钟)
 TOTAL_SUPPLY = 1_000_000_000           # 10亿
-QUALITY_MAX_AGE_MIN = 15               # 精筛: 币龄 ≤ 15 分钟
-QUALITY_MIN_HOLDERS = 20               # 精筛: 持币地址数 ≥ 20
-QUALITY_MAX_PRICE = 0.000008           # 精筛: 当前价 < $0.000008
-COPYCAT_MARK_MIN = 3                   # 仿盘数 ≥3 标记
+QUALITY_MIN_AGE_MIN = 3                # 精筛: 币龄 ≥ 3 分钟 (数据稳定)
+QUALITY_MIN_HOLDERS = 15               # 精筛: 持币地址数 ≥ 15
+QUALITY_PRICE_MOMENTUM_VS_ADDED = 1.5  # 精筛: 当前价 ≥ 入队价 × 1.5
+QUALITY_PRICE_MOMENTUM_VS_LOW = 2.0    # 精筛: 当前价 ≥ 历史最低价 × 2.0
+QUALITY_HOLDERS_GROWTH_VS_ADDED = 1.5  # 精筛: 当前持币 ≥ 入队持币 × 1.5
+QUALITY_MIN_PROGRESS = 0.03            # 精筛: 进度 ≥ 3%
+COPYCAT_MARK_MIN = 3                   # 仿盘数 ≥3 标记/排除
 MIN_SOCIAL_COUNT = 1                   # 最少关联社交媒体数
 
 # 淘汰阈值
@@ -1812,20 +1816,21 @@ def elimination_check(queue: list[dict], now_ms: int,
 
 
 # ===================================================================
-#  Step 5: 精筛 — K线 + 价格比 + 钱包行为排除/加分
+#  Step 5: 精筛 — 动量筛选
 # ===================================================================
 def quality_filter(candidates: list[dict], now_ms: int) -> list[dict]:
     """
-    精筛: 单档条件 + 趋势确认
-    条件:
-      - 持币地址数 ≥ 20
-      - 币龄 ≤ 15 分钟
-      - 当前价 < $0.000008
-      - 持币地址数近 2 轮扫描递增 (不足 2 轮不通过)
-      - 价格近 2 轮扫描递增 (不足 2 轮不通过)
+    精筛: 动量筛选 — 从队列存活币中找"正在起飞"的信号
+    条件 (全部满足):
+      - 币龄 ≥ 3 分钟 (数据稳定后再判断)
+      - 持币地址数 ≥ 15
+      - 价格动量: 当前价 ≥ 入队价 × 1.5 或 当前价 ≥ 历史最低价 × 2.0
+      - 持币增长: 当前持币 ≥ 入队持币 × 1.5 或 近 3 轮持续递增
+      - 进度 ≥ 3%
+      - 仿盘数 < 3
     """
     results = []
-    max_age_ms = QUALITY_MAX_AGE_MIN * 60 * 1000
+    min_age_ms = QUALITY_MIN_AGE_MIN * 60 * 1000
 
     for t in candidates:
         age_ms = now_ms - t.get("createdAt", 0)
@@ -1833,31 +1838,55 @@ def quality_filter(candidates: list[dict], now_ms: int) -> list[dict]:
         holders = t.get("holders", 0)
         name = t.get("name") or t.get("address", "")[:16]
 
-        # 条件 1: 币龄 ≤ 15 分钟
-        if age_ms > max_age_ms:
+        # 条件 1: 币龄 ≥ 3 分钟 (太新的数据不稳定)
+        if age_ms < min_age_ms:
             continue
 
-        # 条件 2: 持币地址数 ≥ 20
+        # 条件 2: 持币地址数 ≥ 15
         if holders < QUALITY_MIN_HOLDERS:
             continue
 
-        # 条件 3: 当前价 < $0.000008
-        if current_price <= 0 or current_price >= QUALITY_MAX_PRICE:
+        # 条件 3: 价格动量 (二选一)
+        if current_price <= 0:
+            continue
+        added_price = t.get("addedPrice", 0)
+        price_hist = t.get("priceHistory", [])
+        min_price = min(price_hist) if price_hist else 0
+        price_ok = False
+        if added_price > 0 and current_price >= added_price * QUALITY_PRICE_MOMENTUM_VS_ADDED:
+            price_ok = True
+        if min_price > 0 and current_price >= min_price * QUALITY_PRICE_MOMENTUM_VS_LOW:
+            price_ok = True
+        if not price_ok:
             continue
 
-        # 趋势条件: 持币地址数近 2 轮递增 (不足 2 轮不通过)
+        # 条件 4: 持币增长 (二选一)
+        added_holders = t.get("addedHolders", 0)
         h_hist = t.get("holdersHistory", [])
-        if len(h_hist) < 2 or h_hist[-1] <= h_hist[-2]:
+        holders_ok = False
+        if added_holders > 0 and holders >= added_holders * QUALITY_HOLDERS_GROWTH_VS_ADDED:
+            holders_ok = True
+        if len(h_hist) >= 3 and h_hist[-1] > h_hist[-2] > h_hist[-3]:
+            holders_ok = True
+        if not holders_ok:
             continue
 
-        # 趋势条件: 价格近 2 轮递增 (不足 2 轮不通过)
-        p_hist = t.get("priceHistory", [])
-        if len(p_hist) < 2 or p_hist[-1] <= p_hist[-2]:
+        # 条件 5: 进度 ≥ 3%
+        progress = t.get("progress", 0)
+        if progress < QUALITY_MIN_PROGRESS:
+            continue
+
+        # 条件 6: 仿盘数 < 3
+        cc = t.get("copycat", {})
+        if cc.get("count", 0) >= COPYCAT_MARK_MIN:
             continue
 
         results.append(t)
-        log.info("精筛: ✓ %s — 价格 %.3e, 持币 %d, 币龄 %.1fmin",
-                 name, current_price, holders, age_ms / 60000)
+        price_mult = current_price / added_price if added_price > 0 else 0
+        holders_mult = holders / added_holders if added_holders > 0 else 0
+        log.info("精筛: ✓ %s — 价格 %.3e (×%.1f), 持币 %d (×%.1f), 进度 %.1f%%, 币龄 %.1fmin",
+                 name, current_price, price_mult, holders, holders_mult,
+                 progress * 100, age_ms / 60000)
 
     return results
 
@@ -1948,17 +1977,21 @@ def main():
                 "socialLinks": detail["socialLinks"],
                 "descr": detail.get("descr", ""),
                 "price": detail["price"],
+                "addedPrice": detail["price"],
                 "peakPrice": detail["price"],
                 "holders": detail["holders"],
+                "addedHolders": detail["holders"],
                 "peakHolders": detail["holders"],
                 "liquidity": detail.get("liquidity", 0),
                 "peakLiquidity": detail.get("liquidity", 0),
                 "raisedAmount": detail.get("raisedAmount", 0),
                 "progress": detail.get("progress", 0),
+                "addedProgress": detail.get("progress", 0),
                 "day1Vol": detail.get("day1Vol", 0),
                 "consecDrops": 0,
                 "lastPrice": detail["price"],
                 "priceHistory": [detail["price"]],
+                "holdersHistory": [detail["holders"]],
             })
 
     log.info("入队后: %d 个代币", len(queue_state["tokens"]))
@@ -2016,7 +2049,7 @@ def main():
         if cc:
             t["copycat"] = cc
 
-    # 精筛 (v6: 极简三条件, 无钱包分析)
+    # 精筛 (动量筛选, 从存活币中找起飞信号)
     quality_results = quality_filter(survivors, now_ms)
 
     # 按持币数排序

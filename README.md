@@ -110,11 +110,12 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 
 | 条件 | 阈值 | 说明 |
 |------|------|------|
-| 持币地址数 | ≥ 20 | 最低持币门槛 |
-| 币龄 | ≤ 15 分钟 | 关注窗口 |
-| 当前价 | < $0.000008 | 价格上限 |
-| 持币地址数趋势 | 近 2 轮递增 | 不足 2 轮不通过 |
-| 价格趋势 | 近 2 轮递增 | 不足 2 轮不通过 |
+| 币龄 | ≥ 3 分钟 | 数据稳定后再判断 |
+| 持币地址数 | ≥ 15 | 最低持币门槛 |
+| 价格动量 | 当前价 ≥ 入队价×1.5 或 ≥ 历史最低价×2.0 | 二选一，有资金进入信号 |
+| 持币增长 | 当前持币 ≥ 入队持币×1.5 或 近3轮持续递增 | 二选一，持续有人买入 |
+| 进度 | ≥ 3% | bonding curve 有推进 |
+| 仿盘数 | < 3 | 排除大量仿盘 |
 
 ## 前端功能
 
@@ -179,9 +180,12 @@ npm run dev                     # 启动开发服务器（live-server）
 |------|--------|------|
 | `MAX_AGE_HOURS` | 48 | 关注窗口（小时） |
 | `SCAN_INTERVAL_MIN` | 15 | 扫描间隔（分钟） |
-| `QUALITY_MAX_AGE_MIN` | 15 | 精筛: 币龄上限（分钟） |
-| `QUALITY_MIN_HOLDERS` | 20 | 精筛: 持币地址数下限 |
-| `QUALITY_MAX_PRICE` | 0.000008 | 精筛: 当前价上限（USD） |
+| `QUALITY_MIN_AGE_MIN` | 3 | 精筛: 币龄下限（分钟） |
+| `QUALITY_MIN_HOLDERS` | 15 | 精筛: 持币地址数下限 |
+| `QUALITY_PRICE_MOMENTUM_VS_ADDED` | 1.5 | 精筛: 当前价/入队价倍数 |
+| `QUALITY_PRICE_MOMENTUM_VS_LOW` | 2.0 | 精筛: 当前价/历史最低价倍数 |
+| `QUALITY_HOLDERS_GROWTH_VS_ADDED` | 1.5 | 精筛: 当前持币/入队持币倍数 |
+| `QUALITY_MIN_PROGRESS` | 0.03 | 精筛: 进度下限 (3%) |
 | `ELIM_PRICE_DROP_PCT` | 0.90 | 价格跌幅淘汰阈值 |
 | `ELIM_HOLDERS_FLOOR` | 10 | 持币数淘汰下限 |
 | `ELIM_LIQ_FLOOR` | 100 | 流动性淘汰下限（USD） |
