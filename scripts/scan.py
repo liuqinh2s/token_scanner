@@ -1,7 +1,5 @@
 """
-BSC Token Scanner v6 — 极速扫描, 以快致胜 (Python 版, GitHub Actions 专用)
-
-数据源: BSC RPC (链上事件 + 持币数) + four.meme API (详情) + DexScreener (价格)
+数据源: BSC RPC (链上事件) + four.meme API (详情) + DexScreener (价格) + GeckoTerminal (持币数)
 
 与 token_trading/scanner.py 的区别:
   - 配置从 config.local.json 加载 (proxy 格式: {host, port})
@@ -14,7 +12,7 @@ BSC Token Scanner v6 — 极速扫描, 以快致胜 (Python 版, GitHub Actions 
 v6 架构: 极速扫描 (1 分钟一轮)
   1. 链上发现 (~1s): BSC RPC eth_getLogs → four.meme V1 合约 TokenCreated 事件 → 新代币地址
   2. 入场筛 (~数秒): four.meme Detail API → 淘汰无社交 / 总量≠10亿 / 币龄>5min
-  3. 淘汰检查 (~数秒): DexScreener 批量查价 + RPC 持币数 + Detail API → 永久淘汰弃盘币
+  3. 淘汰检查 (~数秒): DexScreener 批量查价 + GeckoTerminal 持币数 + Detail API → 永久淘汰弃盘币
   4. 精筛 (瞬时): 动量筛选, 从存活币中找起飞信号
   5. 仿盘检测: 本地统计同名代币数量 (零 API 调用), 有大量仿盘(≥3)则标记
 
@@ -23,6 +21,8 @@ v6 架构: 极速扫描 (1 分钟一轮)
   - BSCScan 钱包行为分析 (开发者/聪明钱)
   - 币安 Web3 聪明钱信号 + Token Dynamic
   - GMGN 聪明钱地址
+  - BSCScan 持币数查询 (免费 key 不支持 BSC 链)
+  - RPC Transfer 日志持币数 (bonding curve 阶段不产生标准 Transfer, 不准确)
 
 淘汰条件 (永久剔除):
   - 价格从峰值跌 90%+
@@ -1478,6 +1478,29 @@ def _gt_request(url: str, max_retries: int = 3) -> dict | None:
     return None
 
 
+def gt_holder_counts(addresses: list[str]) -> dict[str, int]:
+    """
+    GeckoTerminal token info API 查持币地址数 (免费, 无需 key)
+    对已毕业代币 (bonding curve 结束后) 最准确
+    对未毕业代币返回 None (GeckoTerminal 可能未收录)
+    限流: ~30 req/min, 需控制请求速率
+    """
+    result = {}
+    if not addresses:
+        return result
+    for addr in addresses:
+        url = f"{GT_BASE}/networks/bsc/tokens/{addr}/info"
+        data = _gt_request(url)
+        if data:
+            holders = (data.get("data", {}).get("attributes", {})
+                       .get("holders", {}).get("count"))
+            if holders and holders > 0:
+                result[addr] = holders
+        time.sleep(0.4)  # ~2.5 req/s, 留余量避免 429
+    log.info("GT 查到 %d/%d 个代币持币数", len(result), len(addresses))
+    return result
+
+
 def gt_ohlcv_direct(token_address: str, limit: int = 72) -> list[list]:
     """直接用 tokenAddress 当 poolAddress 拿 1h K线"""
     url = f"{GT_BASE}/networks/bsc/pools/{token_address}/ohlcv/hour?aggregate=1&limit={limit}"
@@ -1617,7 +1640,7 @@ def elimination_check(queue: list[dict], now_ms: int,
                       api_key: str) -> tuple[list[dict], list[dict]]:
     """
     淘汰检查: 对队列中代币定期检查, 永久淘汰弃盘币
-    持币数: BSCScan API (链上索引) > RPC Transfer日志 > detail API > 缓存
+    持币数: GeckoTerminal (链上索引) > detail API (bonding curve) > 缓存
     返回: (survivors, eliminated)
     """
     survivors = []
@@ -1665,17 +1688,13 @@ def elimination_check(queue: list[dict], now_ms: int,
     if not pre_filtered:
         return survivors, eliminated
 
-    # 2. DexScreener + four.meme detail + RPC持币数 并行查询
+    # 2. DexScreener + four.meme detail + GeckoTerminal持币数 并行查询
     addrs = [t["address"] for t in pre_filtered]
 
     # 新入队代币 (本轮刚加入) 不需要再查 detail, 入场筛已经查过
     need_detail = [t for t in pre_filtered if now_ms - t.get("addedAt", 0) > 60000]
 
-    # RPC 持币数查询的输入 (所有代币都查, 包括刚入队的)
-    rpc_infos = [{"address": t["address"], "block": t.get("block", 0)}
-                 for t in pre_filtered]
-
-    log.info("淘汰检查: 并行查询 %d 个代币 (DS + detail(%d个) + BSCScan/RPC持币数)...",
+    log.info("淘汰检查: 并行查询 %d 个代币 (DS + detail(%d个) + GT持币数)...",
              len(pre_filtered), len(need_detail))
 
     def _fetch_all_details():
@@ -1687,15 +1706,13 @@ def elimination_check(queue: list[dict], now_ms: int,
             time.sleep(0.2)
         return detail_map
 
-    with ThreadPoolExecutor(max_workers=4) as pool:
+    with ThreadPoolExecutor(max_workers=3) as pool:
         ds_future = pool.submit(ds_batch_prices, addrs)
         detail_future = pool.submit(_fetch_all_details)
-        rpc_future = pool.submit(rpc_holder_counts, rpc_infos)
-        bsc_future = pool.submit(bscscan_holder_counts_batch, addrs, api_key)
+        gt_future = pool.submit(gt_holder_counts, addrs)
         ds_data = ds_future.result()
         detail_map = detail_future.result()
-        rpc_holders = rpc_future.result()
-        bsc_holders = bsc_future.result()
+        gt_holders = gt_future.result()
 
     # 3. 逐个检查淘汰条件
     for t in pre_filtered:
@@ -1707,21 +1724,20 @@ def elimination_check(queue: list[dict], now_ms: int,
         current_price = (ds.get("price")
                          or (detail["price"] if detail else 0)
                          or t.get("price", 0))
-        # 持币数优先级: BSCScan (链上索引) > RPC (Transfer日志) > detail > 缓存
-        _bsc_h = bsc_holders.get(t["address"])
-        _rpc_h = rpc_holders.get(t["address"])
+        # 持币数优先级: GeckoTerminal (链上索引, 最准确) > detail API (bonding curve 阶段) > 缓存
+        # 注: GT 对已毕业代币准确; detail API 对 bonding curve 阶段准确, 毕业后返回 0
+        _gt_h = gt_holders.get(t["address"])
         _det_h = detail["holders"] if detail else 0
         _cache_h = t.get("holders", 0)
-        current_holders = _bsc_h or _rpc_h or _det_h or _cache_h
+        current_holders = _gt_h or _det_h or _cache_h
         # 调试: 记录持币数来源 (仅对持币数有变化或首次查询的代币)
         if current_holders != _cache_h:
-            _src = ("BSCScan" if _bsc_h else
-                    "RPC" if _rpc_h else
+            _src = ("GT" if _gt_h else
                     "detail" if _det_h else "缓存")
-            log.info("  持币数更新 %s: %d→%d (来源:%s, BSC=%s RPC=%s det=%s)",
+            log.info("  持币数更新 %s: %d→%d (来源:%s, GT=%s det=%s)",
                      t.get("name", t["address"][:16]),
                      _cache_h, current_holders, _src,
-                     _bsc_h, _rpc_h, _det_h)
+                     _gt_h, _det_h)
         current_liq = (ds.get("liquidity")
                        or t.get("liquidity", 0))
         current_progress = (detail["progress"] if detail else 0) or t.get("progress", 0)

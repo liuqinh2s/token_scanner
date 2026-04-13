@@ -16,7 +16,7 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
    four.meme Detail API → 淘汰无社交 / 总量≠10亿
 
 3. 淘汰检查 (~15s)
-   DexScreener 批量查价 + RPC Transfer事件查持币数 + Detail API → 永久淘汰弃盘币
+   DexScreener 批量查价 + GeckoTerminal 持币数 + Detail API → 永久淘汰弃盘币
 
 4. 钱包行为分析 (~20s)
    BscScan tokentx → 开发者行为 (DEX Router/LP token mint-burn)
@@ -32,13 +32,36 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 | 数据源 | 用途 | 限流 |
 |--------|------|------|
 | BSC RPC (publicnode) | 链上 TokenCreated 事件发现 | 无硬限制 |
-| four.meme Detail API | 社交链接/进度 | ~5 req/s |
-| BscScan API (Etherscan V2) | tokentx 开发者行为 | ~5 req/s |
-| GMGN API | BSC 聪明钱地址获取 (持久化增量更新) | 按 API Key 限流 |
-| BSC RPC Transfer 事件 | 持币地址数 (链上实时计算, 优先级最高) | 无硬限制 |
+| four.meme Detail API | 社交链接/持币数(bonding curve阶段)/进度 | ~5 req/s |
 | DexScreener API | 批量价格+流动性查询 | ~300 req/min |
-| GeckoTerminal OHLCV | K线数据（精筛用） | ~30 req/min |
+| GeckoTerminal Token Info | 持币地址数 (已毕业代币, 链上索引) | ~30 req/min |
 | 本地队列统计 | 仿盘检测：同名/近似名代币数量（零 API 调用） | 无 |
+
+### 持币数查询方案
+
+持币数是筛选和淘汰的核心指标，但 four.meme 代币的生命周期跨越 bonding curve 和 DEX 两个阶段，没有单一数据源能覆盖全程。当前采用多源互补策略：
+
+**优先级: GeckoTerminal > four.meme Detail API > 缓存**
+
+| 数据源 | 覆盖阶段 | 说明 |
+|--------|----------|------|
+| GeckoTerminal `/tokens/{addr}/info` | 已毕业 (DEX 阶段) | 免费、无需 key，返回 `holders.count`，链上索引数据，最准确 |
+| four.meme Detail API `holderCount` | Bonding curve 阶段 | 平台内部记账，毕业后返回 0 |
+| 队列缓存 | 兜底 | 上一轮的持币数，避免数据断档 |
+
+**已验证不可用的方案及原因：**
+
+| 方案 | 问题 |
+|------|------|
+| BSCScan `tokenholdercount` API | 免费 API key 不支持 BSC 链 (`NOTOK: Free API access is not supported for this chain`) |
+| RPC `eth_getLogs` Transfer 事件 | Bonding curve 阶段的买卖通过 four.meme 合约内部记账，不产生标准 ERC-20 Transfer 事件。实测某代币 385 个持币者中仅 ~50 个出现在 Transfer 日志中 |
+| DexScreener API | 不返回持币地址数字段 |
+| CoinGecko 免费 API | 小代币未收录 (404) |
+| BSCTrace API | 域名无法连接 |
+
+**备选方案（未实现）：**
+
+- 爬取 BSCScan 网页版 (`https://bscscan.com/token/{addr}`)：网页端有持币数显示，可作为 GeckoTerminal 的降级备选
 
 ## 淘汰规则（永久剔除）
 
