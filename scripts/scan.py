@@ -1708,10 +1708,20 @@ def elimination_check(queue: list[dict], now_ms: int,
                          or (detail["price"] if detail else 0)
                          or t.get("price", 0))
         # 持币数优先级: BSCScan (链上索引) > RPC (Transfer日志) > detail > 缓存
-        current_holders = (bsc_holders.get(t["address"])
-                           or rpc_holders.get(t["address"])
-                           or (detail["holders"] if detail else 0)
-                           or t.get("holders", 0))
+        _bsc_h = bsc_holders.get(t["address"])
+        _rpc_h = rpc_holders.get(t["address"])
+        _det_h = detail["holders"] if detail else 0
+        _cache_h = t.get("holders", 0)
+        current_holders = _bsc_h or _rpc_h or _det_h or _cache_h
+        # 调试: 记录持币数来源 (仅对持币数有变化或首次查询的代币)
+        if current_holders != _cache_h:
+            _src = ("BSCScan" if _bsc_h else
+                    "RPC" if _rpc_h else
+                    "detail" if _det_h else "缓存")
+            log.info("  持币数更新 %s: %d→%d (来源:%s, BSC=%s RPC=%s det=%s)",
+                     t.get("name", t["address"][:16]),
+                     _cache_h, current_holders, _src,
+                     _bsc_h, _rpc_h, _det_h)
         current_liq = (ds.get("liquidity")
                        or t.get("liquidity", 0))
         current_progress = (detail["progress"] if detail else 0) or t.get("progress", 0)

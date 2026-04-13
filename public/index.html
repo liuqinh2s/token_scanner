@@ -557,7 +557,10 @@
     /* 手机端: 隐藏桌面侧栏 */
     @media (max-width: 768px) {
       .desktop-split {
-        display: block !important;
+        display: flex !important;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
       }
 
       .history-sidebar {
@@ -565,7 +568,10 @@
       }
 
       .detail-main {
-        display: block !important;
+        display: flex !important;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
       }
     }
 
