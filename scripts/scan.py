@@ -1617,7 +1617,7 @@ def elimination_check(queue: list[dict], now_ms: int,
                       api_key: str) -> tuple[list[dict], list[dict]]:
     """
     淘汰检查: 对队列中代币定期检查, 永久淘汰弃盘币
-    v6: 去掉 K线ATH修正、币安动态、RPC持币数, 只用 DexScreener + detail API
+    持币数: BSCScan API (链上索引) > RPC Transfer日志 > detail API > 缓存
     返回: (survivors, eliminated)
     """
     survivors = []
@@ -1675,7 +1675,7 @@ def elimination_check(queue: list[dict], now_ms: int,
     rpc_infos = [{"address": t["address"], "block": t.get("block", 0)}
                  for t in pre_filtered]
 
-    log.info("淘汰检查: 并行查询 %d 个代币 (DS + detail(%d个) + RPC持币数)...",
+    log.info("淘汰检查: 并行查询 %d 个代币 (DS + detail(%d个) + BSCScan/RPC持币数)...",
              len(pre_filtered), len(need_detail))
 
     def _fetch_all_details():
@@ -1687,13 +1687,15 @@ def elimination_check(queue: list[dict], now_ms: int,
             time.sleep(0.2)
         return detail_map
 
-    with ThreadPoolExecutor(max_workers=3) as pool:
+    with ThreadPoolExecutor(max_workers=4) as pool:
         ds_future = pool.submit(ds_batch_prices, addrs)
         detail_future = pool.submit(_fetch_all_details)
         rpc_future = pool.submit(rpc_holder_counts, rpc_infos)
+        bsc_future = pool.submit(bscscan_holder_counts_batch, addrs, api_key)
         ds_data = ds_future.result()
         detail_map = detail_future.result()
         rpc_holders = rpc_future.result()
+        bsc_holders = bsc_future.result()
 
     # 3. 逐个检查淘汰条件
     for t in pre_filtered:
@@ -1705,7 +1707,9 @@ def elimination_check(queue: list[dict], now_ms: int,
         current_price = (ds.get("price")
                          or (detail["price"] if detail else 0)
                          or t.get("price", 0))
-        current_holders = (rpc_holders.get(t["address"])
+        # 持币数优先级: BSCScan (链上索引) > RPC (Transfer日志) > detail > 缓存
+        current_holders = (bsc_holders.get(t["address"])
+                           or rpc_holders.get(t["address"])
                            or (detail["holders"] if detail else 0)
                            or t.get("holders", 0))
         current_liq = (ds.get("liquidity")
