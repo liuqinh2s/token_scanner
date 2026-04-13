@@ -16,13 +16,29 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
       background: #0a0e17;
       color: #e1e8f0;
-      min-height: 100vh;
+      height: 100vh;
+      overflow: hidden;
     }
 
     #app {
       max-width: 1200px;
       margin: 0 auto;
       padding: 20px;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* 固定头部区域 */
+    .fixed-header {
+      flex-shrink: 0;
+    }
+
+    /* 列表滚动区域 */
+    .scroll-area {
+      flex: 1;
+      overflow-y: auto;
+      min-height: 0;
     }
 
     header {
@@ -126,6 +142,7 @@
       border-bottom: 1px solid #1e2a3a;
       position: sticky;
       top: 0;
+      z-index: 1;
     }
 
     td {
@@ -184,9 +201,10 @@
       border: 1px solid #1e2a3a;
       border-radius: 8px;
       padding: 16px;
-      margin: 12px 0;
-      max-height: 300px;
+      margin: 0 0 8px;
+      max-height: 30vh;
       overflow-y: auto;
+      flex-shrink: 0;
     }
 
     .history-panel h3 {
@@ -467,6 +485,99 @@
 
     @media (max-width: 768px) {
 
+      /* 手机端头部精简 */
+      h1 {
+        font-size: 16px;
+      }
+
+      .subtitle {
+        display: none;
+      }
+
+      .filter-desc {
+        display: none;
+      }
+
+      header {
+        padding: 6px 0 4px;
+      }
+
+      .stats-bar {
+        margin: 4px 0;
+        gap: 4px;
+      }
+
+      .stat {
+        padding: 4px 6px;
+        min-width: 0;
+        flex: 1;
+        border-radius: 4px;
+      }
+
+      .stat .label {
+        font-size: 8px;
+        letter-spacing: 0;
+      }
+
+      .stat .val {
+        font-size: 12px;
+        margin-top: 1px;
+      }
+
+      .actions {
+        margin: 4px 0;
+        gap: 4px;
+      }
+
+      .actions button {
+        padding: 4px 10px;
+        font-size: 11px;
+      }
+
+      .tab-bar {
+        margin: 4px 0;
+      }
+
+      .tab-btn {
+        padding: 5px 10px;
+        font-size: 10px;
+      }
+
+      .search-bar {
+        margin: 4px 0;
+      }
+
+      .search-bar input {
+        width: 100%;
+        padding: 5px 8px;
+        font-size: 11px;
+      }
+
+      .search-bar button {
+        padding: 5px 10px;
+        font-size: 11px;
+      }
+
+      .history-panel {
+        max-height: 25vh;
+        padding: 8px;
+        margin: 0 0 4px;
+      }
+
+      .history-panel h3 {
+        font-size: 12px;
+        margin-bottom: 6px;
+      }
+
+      .hist-row {
+        padding: 5px 6px;
+        font-size: 11px;
+      }
+
+      #app {
+        padding: 8px;
+      }
+
       #tokenTable table,
       #queueTable table,
       #elimTable table,
@@ -568,52 +679,55 @@
 
 <body>
   <div id="app">
-    <header>
-      <h1>BSC Token Scanner</h1>
-      <p class="subtitle">链上发现 · 队列淘汰制 · 钱包行为分析 · 每15分钟扫描</p>
-      <p class="filter-desc">
-        链上扫描 four.meme TokenCreated 事件发现新代币 → 入场筛(社交≥1、总量10亿) →
-        队列淘汰(价格跌90%/持币30→10/无社交/流动性1k→100/进度&lt;1%且币龄&gt;2h/进度&lt;5%且币龄&gt;4h/5min峰值持币&lt;3/15min峰值持币&lt;5/1h峰值持币&lt;10/币龄&gt;48h)
-        →
-        钱包分析(开发者/聪明钱加减仓) → 精筛(价格/K线/底价区间/持币增长趋势)<br>
-        价格数据: DexScreener + GeckoTerminal K线 · 持币数据: BscScan 链上 · 钱包行为: BscScan tokentx<br>
-        🔥 = 有大量仿盘 · 💰 = 开发者加仓 · 🏊 = 开发者加池子 · 🧠 = 聪明钱加仓
-      </p>
-    </header>
+    <div class="fixed-header">
+      <header>
+        <h1>BSC Token Scanner</h1>
+        <p class="subtitle">链上发现 · 队列淘汰制 · 钱包行为分析 · 每15分钟扫描</p>
+        <p class="filter-desc">
+          链上扫描 four.meme TokenCreated 事件发现新代币 → 入场筛(社交≥1、总量10亿) →
+          队列淘汰(价格跌90%/持币30→10/无社交/流动性1k→100/进度&lt;1%且币龄&gt;2h/进度&lt;5%且币龄&gt;4h/5min峰值持币&lt;3/15min峰值持币&lt;5/1h峰值持币&lt;10/币龄&gt;48h)
+          →
+          钱包分析(开发者/聪明钱加减仓) → 精筛(价格/K线/底价区间/持币增长趋势)<br>
+          价格数据: DexScreener + GeckoTerminal K线 · 持币数据: BscScan 链上 · 钱包行为: BscScan tokentx<br>
+          🔥 = 有大量仿盘 · 💰 = 开发者加仓 · 🏊 = 开发者加池子 · 🧠 = 聪明钱加仓
+        </p>
+      </header>
 
-    <div class="stats-bar" id="statsBar">
-      <div class="stat"><span class="label">扫描时间</span><span class="val" id="scanTime">--</span></div>
-      <div class="stat"><span class="label">队列存活</span><span class="val" id="queueSize">--</span></div>
-      <div class="stat"><span class="label">本轮淘汰</span><span class="val" id="elimCount">--</span></div>
-      <div class="stat"><span class="label">入场淘汰</span><span class="val" id="rejectedCount">--</span></div>
-      <div class="stat"><span class="label">精筛通过</span><span class="val" id="filteredTokens">--</span></div>
-    </div>
+      <div class="stats-bar" id="statsBar">
+        <div class="stat"><span class="label">扫描时间</span><span class="val" id="scanTime">--</span></div>
+        <div class="stat"><span class="label">队列存活</span><span class="val" id="queueSize">--</span></div>
+        <div class="stat"><span class="label">本轮淘汰</span><span class="val" id="elimCount">--</span></div>
+        <div class="stat"><span class="label">入场淘汰</span><span class="val" id="rejectedCount">--</span></div>
+        <div class="stat"><span class="label">精筛通过</span><span class="val" id="filteredTokens">--</span></div>
+      </div>
 
-    <div class="actions">
-      <button id="btnHistory" onclick="toggleHistory()">历史记录</button>
-      <button id="btnLatest" onclick="goLatest()">回到当前</button>
-    </div>
+      <div class="actions">
+        <button id="btnHistory" onclick="toggleHistory()">历史记录</button>
+        <button id="btnLatest" onclick="goLatest()">回到当前</button>
+      </div>
 
-    <!-- Tab bar -->
-    <div class="tab-bar" id="tabBar">
-      <button class="tab-btn active" data-tab="filtered" onclick="switchTab('filtered')">精筛结果</button>
-      <button class="tab-btn" data-tab="queue" onclick="switchTab('queue')">队列存活</button>
-      <button class="tab-btn" data-tab="eliminated" onclick="switchTab('eliminated')">本轮淘汰</button>
-      <button class="tab-btn" data-tab="rejected" onclick="switchTab('rejected')">入场淘汰</button>
-    </div>
+      <!-- Tab bar -->
+      <div class="tab-bar" id="tabBar">
+        <button class="tab-btn active" data-tab="filtered" onclick="switchTab('filtered')">精筛结果</button>
+        <button class="tab-btn" data-tab="queue" onclick="switchTab('queue')">队列存活</button>
+        <button class="tab-btn" data-tab="eliminated" onclick="switchTab('eliminated')">本轮淘汰</button>
+        <button class="tab-btn" data-tab="rejected" onclick="switchTab('rejected')">入场淘汰</button>
+      </div>
 
-    <div class="search-bar">
-      <input type="text" id="searchInput" placeholder="搜索代币名称、代号或合约地址..." aria-label="搜索代币"
-        onkeydown="if(event.key==='Enter')doSearch()">
-      <button onclick="doSearch()">搜索</button>
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="搜索代币名称、代号或合约地址..." aria-label="搜索代币"
+          onkeydown="if(event.key==='Enter')doSearch()">
+        <button onclick="doSearch()">搜索</button>
+      </div>
+      <div id="searchInfo" class="search-results-info hidden"></div>
     </div>
-    <div id="searchInfo" class="search-results-info hidden"></div>
 
     <div id="historyPanel" class="history-panel hidden">
       <h3>扫描历史</h3>
       <div id="historyList"></div>
     </div>
 
+    <div class="scroll-area">
     <div id="tokenTable">
       <!-- Filtered results table -->
       <table>
@@ -702,6 +816,7 @@
       </table>
       <p id="noRejected" class="no-data hidden">本轮无入场淘汰。</p>
       <div id="rejectedCardList" class="card-list"></div>
+    </div>
     </div>
   </div>
 

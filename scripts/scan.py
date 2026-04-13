@@ -35,14 +35,10 @@ v6 架构: 极速扫描 (1 分钟一轮)
   - 币龄 > 1h 且最高持币数 < 5
   - 币龄 > 48h
 
-精筛条件 (两档):
-  快档 (币龄 ≤ 5min):
-  - 持币地址数 ≥ 30
-  - 当前价 < $0.000006
-  慢档 (币龄 > 5min 且 ≤ 15min):
+精筛条件:
   - 持币地址数 ≥ 20
+  - 币龄 ≤ 15 分钟
   - 当前价 < $0.000008
-  通用趋势条件 (两档共用):
   - 持币地址数近 2 轮扫描递增 (不足 2 轮不通过)
   - 价格近 2 轮扫描递增 (不足 2 轮不通过)
 """
@@ -156,12 +152,9 @@ BINANCE_HEADERS = {
 MAX_AGE_HOURS = 48
 SCAN_INTERVAL_MIN = 15                 # GitHub Actions cron 间隔 (分钟)
 TOTAL_SUPPLY = 1_000_000_000           # 10亿
-QUALITY_MAX_AGE_MIN = 5                # 精筛(快档): 币龄 ≤ 5 分钟
-QUALITY_MIN_HOLDERS = 30               # 精筛(快档): 持币地址数 ≥ 30
-QUALITY_MAX_PRICE = 0.000006           # 精筛(快档): 当前价 < $0.000006
-QUALITY_SLOW_MAX_AGE_MIN = 15          # 精筛(慢档): 币龄 ≤ 15 分钟
-QUALITY_SLOW_MIN_HOLDERS = 20          # 精筛(慢档): 持币地址数 ≥ 20
-QUALITY_SLOW_MAX_PRICE = 0.000008      # 精筛(慢档): 当前价 < $0.000008
+QUALITY_MAX_AGE_MIN = 15               # 精筛: 币龄 ≤ 15 分钟
+QUALITY_MIN_HOLDERS = 20               # 精筛: 持币地址数 ≥ 20
+QUALITY_MAX_PRICE = 0.000008           # 精筛: 当前价 < $0.000008
 COPYCAT_MARK_MIN = 3                   # 仿盘数 ≥3 标记
 MIN_SOCIAL_COUNT = 1                   # 最少关联社交媒体数
 
@@ -1823,20 +1816,16 @@ def elimination_check(queue: list[dict], now_ms: int,
 # ===================================================================
 def quality_filter(candidates: list[dict], now_ms: int) -> list[dict]:
     """
-    精筛: 两档条件 + 趋势确认
-    快档 (币龄 ≤ 5min):
-      - 持币地址数 ≥ 30
-      - 当前价 < $0.000006
-    慢档 (币龄 > 5min 且 ≤ 15min):
+    精筛: 单档条件 + 趋势确认
+    条件:
       - 持币地址数 ≥ 20
+      - 币龄 ≤ 15 分钟
       - 当前价 < $0.000008
-    通用趋势条件 (两档共用):
       - 持币地址数近 2 轮扫描递增 (不足 2 轮不通过)
       - 价格近 2 轮扫描递增 (不足 2 轮不通过)
     """
     results = []
-    fast_max_ms = QUALITY_MAX_AGE_MIN * 60 * 1000
-    slow_max_ms = QUALITY_SLOW_MAX_AGE_MIN * 60 * 1000
+    max_age_ms = QUALITY_MAX_AGE_MIN * 60 * 1000
 
     for t in candidates:
         age_ms = now_ms - t.get("createdAt", 0)
@@ -1844,25 +1833,16 @@ def quality_filter(candidates: list[dict], now_ms: int) -> list[dict]:
         holders = t.get("holders", 0)
         name = t.get("name") or t.get("address", "")[:16]
 
-        if current_price <= 0:
+        # 条件 1: 币龄 ≤ 15 分钟
+        if age_ms > max_age_ms:
             continue
 
-        if age_ms <= fast_max_ms:
-            # 快档: 币龄 ≤ 5 分钟
-            if holders < QUALITY_MIN_HOLDERS:
-                continue
-            if current_price >= QUALITY_MAX_PRICE:
-                continue
-            tier = "快档"
-        elif age_ms <= slow_max_ms:
-            # 慢档: 币龄 > 5min 且 ≤ 15min
-            if holders < QUALITY_SLOW_MIN_HOLDERS:
-                continue
-            if current_price >= QUALITY_SLOW_MAX_PRICE:
-                continue
-            tier = "慢档"
-        else:
-            # 币龄 > 15 分钟, 不通过
+        # 条件 2: 持币地址数 ≥ 20
+        if holders < QUALITY_MIN_HOLDERS:
+            continue
+
+        # 条件 3: 当前价 < $0.000008
+        if current_price <= 0 or current_price >= QUALITY_MAX_PRICE:
             continue
 
         # 趋势条件: 持币地址数近 2 轮递增 (不足 2 轮不通过)
@@ -1876,8 +1856,8 @@ def quality_filter(candidates: list[dict], now_ms: int) -> list[dict]:
             continue
 
         results.append(t)
-        log.info("精筛: ✓ %s [%s] — 价格 %.3e, 持币 %d, 币龄 %.1fmin",
-                 name, tier, current_price, holders, age_ms / 60000)
+        log.info("精筛: ✓ %s — 价格 %.3e, 持币 %d, 币龄 %.1fmin",
+                 name, current_price, holders, age_ms / 60000)
 
     return results
 

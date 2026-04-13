@@ -20,7 +20,7 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 
 4. 钱包行为分析 (~20s)
    BscScan tokentx → 开发者行为 (DEX Router/LP token mint-burn)
-   Top Holders 交叉分析 → 聪明钱自动发现 (持久化到文件)
+   GMGN API → 聪明钱地址获取 (持久化到文件)
    聪明钱行为追踪 → 排除/加分信号
 
 5. 精筛 (~10s)
@@ -33,7 +33,8 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 |--------|------|------|
 | BSC RPC (publicnode) | 链上 TokenCreated 事件发现 | 无硬限制 |
 | four.meme Detail API | 社交链接/进度 | ~5 req/s |
-| BscScan API (Etherscan V2) | tokentx 开发者行为 + Top Holders 聪明钱自动发现 | ~5 req/s |
+| BscScan API (Etherscan V2) | tokentx 开发者行为 | ~5 req/s |
+| GMGN API | BSC 聪明钱地址获取 (持久化增量更新) | 按 API Key 限流 |
 | BSC RPC Transfer 事件 | 持币地址数 (链上实时计算, 优先级最高) | 无硬限制 |
 | DexScreener API | 批量价格+流动性查询 | ~300 req/min |
 | GeckoTerminal OHLCV | K线数据（精筛用） | ~30 req/min |
@@ -55,10 +56,6 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 | 8 | 币龄 > 1h 且最高持币数 < 5 | 热度不足 |
 | 8 | 币龄 > 48h | 超出关注窗口 |
 
-## 钱包行为分析
-
-通过 BscScan API 追踪开发者和聪明钱的链上行为（参考 [token_trading](https://github.com/liuqinh2s/token_trading) 方案）。
-
 ### 开发者行为判定
 
 - 开发者地址来源：链上 `TokenCreated` 事件解码的 `creator` 字段
@@ -68,13 +65,13 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 - 清仓判定：卖出占收到总量 ≥ 90%
 - 流动性操作：通过 LP token 的 mint/burn 检测（from=0x0 → 加池子，to=0x0 → 撤池子）
 
-### 聪明钱自动发现
+### 聪明钱地址获取
 
-聪明钱地址无需手动维护，支持自动发现（持久化到 `data/smart_money.json`，每轮扫描增量更新）：
+聪明钱地址通过 GMGN API 获取，持久化到 `data/smart_money.json`，每轮扫描增量更新：
 
-1. 手动配置：`config.local.json` 的 `smartMoneyAddrs` 数组
-2. Top Holders 交叉分析：GeckoTerminal BSC trending pools 筛选24h涨幅>10%的已上DEX代币 → RPC Transfer 事件统计每个代币 Top 50 Holders → 在 ≥2 个代币中都是大户的地址自动识别为聪明钱
-3. 排除已知非聪明钱地址：交易所合约、DEX Router、WBNB、USDT、BUSD、USDC 等
+1. GMGN API：调用 `/v1/user/smartmoney?chain=bsc` 获取 BSC 聪明钱地址列表，合并新地址到本地文件
+2. 排除已知非聪明钱地址：交易所合约、DEX Router、WBNB、USDT、BUSD、USDC 等
+3. 匹配方式：在已有的 RPC Transfer 日志中匹配聪明钱地址的买入/卖出行为
 
 聪明钱行为判定：
 - 买入：从 DEX Router 或零地址收到代币，按地址数计数
@@ -103,38 +100,21 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 
 ```json
 {
-  "smartMoneyAddrs": ["0x...", "0x..."],
-  "smartMoneyCrossFreq": 2
+  "gmgn_api_key": "YOUR_GMGN_API_KEY"
 }
 ```
 
-- `smartMoneyAddrs`：手动补充的聪明钱地址（可选，自动发现已覆盖大部分）
-- `smartMoneyCrossFreq`：Top Holders 交叉分析最小出现频次（默认 2）
+- `gmgn_api_key`：GMGN API Key，用于获取聪明钱地址列表
 
 ## 精筛规则
 
-两档条件 + 趋势确认：
-
-**快档（币龄 ≤ 5min）：**
-
-| 条件 | 阈值 |
-|------|------|
-| 持币地址数 | ≥ 30 |
-| 当前价 | < $0.000006 |
-
-**慢档（币龄 > 5min 且 ≤ 15min）：**
-
-| 条件 | 阈值 |
-|------|------|
-| 持币地址数 | ≥ 20 |
-| 当前价 | < $0.000008 |
-
-**通用趋势条件（两档共用）：**
-
-| 条件 | 说明 |
-|------|------|
-| 持币地址数近 2 轮递增 | 不足 2 轮不通过 |
-| 价格近 2 轮递增 | 不足 2 轮不通过 |
+| 条件 | 阈值 | 说明 |
+|------|------|------|
+| 持币地址数 | ≥ 20 | 最低持币门槛 |
+| 币龄 | ≤ 15 分钟 | 关注窗口 |
+| 当前价 | < $0.000008 | 价格上限 |
+| 持币地址数趋势 | 近 2 轮递增 | 不足 2 轮不通过 |
+| 价格趋势 | 近 2 轮递增 | 不足 2 轮不通过 |
 
 ## 前端功能
 
@@ -189,23 +169,24 @@ npm run dev                     # 启动开发服务器（live-server）
 {
   "proxy": { "enabled": true, "host": "127.0.0.1", "port": 7890 },
   "bscscanApiKey": "YOUR_BSCSCAN_API_KEY",
-  "smartMoneyAddrs": ["0x...", "0x..."],
-  "smartMoneyCrossFreq": 2
+  "gmgn_api_key": "YOUR_GMGN_API_KEY"
 }
 ```
 
-`scripts/scan.js` 顶部常量：
+`scripts/scan.py` 顶部常量：
 
 | 参数 | 默认值 | 说明 |
 |------|--------|------|
 | `MAX_AGE_HOURS` | 48 | 关注窗口（小时） |
 | `SCAN_INTERVAL_MIN` | 15 | 扫描间隔（分钟） |
+| `QUALITY_MAX_AGE_MIN` | 15 | 精筛: 币龄上限（分钟） |
+| `QUALITY_MIN_HOLDERS` | 20 | 精筛: 持币地址数下限 |
+| `QUALITY_MAX_PRICE` | 0.000008 | 精筛: 当前价上限（USD） |
 | `ELIM_PRICE_DROP_PCT` | 0.90 | 价格跌幅淘汰阈值 |
 | `ELIM_HOLDERS_FLOOR` | 10 | 持币数淘汰下限 |
 | `ELIM_LIQ_FLOOR` | 100 | 流动性淘汰下限（USD） |
 | `ELIM_EARLY_PEAK_HOLDERS` | 3 | 币龄>15min 最高持币数淘汰下限 |
 | `ELIM_MID_PEAK_HOLDERS` | 5 | 币龄>1h 最高持币数淘汰下限 |
-| `SMART_MONEY_MIN_CROSS_FREQ` | 2 | Top Holders 交叉分析最小出现频次 |
 | `SMART_MONEY_FILE` | `data/smart_money.json` | 聪明钱地址持久化文件路径 |
 
 ## License
