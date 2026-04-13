@@ -41,10 +41,8 @@ v6 架构: 极速扫描 (1 分钟一轮)
   - 价格动量: 当前价 ≥ 入队价 × 1.5 或 当前价 ≥ 历史最低价 × 2.0
   - 持币增长: 当前持币 ≥ 入队持币 × 1.5 或 近 3 轮持续递增
   - 进度 ≥ 3%
-  - 仿盘数 < 3
+  - 仿盘数: 仅标记, 不排除 (仿盘多=热门信号, 交给用户判断)
 """
-
-from __future__ import annotations
 
 import json
 import time
@@ -159,7 +157,7 @@ QUALITY_PRICE_MOMENTUM_VS_ADDED = 1.5  # 精筛: 当前价 ≥ 入队价 × 1.5
 QUALITY_PRICE_MOMENTUM_VS_LOW = 2.0    # 精筛: 当前价 ≥ 历史最低价 × 2.0
 QUALITY_HOLDERS_GROWTH_VS_ADDED = 1.5  # 精筛: 当前持币 ≥ 入队持币 × 1.5
 QUALITY_MIN_PROGRESS = 0.03            # 精筛: 进度 ≥ 3%
-COPYCAT_MARK_MIN = 3                   # 仿盘数 ≥3 标记/排除
+COPYCAT_MARK_MIN = 3                   # 仿盘数 ≥3 标记 (仅标记, 不排除)
 MIN_SOCIAL_COUNT = 1                   # 最少关联社交媒体数
 
 # 淘汰阈值
@@ -1958,7 +1956,7 @@ def quality_filter(candidates: list[dict], now_ms: int) -> list[dict]:
       - 价格动量: 当前价 ≥ 入队价 × 1.5 或 当前价 ≥ 历史最低价 × 2.0
       - 持币增长: 当前持币 ≥ 入队持币 × 1.5 或 近 3 轮持续递增
       - 进度 ≥ 3%
-      - 仿盘数 < 3
+      - 仿盘数: 仅标记, 不排除 (仿盘多=热门信号, 交给用户判断)
     """
     results = []
     min_age_ms = QUALITY_MIN_AGE_MIN * 60 * 1000
@@ -2007,10 +2005,9 @@ def quality_filter(candidates: list[dict], now_ms: int) -> list[dict]:
         if progress < QUALITY_MIN_PROGRESS:
             continue
 
-        # 条件 6: 仿盘数 < 3
-        cc = t.get("copycat", {})
-        if cc.get("count", 0) >= COPYCAT_MARK_MIN:
-            continue
+        # 条件 6: 仿盘标记 (不再排除, 仅标记)
+        # 仿盘多说明该名称热门, 可能是被仿的原版, 也可能是仿盘
+        # 交给用户判断, 精筛不因仿盘数排除
 
         results.append(t)
         price_mult = current_price / added_price if added_price > 0 else 0
