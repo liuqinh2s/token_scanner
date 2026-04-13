@@ -25,6 +25,11 @@ for (const d of [SITE_DIR, SITE_DATA_DIR, SCANS_DIR]) {
   if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
 }
 
+// 清空 scans 目录, 避免残留过期文件 (data/ 清理后编号错位)
+for (const old of fs.readdirSync(SCANS_DIR)) {
+  fs.unlinkSync(path.join(SCANS_DIR, old));
+}
+
 // Read all scan files from data/, sorted newest first
 const scanFiles = fs.readdirSync(DATA_DIR)
   .filter(f => f.endsWith(".json") && f !== "queue.json" && f !== "smart_money.json")
