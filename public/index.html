@@ -18,6 +18,7 @@
       color: #e1e8f0;
       height: 100vh;
       overflow: hidden;
+      overscroll-behavior-y: contain;
     }
 
     #app {
@@ -242,6 +243,85 @@
       font-weight: 600;
     }
 
+    /* 桌面端头部压缩 — 让主体内容区域更大 */
+    @media (min-width: 769px) {
+      header {
+        padding: 8px 0 4px;
+      }
+
+      h1 {
+        font-size: 20px;
+      }
+
+      .subtitle {
+        font-size: 11px;
+        margin-top: 2px;
+      }
+
+      .filter-desc {
+        font-size: 10px;
+        margin-top: 2px;
+        line-height: 1.4;
+      }
+
+      .stats-bar {
+        margin: 6px 0;
+        gap: 8px;
+      }
+
+      .stat {
+        padding: 6px 14px;
+        min-width: 110px;
+        border-radius: 6px;
+      }
+
+      .stat .label {
+        font-size: 10px;
+      }
+
+      .stat .val {
+        font-size: 14px;
+        margin-top: 2px;
+      }
+
+      .actions {
+        margin: 4px 0;
+        gap: 6px;
+      }
+
+      .actions button {
+        padding: 4px 14px;
+        font-size: 12px;
+      }
+
+      .tab-bar {
+        margin: 4px 0;
+      }
+
+      .tab-btn {
+        padding: 5px 16px;
+        font-size: 12px;
+      }
+
+      .search-bar {
+        margin: 4px 0;
+      }
+
+      .search-bar input {
+        padding: 5px 10px;
+        font-size: 12px;
+      }
+
+      .search-bar button {
+        padding: 5px 14px;
+        font-size: 12px;
+      }
+
+      #app {
+        padding: 8px 20px;
+      }
+    }
+
     /* 桌面端双栏布局 */
     @media (min-width: 769px) {
       .desktop-split {
@@ -408,6 +488,48 @@
       height: 100%;
       background: #f0b90b;
       border-radius: 2px;
+    }
+
+    /* 下拉刷新指示器 */
+    .pull-indicator {
+      text-align: center;
+      font-size: 12px;
+      color: #7a8599;
+      padding: 0;
+      height: 0;
+      overflow: hidden;
+      transition: height .2s, opacity .2s;
+      opacity: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .pull-indicator.visible {
+      opacity: 1;
+    }
+
+    .pull-indicator.refreshing {
+      height: 36px;
+      opacity: 1;
+    }
+
+    .pull-indicator .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid #2a3a50;
+      border-top-color: #f0b90b;
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      margin-right: 6px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
     }
 
     .toast {
@@ -837,7 +959,8 @@
         </div>
       </div>
       <div class="detail-main">
-        <div class="scroll-area">
+        <div id="pullIndicator" class="pull-indicator">↓ 下拉刷新</div>
+        <div class="scroll-area" id="scrollArea">
           <div id="tokenTable">
             <!-- Filtered results table -->
             <table>
@@ -1574,6 +1697,70 @@
       document.getElementById('searchInfo').classList.add('hidden');
       goLatest();
     }
+
+    // 手机端下拉刷新
+    (function initPullToRefresh() {
+      const scrollArea = document.getElementById('scrollArea');
+      const indicator = document.getElementById('pullIndicator');
+      if (!scrollArea || !indicator) return;
+
+      let startY = 0;
+      let pulling = false;
+      let refreshing = false;
+      const threshold = 60; // 触发刷新的下拉距离
+
+      scrollArea.addEventListener('touchstart', function (e) {
+        if (refreshing) return;
+        if (scrollArea.scrollTop <= 0) {
+          startY = e.touches[0].clientY;
+          pulling = true;
+        }
+      }, { passive: true });
+
+      scrollArea.addEventListener('touchmove', function (e) {
+        if (!pulling || refreshing) return;
+        const dy = e.touches[0].clientY - startY;
+        if (dy < 0) { // 向上滑，不处理
+          indicator.style.height = '0';
+          indicator.classList.remove('visible');
+          return;
+        }
+        // 只在列表顶部时才拦截
+        if (scrollArea.scrollTop > 0) {
+          pulling = false;
+          indicator.style.height = '0';
+          indicator.classList.remove('visible');
+          return;
+        }
+        const pull = Math.min(dy * 0.4, 80);
+        indicator.style.height = pull + 'px';
+        indicator.classList.add('visible');
+        indicator.textContent = dy > threshold ? '↑ 松手刷新' : '↓ 下拉刷新';
+      }, { passive: true });
+
+      scrollArea.addEventListener('touchend', async function () {
+        if (!pulling || refreshing) return;
+        pulling = false;
+        const h = parseFloat(indicator.style.height) || 0;
+        if (h >= threshold * 0.4) {
+          // 触发刷新
+          refreshing = true;
+          indicator.innerHTML = '<span class="spinner"></span>刷新中...';
+          indicator.classList.add('refreshing');
+          indicator.style.height = '36px';
+          try {
+            await goLatest();
+          } catch (_) { }
+          refreshing = false;
+          indicator.classList.remove('refreshing', 'visible');
+          indicator.style.height = '0';
+          indicator.innerHTML = '↓ 下拉刷新';
+        } else {
+          indicator.classList.remove('visible');
+          indicator.style.height = '0';
+        }
+      });
+    })();
 
     // Init
     loadLatest();
