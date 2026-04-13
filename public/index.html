@@ -16,9 +16,17 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
       background: #0a0e17;
       color: #e1e8f0;
+      height: 100dvh;
       height: 100vh;
+      /* fallback */
       overflow: hidden;
       overscroll-behavior-y: contain;
+    }
+
+    @supports (height: 100dvh) {
+      body {
+        height: 100dvh;
+      }
     }
 
     #app {
@@ -27,7 +35,15 @@
       padding: 20px;
       display: flex;
       flex-direction: column;
+      height: 100dvh;
       height: 100vh;
+      /* fallback */
+    }
+
+    @supports (height: 100dvh) {
+      #app {
+        height: 100dvh;
+      }
     }
 
     /* 固定头部区域 */
@@ -703,6 +719,7 @@
         overflow-y: auto;
         min-height: 0;
         -webkit-overflow-scrolling: touch;
+        padding-bottom: 60px;
       }
     }
 
