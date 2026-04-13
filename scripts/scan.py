@@ -56,7 +56,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 
@@ -2023,18 +2023,28 @@ def quality_filter(candidates: list[dict], now_ms: int) -> list[dict]:
 #  数据文件清理 — 删除 48 小时前的 JSON 文件
 # ===================================================================
 def cleanup_old_data(max_age_days: int = 2):
-    """删除 data/ 目录下超过 max_age_days 天的 JSON 文件 (排除 queue.json, smart_money.json)"""
-    now = time.time()
-    cutoff = now - max_age_days * 86400
+    """删除 data/ 目录下超过 max_age_days 天的 JSON 文件 (排除 queue.json, smart_money.json)
+    通过文件名中的时间戳判断, 而非 mtime (GitHub Actions checkout 后 mtime 为当前时间)
+    """
+    now = datetime.now(timezone.utc)
+    cutoff = now - timedelta(days=max_age_days)
     count = 0
     for f in DATA_DIR.glob("*.json"):
         if f.name in ("queue.json", "smart_money.json"):
             continue
+        # 从文件名解析时间: 2026-04-10T12-34-56.json → 2026-04-10T12:34:56
         try:
-            if f.stat().st_mtime < cutoff:
+            ts_str = f.stem.replace("T", " ").replace("-", ":", 2).replace(" ", "T", 1)
+            # 结果: 2026-04-10T12:34:56
+            parts = ts_str.split("T")
+            if len(parts) == 2:
+                time_part = parts[1].replace("-", ":")
+                ts_str = parts[0] + "T" + time_part
+            file_dt = datetime.fromisoformat(ts_str).replace(tzinfo=timezone.utc)
+            if file_dt < cutoff:
                 f.unlink()
                 count += 1
-        except Exception:
+        except (ValueError, OSError):
             pass
     if count > 0:
         log.info("清理: 删除 %d 个过期数据文件 (>%d天)", count, max_age_days)
