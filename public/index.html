@@ -741,7 +741,7 @@
       }
 
       h1 {
-        font-size: 15px;
+        font-size: 16px;
       }
 
       .subtitle,
@@ -754,47 +754,108 @@
         padding: 4px 0 2px;
       }
 
+      /* ===== 统计栏：2行布局，扫描时间独占一行 ===== */
       .stats-bar {
-        margin: 3px 0;
-        gap: 3px;
+        margin: 4px 0;
+        gap: 4px;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
       }
 
       .stat {
-        padding: 3px 6px;
+        padding: 4px 6px;
         min-width: 0;
-        flex: 1;
-        border-radius: 4px;
+        border-radius: 6px;
+      }
+
+      .stat:first-child {
+        grid-column: 1 / -1;
+        padding: 3px 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+      }
+
+      .stat:first-child .label,
+      .stat:first-child .val {
+        display: inline;
+        font-size: 11px;
+      }
+
+      .stat:first-child .label {
+        color: #484f58;
+      }
+
+      .stat:first-child .val {
+        color: #f0b90b;
+        font-weight: 600;
       }
 
       .stat .label {
-        font-size: 8px;
+        font-size: 9px;
       }
 
       .stat .val {
-        font-size: 11px;
-        margin-top: 0;
+        font-size: 13px;
+        font-weight: 700;
+        margin-top: 1px;
       }
 
+      /* ===== 工具栏：分层排列 ===== */
       .toolbar {
-        margin: 3px 0;
-        gap: 4px;
+        margin: 4px 0;
+        gap: 6px;
+        flex-direction: column;
+        align-items: stretch;
       }
 
-      .toolbar button,
+      /* Tab 栏独占一行，按钮等宽 */
+      .tab-bar {
+        display: flex;
+        width: 100%;
+      }
+
       .tab-btn {
+        flex: 1;
+        text-align: center;
+        padding: 6px 4px;
+        font-size: 12px;
+      }
+
+      /* 操作按钮和搜索同一行 */
+      .toolbar>button {
+        display: none;
+      }
+
+      .toolbar>#btnHistory {
+        display: inline-block;
+        position: absolute;
+        right: 8px;
+        top: 4px;
         padding: 4px 10px;
         font-size: 10px;
+        z-index: 2;
+      }
+
+      .search-inline {
+        width: 100%;
+        display: flex;
+        gap: 6px;
       }
 
       .search-inline input {
-        width: 100%;
-        padding: 4px 8px;
-        font-size: 10px;
+        flex: 1;
+        padding: 6px 10px;
+        font-size: 13px;
+        border-radius: 8px;
       }
 
       .search-inline button {
-        padding: 4px 8px;
-        font-size: 10px;
+        padding: 6px 14px;
+        font-size: 12px;
+        border-radius: 8px;
+        white-space: nowrap;
       }
 
       .history-panel {
@@ -814,7 +875,8 @@
       }
 
       #app {
-        padding: 6px 8px;
+        padding: 6px 10px;
+        position: relative;
       }
 
       #tokenTable table,
@@ -828,25 +890,26 @@
         display: block;
       }
 
+      /* ===== 卡片样式优化 ===== */
       .token-card {
         background: #161b22;
         border: 1px solid #21262d;
-        border-radius: 10px;
-        padding: 12px;
-        margin-bottom: 8px;
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 10px;
       }
 
       .card-top {
         display: flex;
         justify-content: space-between;
-        align-items: center;
-        margin-bottom: 6px;
+        align-items: flex-start;
+        margin-bottom: 8px;
       }
 
       .card-name {
-        font-size: 14px;
+        font-size: 15px;
         font-weight: 600;
-        color: #c9d1d9;
+        color: #e6edf3;
       }
 
       .card-symbol {
@@ -856,23 +919,24 @@
       }
 
       .card-holders {
-        font-size: 15px;
+        font-size: 20px;
         font-weight: 700;
         color: #f0b90b;
+        line-height: 1;
       }
 
       .card-addr-row {
         display: flex;
         align-items: center;
         gap: 6px;
-        margin: 6px 0;
+        margin: 8px 0;
         background: #0d1117;
-        border-radius: 6px;
-        padding: 6px 8px;
+        border-radius: 8px;
+        padding: 8px 10px;
       }
 
       .card-addr-text {
-        font-family: monospace;
+        font-family: 'SF Mono', 'Fira Code', monospace;
         font-size: 12px;
         color: #58a6ff;
         flex: 1;
@@ -886,29 +950,53 @@
       .card-addr-row a {
         flex-shrink: 0;
         font-size: 11px;
+        padding: 2px 8px;
+        border-radius: 4px;
       }
 
       .card-meta {
         display: flex;
         justify-content: space-between;
-        font-size: 10px;
+        font-size: 11px;
         color: #484f58;
-        margin-top: 4px;
+        margin-top: 6px;
+        padding-top: 6px;
+        border-top: 1px solid #21262d;
       }
 
       .card-social {
-        margin-top: 4px;
+        margin-top: 6px;
+      }
+
+      .card-social .tag {
+        font-size: 10px;
+        padding: 2px 8px;
+        border-radius: 4px;
+        margin: 2px 3px 2px 0;
       }
 
       .card-price-row {
         display: flex;
         flex-wrap: wrap;
         align-items: baseline;
-        gap: 3px 10px;
-        font-size: 10px;
+        gap: 4px 12px;
+        font-size: 11px;
         color: #8b949e;
-        margin-top: 3px;
-        line-height: 1.5;
+        margin-top: 6px;
+        line-height: 1.6;
+      }
+
+      /* 淘汰原因在卡片中更醒目 */
+      .token-card .elim-reason {
+        font-size: 11px;
+        padding: 3px 8px;
+        border-radius: 4px;
+      }
+
+      /* 搜索结果信息 */
+      .search-results-info {
+        font-size: 11px;
+        margin: 2px 0;
       }
     }
   </style>
