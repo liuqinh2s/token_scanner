@@ -1439,7 +1439,7 @@
       <td>${i + 1}</td>
       <td><div class="name-cell"><span class="name-symbol-primary">${esc(t.symbol || '--')}</span><span class="name-secondary">${esc(t.name || '--')}</span>${scanTimeHtml}</div></td>
       <td>${addrHtml(addr)}</td>
-      <td style="text-align:right"><span class="holders-val">${t.holders || 0}</span>${t.peak_holders ? '<br><span class="holders-peak">峰' + t.peak_holders + '</span>' : ''}</td>
+      <td style="text-align:right"><span class="holders-val">${t.holders || 0}</span><br><span class="holders-peak">峰${t.peak_holders || 0}</span></td>
       <td>
         <div class="price-info"><span class="price-label">现</span> ${fmtPrice(t.price)}</div>
         <div class="price-info"><span class="price-label">高</span> ${fmtPrice(t.max_price)}</div>
@@ -1481,7 +1481,7 @@
           <div class="card-social">${tags}</div>
           <div class="card-meta">
             <span>#${i + 1} · ${fmtAge(t.age_hours)}</span>
-            ${t.peak_holders ? '<span>峰值 ' + t.peak_holders + '</span>' : ''}
+            <span>峰值 ${t.peak_holders || 0}</span>
           </div>
         </div>`;
       }).join('');
@@ -1510,7 +1510,7 @@
           <td>${i + 1}</td>
           <td><div class="name-cell"><span class="name-symbol-primary">${esc(t.symbol || '--')}</span><span class="name-secondary">${esc(t.name || '--')}</span>${scanTimeHtml}</div></td>
           <td>${addrHtml(addr)}</td>
-          <td style="text-align:right"><span class="holders-val">${t.holders || 0}</span>${t.peak_holders ? '<br><span class="holders-peak">峰' + t.peak_holders + '</span>' : ''}</td>
+          <td style="text-align:right"><span class="holders-val">${t.holders || 0}</span><br><span class="holders-peak">峰${t.peak_holders || 0}</span></td>
           <td><div class="price-info"><span class="price-label">现</span> ${fmtPrice(t.price)}</div><div class="price-info"><span class="price-label">峰</span> ${fmtPrice(t.peak_price)}</div></td>
           <td><div class="price-info">${fmtLiq(t)}</div></td>
           <td><div class="progress-bar"><div class="progress-track"><div class="progress-fill" style="width:${Math.min(parseFloat(pctProgress), 100)}%"></div></div><span class="progress-text">${pctProgress}%</span></div></td>
@@ -1546,7 +1546,7 @@
           ${tagsHtml ? '<div class="card-social">' + tagsHtml + '</div>' : ''}
           <div class="card-meta">
             <span>#${i + 1} · ${fmtAge(t.age_hours)}</span>
-            ${t.peak_holders ? '<span>峰值 ' + t.peak_holders + '</span>' : ''}
+            <span>峰值 ${t.peak_holders || 0}</span>
           </div>
         </div>`;
       }).join('');
