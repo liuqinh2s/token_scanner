@@ -1313,6 +1313,9 @@
       try {
         const data = await cachedFetch('/api/latest', true);
         renderData(data);
+        // 同步刷新历史列表
+        if (isDesktop()) await renderHistoryList('historyListDesktop', true);
+        if (historyVisible) await renderHistoryList('historyList', true);
       } catch (e) { console.error(e); }
     }
 
@@ -1696,8 +1699,8 @@
       }
     }
 
-    async function renderHistoryList(containerId) {
-      const rows = await cachedFetch('/api/history');
+    async function renderHistoryList(containerId, bustCache) {
+      const rows = await cachedFetch('/api/history', bustCache);
       const list = document.getElementById(containerId);
       if (!list) return;
       if (rows.length === 0) {
@@ -1739,6 +1742,9 @@
         const data = await cachedFetch('/api/latest', true);
         renderData(data);
         updateHistoryHighlight(null);
+        // 同步刷新历史列表
+        if (isDesktop()) await renderHistoryList('historyListDesktop', true);
+        if (historyVisible) await renderHistoryList('historyList', true);
         showToast('已回到最新');
       } catch (e) { showToast('加载失败'); }
     }
