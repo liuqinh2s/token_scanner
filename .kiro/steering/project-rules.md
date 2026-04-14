@@ -22,6 +22,12 @@ inclusion: always
 - 变量名、函数名使用英文
 - README 使用中文
 
+## 调度方式
+
+- `token_scanner` 由外部 cron 精确定时触发（如每 15 分钟整点: :00, :15, :30, :45），`scripts/scan.py` 本身是单次执行，不含循环和 sleep
+- 姊妹项目 `token_trading` 是本地常驻进程，`scanner.py` 内部循环运行，通过对齐 Unix 时间戳整点间隔来保证两边扫描时间一致
+- 两个项目必须在相同的时间点扫描，否则精筛结果会不一致（队列状态、代币数据快照不同）
+
 ## 架构要点
 
 - 代币发现来源是 BSC 链上 RPC `eth_getLogs`，不是 four.meme Search API
