@@ -2212,11 +2212,32 @@ def main():
     # 精筛 (动量筛选, 从存活币中找起飞信号)
     quality_results = quality_filter(survivors, now_ms)
 
-    # 精筛再验证: 对精筛结果重新检查淘汰条件和精筛条件
+    # 精筛代币持币数刷新: 用 BSCScan 网页爬取真实持币数 (four.meme detail 对未毕业币不准)
+    # 必须在再验证之前执行, 否则再验证用的是旧数据
+    if quality_results:
+        q_addrs = [t["address"] for t in quality_results]
+        log.info("精筛持币数刷新: BSCScan 查询 %d 个代币...", len(q_addrs))
+        real_holders = graduated_holder_counts(q_addrs)
+        for t in quality_results:
+            rh = real_holders.get(t["address"])
+            if rh is not None and rh > 0:
+                old_h = t.get("holders", 0)
+                t["holders"] = rh
+                t["peakHolders"] = max(t.get("peakHolders", 0), rh)
+                # 同步更新队列中的对应代币
+                for s in survivors:
+                    if s["address"] == t["address"]:
+                        s["holders"] = rh
+                        s["peakHolders"] = max(s.get("peakHolders", 0), rh)
+                        break
+                if rh != old_h:
+                    log.info("  持币数刷新 %s: %d→%d (BSCScan)",
+                             t.get("name") or t["address"][:16], old_h, rh)
+
+    # 精筛再验证: 对精筛结果重新检查淘汰条件
     # - 不符合队列存活 → 移到本轮淘汰
     # - 符合队列存活但不符合精筛 → 留在队列 (从精筛列表移除)
     revalidated = []
-    demoted_to_queue = 0
     demoted_to_elim = 0
     for t in quality_results:
         # 检查是否满足淘汰条件 (复用 elimination_check 的条件逻辑)
@@ -2286,27 +2307,6 @@ def main():
 
     if demoted_to_elim > 0:
         log.info("精筛再验证: %d 个淘汰", demoted_to_elim)
-
-    # 精筛代币持币数刷新: 用 BSCScan 网页爬取真实持币数 (four.meme detail 对未毕业币不准)
-    if quality_results:
-        q_addrs = [t["address"] for t in quality_results]
-        log.info("精筛持币数刷新: BSCScan 查询 %d 个代币...", len(q_addrs))
-        real_holders = graduated_holder_counts(q_addrs)
-        for t in quality_results:
-            rh = real_holders.get(t["address"])
-            if rh is not None and rh > 0:
-                old_h = t.get("holders", 0)
-                t["holders"] = rh
-                t["peakHolders"] = max(t.get("peakHolders", 0), rh)
-                # 同步更新队列中的对应代币
-                for s in survivors:
-                    if s["address"] == t["address"]:
-                        s["holders"] = rh
-                        s["peakHolders"] = max(s.get("peakHolders", 0), rh)
-                        break
-                if rh != old_h:
-                    log.info("  持币数刷新 %s: %d→%d (BSCScan)",
-                             t.get("name") or t["address"][:16], old_h, rh)
 
     # 按持币数排序
     quality_results.sort(key=lambda x: (x.get("holders", 0)), reverse=True)
