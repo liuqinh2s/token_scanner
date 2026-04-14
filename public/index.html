@@ -750,12 +750,32 @@
     }
 
     @media (max-width: 768px) {
+
+      /* 手机端：让 body 自然滚动，恢复 Chrome 下拉刷新 */
+      body {
+        height: auto;
+        overflow: visible;
+        overscroll-behavior-y: auto;
+      }
+
+      #app {
+        height: auto;
+        overflow: visible;
+      }
+
+      .fixed-header {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: var(--bg-primary);
+      }
+
       .desktop-split {
         display: flex !important;
         flex-direction: column;
-        flex: 1;
+        flex: none;
         min-height: 0;
-        overflow: hidden;
+        overflow: visible;
       }
 
       .history-sidebar {
@@ -765,16 +785,15 @@
       .detail-main {
         display: flex !important;
         flex-direction: column;
-        flex: 1;
+        flex: none;
         min-height: 0;
-        overflow: hidden;
+        overflow: visible;
       }
 
       .detail-main .scroll-area {
-        flex: 1;
-        overflow-y: auto;
+        flex: none;
+        overflow: visible;
         min-height: 0;
-        -webkit-overflow-scrolling: touch;
         padding-bottom: 60px;
       }
 
@@ -867,13 +886,7 @@
       }
 
       .toolbar>#btnHistory {
-        display: inline-block;
-        position: absolute;
-        right: 8px;
-        top: 4px;
-        padding: 4px 10px;
-        font-size: 10px;
-        z-index: 2;
+        display: none;
       }
 
       .toolbar>#btnLatest {
@@ -1085,6 +1098,10 @@
       display: none;
     }
 
+    .history-page {
+      display: none;
+    }
+
     @media (max-width: 768px) {
       .mobile-tabbar {
         display: flex;
@@ -1148,6 +1165,67 @@
 
       .about-page:not(.hidden) {
         display: block;
+      }
+
+      /* ===== 手机端历史页面 ===== */
+      .history-page {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 48px;
+        background: var(--bg-primary);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        z-index: 50;
+        padding: 12px 10px;
+        padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+      }
+
+      .history-page:not(.hidden) {
+        display: block;
+      }
+
+      .history-page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--border-primary);
+      }
+
+      .history-page-header h2 {
+        color: var(--accent);
+        font-size: 18px;
+        font-weight: 700;
+      }
+
+      .history-back-btn {
+        font-size: 12px;
+        padding: 4px 12px;
+        border-radius: 6px;
+      }
+
+      .history-page .hist-row {
+        padding: 10px 10px;
+        font-size: 12px;
+        border-bottom: 1px solid var(--border-primary);
+        border-radius: 6px;
+        margin-bottom: 2px;
+      }
+
+      .history-page .hist-row .ht {
+        display: block;
+        font-size: 13px;
+        color: var(--text-primary);
+        font-weight: 500;
+        margin-bottom: 2px;
+      }
+
+      .history-page .hist-row .hist-stats {
+        font-size: 11px;
+        color: var(--text-secondary);
       }
 
       .about-content h2 {
@@ -1252,6 +1330,7 @@
       /* 首页内容区域给底部导航留空间 */
       .detail-main .scroll-area {
         padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+        overflow: visible;
       }
     }
   </style>
@@ -1417,11 +1496,25 @@
       <span class="mobile-tab-icon">🏠</span>
       <span class="mobile-tab-label">首页</span>
     </button>
+    <button class="mobile-tab" data-page="history" onclick="switchPage('history')">
+      <span class="mobile-tab-icon">📜</span>
+      <span class="mobile-tab-label">历史</span>
+    </button>
     <button class="mobile-tab" data-page="about" onclick="switchPage('about')">
       <span class="mobile-tab-icon">📋</span>
       <span class="mobile-tab-label">关于</span>
     </button>
   </nav>
+
+  <!-- 历史页面（手机端） -->
+  <div class="history-page hidden" id="historyPage">
+    <div class="history-page-header">
+      <h2>扫描历史</h2>
+      <button class="history-back-btn" id="historyBackBtn"
+        onclick="goLatest();updateHistoryPageHighlight(null)">回到最新</button>
+    </div>
+    <div id="historyListMobile"></div>
+  </div>
 
   <!-- 关于页面 -->
   <div class="about-page hidden" id="aboutPage">
@@ -1553,14 +1646,63 @@
     function switchPage(page) {
       const app = document.getElementById('app');
       const aboutPage = document.getElementById('aboutPage');
+      const historyPage = document.getElementById('historyPage');
       document.querySelectorAll('.mobile-tab').forEach(t => t.classList.toggle('active', t.dataset.page === page));
       if (page === 'about') {
         app.style.display = 'none';
         aboutPage.classList.remove('hidden');
+        if (historyPage) historyPage.classList.add('hidden');
+      } else if (page === 'history') {
+        app.style.display = 'none';
+        aboutPage.classList.add('hidden');
+        if (historyPage) {
+          historyPage.classList.remove('hidden');
+          renderMobileHistoryList();
+        }
       } else {
         app.style.display = '';
         aboutPage.classList.add('hidden');
+        if (historyPage) historyPage.classList.add('hidden');
       }
+    }
+
+    /* 手机端历史列表渲染 */
+    async function renderMobileHistoryList(bustCache) {
+      const rows = await cachedFetch('/api/history', bustCache);
+      const list = document.getElementById('historyListMobile');
+      if (!list) return;
+      if (rows.length === 0) {
+        list.innerHTML = '<p style="color:var(--text-muted);font-size:12px;text-align:center;padding:20px;">暂无历史记录</p>';
+        return;
+      }
+      list.innerHTML = rows.map(r => `
+      <div class="hist-row${activeHistoryId === r.id ? ' active' : ''}" onclick="loadScanMobile(${r.id})" data-id="${r.id}">
+        <span class="ht">${r.scan_time}</span>
+        <span class="hist-stats">队列:${r.queue_size != null ? r.queue_size : r.total_tokens} | 淘汰:${r.eliminated_count || 0} | 精筛:<span class="hv">${r.filtered_tokens}</span></span>
+      </div>
+    `).join('');
+    }
+
+    /* 手机端点击历史记录：加载数据并切回首页 */
+    async function loadScanMobile(id) {
+      try {
+        const data = await cachedFetch('/api/scan/' + id);
+        renderData(data);
+        updateHistoryHighlight(id);
+        updateHistoryPageHighlight(id);
+        // 切回首页展示数据
+        switchPage('home');
+        showToast('已加载 #' + id);
+      } catch (e) { showToast('加载失败'); }
+    }
+
+    /* 更新手机端历史页面的高亮 */
+    function updateHistoryPageHighlight(id) {
+      const list = document.getElementById('historyListMobile');
+      if (!list) return;
+      list.querySelectorAll('.hist-row').forEach(row => {
+        row.classList.toggle('active', row.dataset.id == id);
+      });
     }
 
     function toggleFilterDesc() {
@@ -1586,6 +1728,7 @@
         // 同步刷新历史列表
         if (isDesktop()) await renderHistoryList('historyListDesktop', true);
         if (historyVisible) await renderHistoryList('historyList', true);
+        if (!isDesktop()) await renderMobileHistoryList(true);
       } catch (e) { console.error(e); }
     }
 
@@ -2023,6 +2166,7 @@
         // 同步刷新历史列表
         if (isDesktop()) await renderHistoryList('historyListDesktop', true);
         if (historyVisible) await renderHistoryList('historyList', true);
+        if (!isDesktop()) await renderMobileHistoryList(true);
         showToast('已回到最新');
       } catch (e) { showToast('加载失败'); }
     }
