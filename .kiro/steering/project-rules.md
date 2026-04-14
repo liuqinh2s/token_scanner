@@ -44,11 +44,15 @@ inclusion: always
 
 ## 架构要点
 
+- v6 架构: 链上发现 + 队列淘汰制 + 动量精筛 + 精筛后防线
 - 代币发现来源是 BSC 链上 RPC `eth_getLogs`，不是 four.meme Search API
+- 精筛: 动量筛选 (价格加速度/持币增速/买卖比/回撤保护)
+- 精筛后防线: Top10 持仓集中度 + 开发者行为分析 (仅对精筛通过的少量代币)
+- DexScreener 批量查价同时提取交易量和买卖笔数 (零额外 API 调用)
 - 队列状态持久化在 `data/queue.json`，扫描结果按时间戳存在 `data/` 目录
 - 每轮扫描结果包含 `tokens`（精筛通过）、`queue`（存活快照）、`eliminatedThisRound`（本轮淘汰）三个数组
 - `build.js` 处理 `data/` 时必须排除 `queue.json`
-- 前端有三个 Tab：精筛结果、队列存活、本轮淘汰
+- 前端有四个 Tab：精筛结果、队列存活、本轮淘汰、入场淘汰
 
 ## 跨项目筛选策略同步（必须遵守）
 
@@ -56,5 +60,5 @@ inclusion: always
 
 - 任何筛选策略的改动（常量阈值、淘汰条件、精筛逻辑、数据源切换等），必须同时修改 `token_scanner/scripts/scan.py` 和 `token_trading/scanner.py`
 - 修改前先对比两边当前实现，确认差异点，避免遗漏
-- 对应关系：`token_scanner/scripts/scan.py` 顶部常量区 ↔ `token_trading/scanner.py` 顶部常量区；函数名一致：`discover_on_chain`、`admission_filter`、`elimination_check`、`quality_filter`
+- 对应关系：`token_scanner/scripts/scan.py` 顶部常量区 ↔ `token_trading/scanner.py` 顶部常量区；函数名一致：`discover_on_chain`、`admission_filter`、`elimination_check`、`quality_filter`、`post_quality_defense`
 - 文件头注释中的淘汰条件/精筛条件描述也要同步更新
