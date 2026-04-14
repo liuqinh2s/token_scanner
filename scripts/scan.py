@@ -41,6 +41,8 @@ v6 架构: 极速扫描 (1 分钟一轮)
   - 价格动量: 当前价 ≥ 入队价 × 1.5 或 当前价 ≥ 历史最低价 × 2.0
   - 持币增长: 当前持币 ≥ 入队持币 × 1.5 或 近 3 轮持续递增
   - 进度 ≥ 3%
+  - 进度从 10%+ 跌破 5% 排除 (衰退信号)
+  - 已毕业代币流动性 ≥ $500
   - 仿盘数: 仅标记, 不排除 (仿盘多=热门信号, 交给用户判断)
 """
 
@@ -157,6 +159,9 @@ QUALITY_PRICE_MOMENTUM_VS_ADDED = 1.5  # 精筛: 当前价 ≥ 入队价 × 1.5
 QUALITY_PRICE_MOMENTUM_VS_LOW = 2.0    # 精筛: 当前价 ≥ 历史最低价 × 2.0
 QUALITY_HOLDERS_GROWTH_VS_ADDED = 1.5  # 精筛: 当前持币 ≥ 入队持币 × 1.5
 QUALITY_MIN_PROGRESS = 0.03            # 精筛: 进度 ≥ 3%
+QUALITY_PROGRESS_DROP_PEAK = 0.10     # 精筛: 进度曾达到 10% 以上
+QUALITY_PROGRESS_DROP_FLOOR = 0.05    # 精筛: 进度从 10%+ 跌破 5% 则排除
+QUALITY_MIN_LIQUIDITY_GRAD = 500      # 精筛: 已毕业代币流动性 ≥ $500
 COPYCAT_MARK_MIN = 3                   # 仿盘数 ≥3 标记 (仅标记, 不排除)
 MIN_SOCIAL_COUNT = 1                   # 最少关联社交媒体数
 
@@ -1820,20 +1825,21 @@ def elimination_check(queue: list[dict], now_ms: int,
         # 持币数优先级:
         # 已毕业: GT/BSCScan (链上索引) > 缓存 (detail 毕业后返回 0, 不用)
         # 未毕业: detail API (bonding curve 内部记账) > 缓存
-        _grad_h = grad_holders.get(t["address"])
-        _det_h = detail["holders"] if detail else 0
+        # 注意: 用 None 区分"没查到"和"查到了但值为 0", 避免错误回退缓存
+        _grad_h = grad_holders.get(t["address"])  # None = 没查到
+        _det_h = detail["holders"] if detail else None  # None = detail 没查到
         _cache_h = t.get("holders", 0)
         is_graduated = t.get("progress", 0) >= 1
         if is_graduated:
-            current_holders = _grad_h or _cache_h
+            current_holders = _grad_h if _grad_h is not None else _cache_h
         else:
-            current_holders = _det_h or _cache_h
+            current_holders = _det_h if _det_h is not None else _cache_h
         # 调试: 记录持币数来源 (仅对持币数有变化的代币)
         if current_holders != _cache_h:
             if is_graduated:
-                _src = "GT/BSCScan" if _grad_h else "缓存"
+                _src = "GT/BSCScan" if _grad_h is not None else "缓存"
             else:
-                _src = "detail" if _det_h else "缓存"
+                _src = "detail" if _det_h is not None else "缓存"
             log.info("  持币数更新 %s: %d→%d (来源:%s)",
                      t.get("name", t["address"][:16]),
                      _cache_h, current_holders, _src)
@@ -1866,6 +1872,7 @@ def elimination_check(queue: list[dict], now_ms: int,
         t["peakPrice"] = max(t.get("peakPrice", 0), current_price)
         t["peakHolders"] = max(t.get("peakHolders", 0), current_holders)
         t["peakLiquidity"] = max(t.get("peakLiquidity", 0), current_liq)
+        t["peakProgress"] = max(t.get("peakProgress", 0), current_progress)
 
         # 记录价格历史 (只保留最近 5 轮, 与 holdersHistory 对齐)
         price_hist = t.get("priceHistory", [])
@@ -1956,6 +1963,8 @@ def quality_filter(candidates: list[dict], now_ms: int) -> list[dict]:
       - 价格动量: 当前价 ≥ 入队价 × 1.5 或 当前价 ≥ 历史最低价 × 2.0
       - 持币增长: 当前持币 ≥ 入队持币 × 1.5 或 近 3 轮持续递增
       - 进度 ≥ 3%
+      - 进度从 10%+ 跌破 5% 排除 (衰退信号)
+      - 已毕业代币流动性 ≥ $500
       - 仿盘数: 仅标记, 不排除 (仿盘多=热门信号, 交给用户判断)
     """
     results = []
@@ -2003,6 +2012,16 @@ def quality_filter(candidates: list[dict], now_ms: int) -> list[dict]:
         # 条件 5: 进度 ≥ 3%
         progress = t.get("progress", 0)
         if progress < QUALITY_MIN_PROGRESS:
+            continue
+
+        # 条件 5b: 进度从 10%+ 跌破 5% 排除 (曾经有热度但在衰退)
+        peak_progress = t.get("peakProgress", 0)
+        if peak_progress >= QUALITY_PROGRESS_DROP_PEAK and progress < QUALITY_PROGRESS_DROP_FLOOR:
+            continue
+
+        # 条件 5c: 已毕业代币流动性 ≥ $500 (流动性枯竭的僵尸币排除)
+        liq = t.get("liquidity", 0)
+        if progress >= 1 and liq > 0 and liq < QUALITY_MIN_LIQUIDITY_GRAD:
             continue
 
         # 条件 6: 仿盘标记 (不再排除, 仅标记)
@@ -2126,6 +2145,7 @@ def main():
                 "peakLiquidity": detail.get("liquidity", 0),
                 "raisedAmount": detail.get("raisedAmount", 0),
                 "progress": detail.get("progress", 0),
+                "peakProgress": detail.get("progress", 0),
                 "addedProgress": detail.get("progress", 0),
                 "day1Vol": detail.get("day1Vol", 0),
                 "consecDrops": 0,
