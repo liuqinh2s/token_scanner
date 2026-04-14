@@ -2212,12 +2212,88 @@ def main():
     # 精筛 (动量筛选, 从存活币中找起飞信号)
     quality_results = quality_filter(survivors, now_ms)
 
+    # 精筛再验证: 对精筛结果重新检查淘汰条件和精筛条件
+    # - 不符合队列存活 → 移到本轮淘汰
+    # - 符合队列存活但不符合精筛 → 留在队列 (从精筛列表移除)
+    revalidated = []
+    demoted_to_queue = 0
+    demoted_to_elim = 0
+    for t in quality_results:
+        # 检查是否满足淘汰条件 (复用 elimination_check 的条件逻辑)
+        age_hours = (now_ms - t.get("createdAt", 0)) / 3600000
+        current_price = t.get("price", 0)
+        current_holders = t.get("holders", 0)
+        current_liq = t.get("liquidity", 0)
+        current_progress = t.get("progress", 0)
+        peak_price = t.get("peakPrice", 0)
+        is_graduated = current_progress >= 1
+        elim_reason = None
+
+        # 币龄淘汰
+        if age_hours > MAX_AGE_HOURS:
+            elim_reason = f"币龄>{MAX_AGE_HOURS}h"
+        # 价格跌 90%
+        if not elim_reason and peak_price > 0 and current_price > 0:
+            if current_price < peak_price * (1 - ELIM_PRICE_DROP_PCT):
+                elim_reason = (f"价格跌{(1 - current_price / peak_price) * 100:.0f}% "
+                               f"(峰:{peak_price:.2e} 现:{current_price:.2e})")
+        # 持币数从 30+ 跌破 10
+        if not elim_reason:
+            if (t.get("peakHolders", 0) >= ELIM_HOLDERS_PEAK_MIN
+                    and current_holders < ELIM_HOLDERS_FLOOR):
+                elim_reason = f"持币数 {t.get('peakHolders', 0)}→{current_holders}"
+        # 无社交
+        if not elim_reason and t.get("socialCount", 0) < MIN_SOCIAL_COUNT:
+            elim_reason = "无社交媒体"
+        # 流动性枯竭 (仅已毕业)
+        if not elim_reason and is_graduated:
+            if (t.get("peakLiquidity", 0) >= ELIM_LIQ_PEAK_MIN
+                    and current_liq < ELIM_LIQ_FLOOR):
+                elim_reason = f"流动性 ${t.get('peakLiquidity', 0):.0f}→${current_liq:.0f}"
+        # 进度淘汰
+        if not elim_reason:
+            if age_hours > ELIM_PROGRESS_AGE_HOURS and current_progress < ELIM_PROGRESS_MIN:
+                elim_reason = f"进度{current_progress * 100:.2f}% 币龄{age_hours:.1f}h"
+        if not elim_reason:
+            if age_hours > ELIM_PROGRESS_AGE_HOURS_MID and current_progress < ELIM_PROGRESS_MIN_MID:
+                elim_reason = f"进度{current_progress * 100:.2f}% 币龄{age_hours:.1f}h"
+        # 早期/中期持币数不足
+        if not elim_reason:
+            if age_hours > ELIM_EARLY_AGE_MIN and t.get("peakHolders", 0) < ELIM_EARLY_PEAK_HOLDERS:
+                elim_reason = f"币龄{age_hours:.1f}h 最高持币仅{t.get('peakHolders', 0)}"
+        if not elim_reason:
+            if age_hours > ELIM_MID_AGE_HOURS and t.get("peakHolders", 0) < ELIM_MID_PEAK_HOLDERS:
+                elim_reason = f"币龄{age_hours:.1f}h 最高持币仅{t.get('peakHolders', 0)}"
+
+        if elim_reason:
+            # 从队列存活中移除, 加入淘汰列表
+            survivors[:] = [s for s in survivors if s["address"] != t["address"]]
+            eliminated.append({**t, "eliminatedAt": now_ms, "elimReason": elim_reason})
+            queue_state["eliminated"].append({
+                "address": t["address"], "name": t.get("name", ""),
+                "symbol": t.get("symbol", ""),
+                "elimReason": elim_reason, "eliminatedAt": now_ms,
+                "createdAt": t.get("createdAt", 0),
+            })
+            demoted_to_elim += 1
+            log.info("精筛再验证: ✗ %s → 淘汰 (%s)",
+                     t.get("name") or t["address"][:16], elim_reason)
+        else:
+            revalidated.append(t)
+
+    # 再验证后的精筛结果替换原列表
+    quality_results = revalidated
+
+    if demoted_to_elim > 0:
+        log.info("精筛再验证: %d 个淘汰", demoted_to_elim)
+
     # 按持币数排序
     quality_results.sort(key=lambda x: (x.get("holders", 0)), reverse=True)
 
     log.info("精筛通过: %d/%d", len(quality_results), len(survivors))
 
-    # 更新队列状态
+    # 更新队列状态 (精筛再验证可能修改了 survivors)
+    queue_state["tokens"] = survivors
     queue_state["lastBlock"] = latest_block
     queue_state["lastScanTime"] = now_ms
     save_queue(queue_state)
@@ -2240,6 +2316,7 @@ def main():
             "name": t.get("name", ""),
             "symbol": t.get("symbol", ""),
             "holders": t.get("holders", 0),
+            "peak_holders": t.get("peakHolders", 0),
             "created_at": t.get("createdAt", 0),
             "total_supply": t.get("totalSupply", 0),
             "price": _price,
@@ -2253,6 +2330,7 @@ def main():
             "day1_vol": t.get("day1Vol", 0),
             "progress": t.get("progress", 0),
             "liquidity": t.get("liquidity", 0),
+            "peak_liquidity": t.get("peakLiquidity", 0),
             "raised_amount": t.get("raisedAmount", 0),
         })
 

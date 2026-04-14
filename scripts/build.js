@@ -152,12 +152,12 @@ html = html.replace(
   "cachedFetch('data/latest.json'"
 );
 html = html.replace(
-  /cachedFetch\('\/api\/history'\)/g,
-  "cachedFetch('data/history.json')"
+  /cachedFetch\('\/api\/history'/g,
+  "cachedFetch('data/history.json'"
 );
 html = html.replace(
-  /cachedFetch\('\/api\/search-index'\)/g,
-  "cachedFetch('data/search-index.json')"
+  /cachedFetch\('\/api\/search-index'/g,
+  "cachedFetch('data/search-index.json'"
 );
 html = html.replace(
   /cachedFetch\('\/api\/scan\/'\s*\+\s*([^)]+)\)/g,
@@ -174,12 +174,14 @@ const AUTO_REFRESH_INTERVAL = 60 * 1000;
 function startAutoRefresh() {
   if (autoRefreshTimer) return;
   autoRefreshTimer = setInterval(async () => {
-    if (searchMode) return;
+    if (searchMode || activeHistoryId != null) return;
     try {
       const data = await cachedFetch('data/latest.json', true);
       if (data.scanTime && data.scanTime !== lastScanTime) {
         lastScanTime = data.scanTime;
         renderData(data);
+        if (isDesktop()) await renderHistoryList('historyListDesktop', true);
+        if (historyVisible) await renderHistoryList('historyList', true);
         showToast('数据已更新');
       }
     } catch(e) { console.error(e); }
@@ -213,10 +215,10 @@ html = html.replace(
   autoRefreshCode + '\nfunction renderData(data)'
 );
 
-// Add startAutoRefresh() to init — match the actual format in the file
+// Add startAutoRefresh() to init
 html = html.replace(
-  /\/\/ Init\s*\n\s*loadLatest\(\);/,
-  '// Init\n    loadLatest();\n    startAutoRefresh();'
+  /loadLatest\(\);\s*\n(\s*)initDesktopHistory\(\);/,
+  'loadLatest();\n$1initDesktopHistory();\n$1startAutoRefresh();'
 );
 
 fs.writeFileSync(path.join(SITE_DIR, "index.html"), html);

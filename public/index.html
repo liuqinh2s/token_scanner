@@ -1188,6 +1188,8 @@
                   <th>合约</th>
                   <th style="text-align:right">持币</th>
                   <th>价格</th>
+                  <th>流动性</th>
+                  <th>进度</th>
                   <th>标签</th>
                   <th style="text-align:right">币龄</th>
                 </tr>
@@ -1431,17 +1433,20 @@
         const addr = t.address || '';
         const priceRatio = t.price_ratio != null ? (t.price_ratio * 100).toFixed(1) + '%' : '--';
         const tags = buildAllTags(t);
+        const pctProgress = ((t.progress || 0) * 100).toFixed(1);
         const scanTimeHtml = searchMode && t._scanTime ? `<span class="search-scan-time">📍 ${esc(t._scanTime)}</span>` : '';
         return `<tr>
       <td>${i + 1}</td>
       <td><div class="name-cell"><span class="name-symbol-primary">${esc(t.symbol || '--')}</span><span class="name-secondary">${esc(t.name || '--')}</span>${scanTimeHtml}</div></td>
       <td>${addrHtml(addr)}</td>
-      <td style="text-align:right"><span class="holders-val">${t.holders || 0}</span></td>
+      <td style="text-align:right"><span class="holders-val">${t.holders || 0}</span>${t.peak_holders ? '<br><span class="holders-peak">峰' + t.peak_holders + '</span>' : ''}</td>
       <td>
         <div class="price-info"><span class="price-label">现</span> ${fmtPrice(t.price)}</div>
         <div class="price-info"><span class="price-label">高</span> ${fmtPrice(t.max_price)}</div>
         <div class="price-ratio">现/高 ${priceRatio}</div>
       </td>
+      <td><div class="price-info">${fmtLiq(t)}</div></td>
+      <td><div class="progress-bar"><div class="progress-track"><div class="progress-fill" style="width:${Math.min(parseFloat(pctProgress), 100)}%"></div></div><span class="progress-text">${pctProgress}%</span></div></td>
       <td class="tags-cell">${tags}</td>
       <td style="text-align:right"><span class="age-text">${fmtAge(t.age_hours)}</span></td>
     </tr>`;
@@ -1470,9 +1475,14 @@
             <span>现:${fmtPrice(t.price)}</span>
             <span>高:${fmtPrice(t.max_price)}</span>
             <span>现/高:${priceRatio}</span>
+            <span>${fmtLiq(t)}</span>
+            <span>进度:${((t.progress || 0) * 100).toFixed(1)}%</span>
           </div>
           <div class="card-social">${tags}</div>
-          <div class="card-meta"><span>#${i + 1} · ${fmtAge(t.age_hours)}</span></div>
+          <div class="card-meta">
+            <span>#${i + 1} · ${fmtAge(t.age_hours)}</span>
+            ${t.peak_holders ? '<span>峰值 ' + t.peak_holders + '</span>' : ''}
+          </div>
         </div>`;
       }).join('');
     }
@@ -1925,6 +1935,12 @@
 
     loadLatest();
     initDesktopHistory();
+
+    // 自动刷新：每60秒轮询最新数据（仅在非搜索、非历史浏览时刷新）
+    setInterval(async () => {
+      if (searchMode || activeHistoryId != null) return;
+      try { await loadLatest(); } catch (_) { }
+    }, 60 * 1000);
   </script>
 </body>
 
