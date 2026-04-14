@@ -85,7 +85,6 @@
       height: 100dvh;
       height: 100vh;
       overflow: hidden;
-      overscroll-behavior-y: contain;
     }
 
     @supports (height: 100dvh) {
@@ -730,48 +729,6 @@
       }
     }
 
-    /* ===== 下拉刷新 ===== */
-    .pull-indicator {
-      text-align: center;
-      font-size: 12px;
-      color: var(--text-secondary);
-      padding: 0;
-      height: 0;
-      overflow: hidden;
-      transition: height .2s, opacity .2s;
-      opacity: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .pull-indicator.visible {
-      opacity: 1;
-    }
-
-    .pull-indicator.refreshing {
-      height: 36px;
-      opacity: 1;
-    }
-
-    .pull-indicator .spinner {
-      display: inline-block;
-      width: 14px;
-      height: 14px;
-      border: 2px solid var(--spinner-border);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin .6s linear infinite;
-      margin-right: 6px;
-    }
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
     .toast {
       position: fixed;
       bottom: 24px;
@@ -913,6 +870,16 @@
         display: inline-block;
         position: absolute;
         right: 8px;
+        top: 4px;
+        padding: 4px 10px;
+        font-size: 10px;
+        z-index: 2;
+      }
+
+      .toolbar>#btnLatest {
+        display: inline-block;
+        position: absolute;
+        left: 8px;
         top: 4px;
         padding: 4px 10px;
         font-size: 10px;
@@ -1108,6 +1075,185 @@
       background: none;
       color: var(--accent);
     }
+
+    /* ===== 手机端底部导航栏 ===== */
+    .mobile-tabbar {
+      display: none;
+    }
+
+    .about-page {
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      .mobile-tabbar {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--bg-card);
+        border-top: 1px solid var(--border-primary);
+        z-index: 100;
+        padding: 4px 0;
+        padding-bottom: calc(4px + env(safe-area-inset-bottom, 0px));
+      }
+
+      .mobile-tab {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        padding: 6px 0;
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        font-size: 10px;
+        cursor: pointer;
+        transition: color .15s;
+      }
+
+      .mobile-tab:hover {
+        background: none;
+        color: var(--text-secondary);
+      }
+
+      .mobile-tab.active {
+        color: var(--accent);
+      }
+
+      .mobile-tab-icon {
+        font-size: 18px;
+        line-height: 1;
+      }
+
+      .mobile-tab-label {
+        font-weight: 500;
+      }
+
+      .about-page {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 48px;
+        background: var(--bg-primary);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        z-index: 50;
+        padding: 20px 16px;
+        padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+      }
+
+      .about-page:not(.hidden) {
+        display: block;
+      }
+
+      .about-content h2 {
+        color: var(--accent);
+        font-size: 20px;
+        text-align: center;
+        margin-bottom: 4px;
+      }
+
+      .about-subtitle {
+        text-align: center;
+        color: var(--text-secondary);
+        font-size: 12px;
+        margin-bottom: 20px;
+      }
+
+      .about-section {
+        margin-bottom: 20px;
+      }
+
+      .about-section h3 {
+        font-size: 14px;
+        color: var(--text-bright);
+        margin-bottom: 10px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid var(--border-primary);
+      }
+
+      .about-flow {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .flow-step {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+      }
+
+      .flow-num {
+        flex-shrink: 0;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: var(--bg-primary);
+        font-size: 12px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .flow-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+
+      .flow-desc {
+        font-size: 11px;
+        color: var(--text-secondary);
+        margin-top: 2px;
+        line-height: 1.5;
+      }
+
+      .about-list {
+        list-style: none;
+        padding: 0;
+      }
+
+      .about-list li {
+        font-size: 12px;
+        color: var(--text-primary);
+        padding: 5px 0;
+        border-bottom: 1px solid var(--border-primary);
+        line-height: 1.5;
+      }
+
+      .about-list li::before {
+        content: '•';
+        color: var(--accent);
+        font-weight: 700;
+        margin-right: 8px;
+      }
+
+      .about-tags {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        line-height: 2;
+      }
+
+      .about-tag-desc {
+        font-size: 11px;
+        color: var(--text-secondary);
+        margin-right: 8px;
+      }
+
+      /* 首页内容区域给底部导航留空间 */
+      .detail-main .scroll-area {
+        padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+      }
+    }
   </style>
   <script>
     /* 主题初始化 - 在渲染前执行，避免闪烁 */
@@ -1177,7 +1323,6 @@
         </div>
       </div>
       <div class="detail-main">
-        <div id="pullIndicator" class="pull-indicator">↓ 下拉刷新</div>
         <div class="scroll-area" id="scrollArea">
           <div id="tokenTable">
             <table>
@@ -1267,6 +1412,102 @@
 
   <div id="toast" class="toast hidden"></div>
 
+  <!-- 手机端底部导航栏 -->
+  <nav class="mobile-tabbar" id="mobileTabbar">
+    <button class="mobile-tab active" data-page="home" onclick="switchPage('home')">
+      <span class="mobile-tab-icon">🏠</span>
+      <span class="mobile-tab-label">首页</span>
+    </button>
+    <button class="mobile-tab" data-page="about" onclick="switchPage('about')">
+      <span class="mobile-tab-icon">📋</span>
+      <span class="mobile-tab-label">关于</span>
+    </button>
+  </nav>
+
+  <!-- 关于页面 -->
+  <div class="about-page hidden" id="aboutPage">
+    <div class="about-content">
+      <h2>BSC Token Scanner</h2>
+      <p class="about-subtitle">链上发现 · 队列淘汰 · 钱包分析 · 15min</p>
+
+      <div class="about-section">
+        <h3>🔍 扫描流程</h3>
+        <div class="about-flow">
+          <div class="flow-step">
+            <span class="flow-num">1</span>
+            <div>
+              <div class="flow-title">链上扫描</div>
+              <div class="flow-desc">BSC RPC eth_getLogs 扫描 four.meme TokenCreated 事件，100% 覆盖链上新代币</div>
+            </div>
+          </div>
+          <div class="flow-step">
+            <span class="flow-num">2</span>
+            <div>
+              <div class="flow-title">入场筛选</div>
+              <div class="flow-desc">社交链接 ≥ 1、总量 10 亿</div>
+            </div>
+          </div>
+          <div class="flow-step">
+            <span class="flow-num">3</span>
+            <div>
+              <div class="flow-title">队列淘汰</div>
+              <div class="flow-desc">持续跟踪代币，满足淘汰条件永久剔除</div>
+            </div>
+          </div>
+          <div class="flow-step">
+            <span class="flow-num">4</span>
+            <div>
+              <div class="flow-title">钱包分析</div>
+              <div class="flow-desc">开发者 / 聪明钱加减仓行为分析</div>
+            </div>
+          </div>
+          <div class="flow-step">
+            <span class="flow-num">5</span>
+            <div>
+              <div class="flow-title">精筛输出</div>
+              <div class="flow-desc">价格 / K线 / 底价区间 / 持币增长趋势</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="about-section">
+        <h3>❌ 淘汰条件</h3>
+        <ul class="about-list">
+          <li>价格跌 90%</li>
+          <li>持币数 30 → 10</li>
+          <li>无社交链接</li>
+          <li>流动性 1k → 100（仅毕业代币）</li>
+          <li>进度 &lt; 1% 且币龄 &gt; 2h</li>
+          <li>进度 &lt; 5% 且币龄 &gt; 4h</li>
+          <li>5min 峰值持币 &lt; 3</li>
+          <li>15min 峰值持币 &lt; 5</li>
+          <li>1h 峰值持币 &lt; 10</li>
+          <li>币龄 &gt; 48h</li>
+        </ul>
+      </div>
+
+      <div class="about-section">
+        <h3>📊 数据源</h3>
+        <ul class="about-list">
+          <li>DexScreener + GeckoTerminal — K线数据</li>
+          <li>BscScan 链上持币数查询</li>
+          <li>BscScan tokentx — 钱包行为分析</li>
+        </ul>
+      </div>
+
+      <div class="about-section">
+        <h3>🏷️ 标签说明</h3>
+        <div class="about-tags">
+          <span class="tag tag-copycat">🔥 仿盘</span> <span class="about-tag-desc">热门原版豁免</span>
+          <span class="tag tag-dev-buy">💰 开发者加仓</span>
+          <span class="tag tag-dev-lp">🏊 开发者加池子</span>
+          <span class="tag tag-smart-buy">🧠 聪明钱加仓</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     let historyVisible = false;
     let currentTab = 'filtered';
@@ -1294,6 +1535,20 @@
     }
 
     updateThemeIcon();
+
+    /* 底部导航页面切换 */
+    function switchPage(page) {
+      const app = document.getElementById('app');
+      const aboutPage = document.getElementById('aboutPage');
+      document.querySelectorAll('.mobile-tab').forEach(t => t.classList.toggle('active', t.dataset.page === page));
+      if (page === 'about') {
+        app.style.display = 'none';
+        aboutPage.classList.remove('hidden');
+      } else {
+        app.style.display = '';
+        aboutPage.classList.add('hidden');
+      }
+    }
 
     function toggleFilterDesc() {
       const desc = document.getElementById('filterDesc');
@@ -1886,52 +2141,6 @@
       document.getElementById('searchInfo').classList.add('hidden');
       goLatest();
     }
-
-    // 手机端下拉刷新
-    (function initPullToRefresh() {
-      const scrollArea = document.getElementById('scrollArea');
-      const indicator = document.getElementById('pullIndicator');
-      if (!scrollArea || !indicator) return;
-
-      let startY = 0, pulling = false, refreshing = false;
-      const threshold = 60;
-
-      scrollArea.addEventListener('touchstart', function (e) {
-        if (refreshing) return;
-        if (scrollArea.scrollTop <= 0) { startY = e.touches[0].clientY; pulling = true; }
-      }, { passive: true });
-
-      scrollArea.addEventListener('touchmove', function (e) {
-        if (!pulling || refreshing) return;
-        const dy = e.touches[0].clientY - startY;
-        if (dy < 0) { indicator.style.height = '0'; indicator.classList.remove('visible'); return; }
-        if (scrollArea.scrollTop > 0) { pulling = false; indicator.style.height = '0'; indicator.classList.remove('visible'); return; }
-        const pull = Math.min(dy * 0.4, 80);
-        indicator.style.height = pull + 'px';
-        indicator.classList.add('visible');
-        indicator.textContent = dy > threshold ? '↑ 松手刷新' : '↓ 下拉刷新';
-      }, { passive: true });
-
-      scrollArea.addEventListener('touchend', async function () {
-        if (!pulling || refreshing) return;
-        pulling = false;
-        const h = parseFloat(indicator.style.height) || 0;
-        if (h >= threshold * 0.4) {
-          refreshing = true;
-          indicator.innerHTML = '<span class="spinner"></span>刷新中...';
-          indicator.classList.add('refreshing');
-          indicator.style.height = '36px';
-          try { await goLatest(); } catch (_) { }
-          refreshing = false;
-          indicator.classList.remove('refreshing', 'visible');
-          indicator.style.height = '0';
-          indicator.innerHTML = '↓ 下拉刷新';
-        } else {
-          indicator.classList.remove('visible');
-          indicator.style.height = '0';
-        }
-      });
-    })();
 
     loadLatest();
     initDesktopHistory();
