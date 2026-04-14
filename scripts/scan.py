@@ -38,11 +38,13 @@ v6 架构: 极速扫描 (1 分钟一轮)
 精筛条件 (动量筛选):
   - 币龄 ≥ 3 分钟 (数据稳定后再判断)
   - 持币地址数 ≥ 15
-  - 价格动量: 当前价 ≥ 入队价 × 1.5 或 当前价 ≥ 历史最低价 × 2.0
+  - 价格动量: 当前价 ≥ 入队价 × 1.5 或 当前价 ≥ 历史最低价 × 2.5
   - 持币增长: 当前持币 ≥ 入队持币 × 1.5 或 近 3 轮持续递增
-  - 进度 ≥ 3%
+  - 进度 ≥ 10%
   - 进度从 10%+ 跌破 5% 排除 (衰退信号)
   - 已毕业代币流动性 ≥ $500
+  - 回撤保护: 当前价 ≥ 峰值 × 0.5 (从峰值跌超 50% 不推)
+  - 精筛冷却: 同一代币通过精筛后, 6 轮内不再重复推送
   - 仿盘数: 仅标记, 不排除 (仿盘多=热门信号, 交给用户判断)
 """
 
@@ -156,12 +158,15 @@ TOTAL_SUPPLY = 1_000_000_000           # 10亿
 QUALITY_MIN_AGE_MIN = 3                # 精筛: 币龄 ≥ 3 分钟 (数据稳定)
 QUALITY_MIN_HOLDERS = 15               # 精筛: 持币地址数 ≥ 15
 QUALITY_PRICE_MOMENTUM_VS_ADDED = 1.5  # 精筛: 当前价 ≥ 入队价 × 1.5
-QUALITY_PRICE_MOMENTUM_VS_LOW = 2.0    # 精筛: 当前价 ≥ 历史最低价 × 2.0
+QUALITY_PRICE_MOMENTUM_VS_LOW = 2.5    # 精筛: 当前价 ≥ 历史最低价 × 2.5
 QUALITY_HOLDERS_GROWTH_VS_ADDED = 1.5  # 精筛: 当前持币 ≥ 入队持币 × 1.5
-QUALITY_MIN_PROGRESS = 0.03            # 精筛: 进度 ≥ 3%
+QUALITY_HOLDERS_CONSEC_ROUNDS = 3      # 精筛: 持币数连续递增轮数 ≥ 3
+QUALITY_MIN_PROGRESS = 0.10            # 精筛: 进度 ≥ 10%
 QUALITY_PROGRESS_DROP_PEAK = 0.10     # 精筛: 进度曾达到 10% 以上
 QUALITY_PROGRESS_DROP_FLOOR = 0.05    # 精筛: 进度从 10%+ 跌破 5% 则排除
 QUALITY_MIN_LIQUIDITY_GRAD = 500      # 精筛: 已毕业代币流动性 ≥ $500
+QUALITY_MAX_DRAWDOWN = 0.50           # 精筛: 当前价 ≥ 峰值 × 0.5 (回撤保护)
+QUALITY_COOLDOWN_ROUNDS = 6           # 精筛: 同一代币冷却轮数 (通过后 N 轮内不再推送)
 COPYCAT_MARK_MIN = 3                   # 仿盘数 ≥3 标记 (仅标记, 不排除)
 MIN_SOCIAL_COUNT = 1                   # 最少关联社交媒体数
 
@@ -1954,27 +1959,43 @@ def elimination_check(queue: list[dict], now_ms: int,
 # ===================================================================
 #  Step 5: 精筛 — 动量筛选
 # ===================================================================
-def quality_filter(candidates: list[dict], now_ms: int) -> list[dict]:
+def quality_filter(candidates: list[dict], now_ms: int,
+                   cooldown_map: dict[str, int] | None = None,
+                   current_round: int = 0) -> list[dict]:
     """
     精筛: 动量筛选 — 从队列存活币中找"正在起飞"的信号
     条件 (全部满足):
       - 币龄 ≥ 3 分钟 (数据稳定后再判断)
       - 持币地址数 ≥ 15
-      - 价格动量: 当前价 ≥ 入队价 × 1.5 或 当前价 ≥ 历史最低价 × 2.0
+      - 价格动量: 当前价 ≥ 入队价 × 1.5 或 当前价 ≥ 历史最低价 × 2.5
       - 持币增长: 当前持币 ≥ 入队持币 × 1.5 或 近 3 轮持续递增
-      - 进度 ≥ 3%
+      - 进度 ≥ 10%
       - 进度从 10%+ 跌破 5% 排除 (衰退信号)
       - 已毕业代币流动性 ≥ $500
+      - 回撤保护: 当前价 ≥ 峰值 × 0.5 (从峰值跌超 50% 不推)
+      - 精筛冷却: 同一代币通过精筛后, 6 轮内不再重复推送
       - 仿盘数: 仅标记, 不排除 (仿盘多=热门信号, 交给用户判断)
+
+    参数:
+      cooldown_map: {address: last_pass_round} 记录每个代币上次通过精筛的轮次
+      current_round: 当前扫描轮次编号
     """
     results = []
     min_age_ms = QUALITY_MIN_AGE_MIN * 60 * 1000
+    if cooldown_map is None:
+        cooldown_map = {}
 
     for t in candidates:
         age_ms = now_ms - t.get("createdAt", 0)
         current_price = t.get("price", 0)
         holders = t.get("holders", 0)
         name = t.get("name") or t.get("address", "")[:16]
+        addr = t.get("address", "")
+
+        # 冷却期检查: 同一代币通过精筛后 N 轮内不再推送
+        last_pass = cooldown_map.get(addr, -999)
+        if current_round - last_pass < QUALITY_COOLDOWN_ROUNDS:
+            continue
 
         # 条件 1: 币龄 ≥ 3 分钟 (太新的数据不稳定)
         if age_ms < min_age_ms:
@@ -1998,18 +2019,29 @@ def quality_filter(candidates: list[dict], now_ms: int) -> list[dict]:
         if not price_ok:
             continue
 
+        # 条件 3b: 回撤保护 — 当前价不能低于峰值的 50%
+        peak_price = t.get("peakPrice", 0)
+        if peak_price > 0 and current_price < peak_price * QUALITY_MAX_DRAWDOWN:
+            continue
+
         # 条件 4: 持币增长 (二选一)
         added_holders = t.get("addedHolders", 0)
         h_hist = t.get("holdersHistory", [])
         holders_ok = False
         if added_holders > 0 and holders >= added_holders * QUALITY_HOLDERS_GROWTH_VS_ADDED:
             holders_ok = True
-        if len(h_hist) >= 3 and h_hist[-1] > h_hist[-2] > h_hist[-3]:
-            holders_ok = True
+        if len(h_hist) >= QUALITY_HOLDERS_CONSEC_ROUNDS:
+            consec = True
+            for i in range(-QUALITY_HOLDERS_CONSEC_ROUNDS + 1, 0):
+                if h_hist[i] <= h_hist[i - 1]:
+                    consec = False
+                    break
+            if consec:
+                holders_ok = True
         if not holders_ok:
             continue
 
-        # 条件 5: 进度 ≥ 3%
+        # 条件 5: 进度 ≥ 10%
         progress = t.get("progress", 0)
         if progress < QUALITY_MIN_PROGRESS:
             continue
@@ -2025,10 +2057,10 @@ def quality_filter(candidates: list[dict], now_ms: int) -> list[dict]:
             continue
 
         # 条件 6: 仿盘标记 (不再排除, 仅标记)
-        # 仿盘多说明该名称热门, 可能是被仿的原版, 也可能是仿盘
-        # 交给用户判断, 精筛不因仿盘数排除
 
         results.append(t)
+        # 记录本轮通过精筛
+        cooldown_map[addr] = current_round
         price_mult = current_price / added_price if added_price > 0 else 0
         holders_mult = holders / added_holders if added_holders > 0 else 0
         log.info("精筛: ✓ %s — 价格 %.3e (×%.1f), 持币 %d (×%.1f), 进度 %.1f%%, 币龄 %.1fmin",
@@ -2210,7 +2242,15 @@ def main():
             t["copycat"] = cc
 
     # 精筛 (动量筛选, 从存活币中找起飞信号)
-    quality_results = quality_filter(survivors, now_ms)
+    # 冷却期: 从 queue_state 恢复, 单次执行需持久化
+    cooldown_map = queue_state.get("qualityCooldown", {})
+    scan_round = queue_state.get("scanRound", 0) + 1
+    quality_results = quality_filter(survivors, now_ms,
+                                     cooldown_map=cooldown_map,
+                                     current_round=scan_round)
+    # 持久化冷却期状态
+    queue_state["qualityCooldown"] = cooldown_map
+    queue_state["scanRound"] = scan_round
 
     # 精筛代币持币数刷新: 用 BSCScan 网页爬取真实持币数 (four.meme detail 对未毕业币不准)
     # 必须在再验证之前执行, 否则再验证用的是旧数据

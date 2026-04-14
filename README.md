@@ -138,10 +138,12 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 |------|------|------|
 | 币龄 | ≥ 3 分钟 | 数据稳定后再判断 |
 | 持币地址数 | ≥ 15 | 最低持币门槛 |
-| 价格动量 | 当前价 ≥ 入队价×1.5 或 ≥ 历史最低价×2.0 | 二选一，有资金进入信号 |
+| 价格动量 | 当前价 ≥ 入队价×1.5 或 ≥ 历史最低价×2.5 | 二选一，有资金进入信号 |
 | 持币增长 | 当前持币 ≥ 入队持币×1.5 或 近3轮持续递增 | 二选一，持续有人买入 |
-| 进度 | ≥ 3%，且从 10%+ 跌破 5% 排除 | 衰退中的币排除 |
+| 进度 | ≥ 10%，且从 10%+ 跌破 5% 排除 | 衰退中的币排除 |
 | 流动性 | ≥ $500（已毕业代币） | 排除流动性枯竭的僵尸币 |
+| 回撤保护 | 当前价 ≥ 峰值×0.5 | 从峰值跌超50%不推 |
+| 精筛冷却 | 同一代币通过后6轮内不再推送 | 减少重复信号噪音 |
 | 仿盘数 | 仅标记, 不排除 | 仿盘多=热门信号, 🔥 标签展示, 交给用户判断 |
 
 ## 前端功能
@@ -210,12 +212,15 @@ npm run dev                     # 启动开发服务器（live-server）
 | `QUALITY_MIN_AGE_MIN` | 3 | 精筛: 币龄下限（分钟） |
 | `QUALITY_MIN_HOLDERS` | 15 | 精筛: 持币地址数下限 |
 | `QUALITY_PRICE_MOMENTUM_VS_ADDED` | 1.5 | 精筛: 当前价/入队价倍数 |
-| `QUALITY_PRICE_MOMENTUM_VS_LOW` | 2.0 | 精筛: 当前价/历史最低价倍数 |
+| `QUALITY_PRICE_MOMENTUM_VS_LOW` | 2.5 | 精筛: 当前价/历史最低价倍数 |
 | `QUALITY_HOLDERS_GROWTH_VS_ADDED` | 1.5 | 精筛: 当前持币/入队持币倍数 |
-| `QUALITY_MIN_PROGRESS` | 0.03 | 精筛: 进度下限 (3%) |
+| `QUALITY_HOLDERS_CONSEC_ROUNDS` | 3 | 精筛: 持币数连续递增轮数 |
+| `QUALITY_MIN_PROGRESS` | 0.10 | 精筛: 进度下限 (10%) |
 | `QUALITY_PROGRESS_DROP_PEAK` | 0.10 | 精筛: 进度跌破判定峰值 (10%) |
 | `QUALITY_PROGRESS_DROP_FLOOR` | 0.05 | 精筛: 进度跌破排除线 (5%) |
 | `QUALITY_MIN_LIQUIDITY_GRAD` | 500 | 精筛: 已毕业代币流动性下限（USD） |
+| `QUALITY_MAX_DRAWDOWN` | 0.50 | 精筛: 回撤保护 (当前价≥峰值×0.5) |
+| `QUALITY_COOLDOWN_ROUNDS` | 6 | 精筛: 同一代币冷却轮数 |
 | `ELIM_PRICE_DROP_PCT` | 0.90 | 价格跌幅淘汰阈值 |
 | `ELIM_HOLDERS_FLOOR` | 10 | 持币数淘汰下限 |
 | `ELIM_LIQ_FLOOR` | 100 | 流动性淘汰下限（USD） |
