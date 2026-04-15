@@ -27,20 +27,22 @@ v6 架构: 极速扫描 (1 分钟一轮)
 淘汰条件 (永久剔除):
   - 价格从峰值跌 90%+
   - 持币地址从 ≥30 跌破 10
+  - 持币数从峰值跌 70%+ (峰值≥50, 清理僵尸币)
   - 无社交媒体
   - 流动性从 >$1k 跌破 $100 (仅已毕业代币)
   - 进度 < 1% 且币龄 > 2h
   - 进度 < 5% 且币龄 > 4h
+  - 进度从峰值跌 50%+ 且币龄 > 6h (热度消退)
   - 币龄 > 15min 且最高持币数 < 3
   - 币龄 > 1h 且最高持币数 < 5
   - 币龄 > 48h
 
 精筛条件 (动量筛选):
-  - 币龄 ≥ 3 分钟 (数据稳定后再判断)
+  - 币龄 ≥ 15 分钟 (数据稳定后再判断)
   - 持币地址数 ≥ 15
   - 价格动量: 当前价 ≥ 入队价 × 1.5 或 当前价 ≥ 历史最低价 × 2.5
   - 持币增长: 当前持币 ≥ 入队持币 × 1.5 或 近 3 轮持续递增
-  - 进度 ≥ 10%
+  - 进度 ≥ 20% 且 < 97% (已毕业/接近毕业代币买入即亏)
   - 进度从 10%+ 跌破 5% 排除 (衰退信号)
   - 已毕业代币流动性 ≥ $500
   - 买卖比 ≥ 1.2 (买入笔数/卖出笔数, 买压>卖压)
@@ -163,13 +165,14 @@ BINANCE_HEADERS = {
 MAX_AGE_HOURS = 48
 SCAN_INTERVAL_MIN = 15                 # GitHub Actions cron 间隔 (分钟)
 TOTAL_SUPPLY = 1_000_000_000           # 10亿
-QUALITY_MIN_AGE_MIN = 3                # 精筛: 币龄 ≥ 3 分钟 (数据稳定)
+QUALITY_MIN_AGE_MIN = 15               # 精筛: 币龄 ≥ 15 分钟 (数据稳定后再判断, 0-1h 币龄代币亏损率高)
 QUALITY_MIN_HOLDERS = 15               # 精筛: 持币地址数 ≥ 15
 QUALITY_PRICE_MOMENTUM_VS_ADDED = 1.5  # 精筛: 当前价 ≥ 入队价 × 1.5
 QUALITY_PRICE_MOMENTUM_VS_LOW = 2.5    # 精筛: 当前价 ≥ 历史最低价 × 2.5
 QUALITY_HOLDERS_GROWTH_VS_ADDED = 1.5  # 精筛: 当前持币 ≥ 入队持币 × 1.5
 QUALITY_HOLDERS_CONSEC_ROUNDS = 3      # 精筛: 持币数连续递增轮数 ≥ 3
-QUALITY_MIN_PROGRESS = 0.10            # 精筛: 进度 ≥ 10%
+QUALITY_MIN_PROGRESS = 0.20            # 精筛: 进度 ≥ 20% (10%以下代币表现差, 提高门槛)
+QUALITY_MAX_PROGRESS = 0.97            # 精筛: 进度 < 97% (已毕业/接近毕业代币买入即亏, 排除)
 QUALITY_PROGRESS_DROP_PEAK = 0.10     # 精筛: 进度曾达到 10% 以上
 QUALITY_PROGRESS_DROP_FLOOR = 0.05    # 精筛: 进度从 10%+ 跌破 5% 则排除
 QUALITY_MIN_LIQUIDITY_GRAD = 500      # 精筛: 已毕业代币流动性 ≥ $500
@@ -191,12 +194,16 @@ MIN_SOCIAL_COUNT = 1                   # 最少关联社交媒体数
 ELIM_PRICE_DROP_PCT = 0.90             # 价格从峰值跌 90%
 ELIM_HOLDERS_FLOOR = 10               # 持币数跌破 10
 ELIM_HOLDERS_PEAK_MIN = 30            # 持币数曾达到 30 才触发跌破淘汰
+ELIM_HOLDERS_DROP_PCT = 0.70          # 持币数从峰值跌 70% 淘汰 (清理僵尸币, 数据显示 99 个僵尸币占位)
+ELIM_HOLDERS_DROP_PEAK_MIN = 50       # 持币数曾达到 50 才触发跌幅淘汰 (避免误杀小币)
 ELIM_LIQ_FLOOR = 100                  # 流动性跌破 $100
 ELIM_LIQ_PEAK_MIN = 1000              # 流动性曾达到 $1000 才触发跌破淘汰
 ELIM_PROGRESS_MIN = 0.01              # 进度 < 1%
 ELIM_PROGRESS_AGE_HOURS = 2           # 进度<1%淘汰的币龄门槛
 ELIM_PROGRESS_MIN_MID = 0.05          # 进度 < 5%
 ELIM_PROGRESS_AGE_HOURS_MID = 4       # 进度<5%淘汰的币龄门槛
+ELIM_PROGRESS_DROP_PCT = 0.50         # 进度从峰值跌 50% 淘汰 (热度消退)
+ELIM_PROGRESS_DROP_AGE_HOURS = 6      # 进度跌幅淘汰的币龄门槛 (给新币缓冲时间)
 ELIM_EARLY_PEAK_HOLDERS = 3           # 币龄>15min 最高持币数 < 3 淘汰
 ELIM_EARLY_AGE_MIN = 0.25             # 15 分钟 = 0.25h
 ELIM_MID_PEAK_HOLDERS = 5             # 币龄>1h 最高持币数 < 5 淘汰
@@ -2056,6 +2063,23 @@ def elimination_check(queue: list[dict], now_ms: int,
             if age_hours > MAX_AGE_HOURS:
                 elim_reason = f"币龄>{MAX_AGE_HOURS}h (修正后{age_hours:.1f}h)"
 
+        # 9. 持币数从峰值跌 70% (清理僵尸币, 避免占位)
+        if not elim_reason:
+            peak_h = t.get("peakHolders", 0)
+            if (peak_h >= ELIM_HOLDERS_DROP_PEAK_MIN
+                    and current_holders < peak_h * (1 - ELIM_HOLDERS_DROP_PCT)):
+                elim_reason = (f"持币数跌{(1 - current_holders / peak_h) * 100:.0f}% "
+                               f"({peak_h}→{current_holders})")
+
+        # 10. 进度从峰值跌 50% 且币龄 > 6h (热度消退)
+        if not elim_reason:
+            peak_prog = t.get("peakProgress", 0)
+            if (age_hours > ELIM_PROGRESS_DROP_AGE_HOURS
+                    and peak_prog > 0.10
+                    and current_progress < peak_prog * (1 - ELIM_PROGRESS_DROP_PCT)):
+                elim_reason = (f"进度跌{(1 - current_progress / peak_prog) * 100:.0f}% "
+                               f"({peak_prog * 100:.1f}%→{current_progress * 100:.1f}%)")
+
         if elim_reason:
             eliminated.append({**t, "eliminatedAt": now_ms, "elimReason": elim_reason})
         else:
@@ -2079,11 +2103,11 @@ def quality_filter(candidates: list[dict], now_ms: int,
     """
     精筛: 动量筛选 — 从队列存活币中找"正在起飞"的信号
     条件 (全部满足):
-      - 币龄 ≥ 3 分钟 (数据稳定后再判断)
+      - 币龄 ≥ 15 分钟 (数据稳定后再判断, 历史数据显示 0-1h 币龄代币亏损率高)
       - 持币地址数 ≥ 15
       - 价格动量: 当前价 ≥ 入队价 × 1.5 或 当前价 ≥ 历史最低价 × 2.5
       - 持币增长: 当前持币 ≥ 入队持币 × 1.5 或 近 3 轮持续递增
-      - 进度 ≥ 10%
+      - 进度 ≥ 20% 且 < 97% (进度低表现差; 已毕业/接近毕业代币买入即亏)
       - 进度从 10%+ 跌破 5% 排除 (衰退信号)
       - 已毕业代币流动性 ≥ $500
       - 买卖比 ≥ 1.2 (买压 > 卖压, 有人在吸筹)
@@ -2117,7 +2141,7 @@ def quality_filter(candidates: list[dict], now_ms: int,
         if current_round - last_pass < QUALITY_COOLDOWN_ROUNDS:
             continue
 
-        # 条件 1: 币龄 ≥ 3 分钟 (太新的数据不稳定)
+        # 条件 1: 币龄 ≥ 15 分钟 (太新的数据不稳定)
         if age_ms < min_age_ms:
             continue
 
@@ -2161,9 +2185,11 @@ def quality_filter(candidates: list[dict], now_ms: int,
         if not holders_ok:
             continue
 
-        # 条件 5: 进度 ≥ 10%
+        # 条件 5: 进度 ≥ 20% 且 < 97% (已毕业/接近毕业代币买入即亏)
         progress = t.get("progress", 0)
         if progress < QUALITY_MIN_PROGRESS:
+            continue
+        if progress >= QUALITY_MAX_PROGRESS:
             continue
 
         # 条件 5b: 进度从 10%+ 跌破 5% 排除 (曾经有热度但在衰退)
