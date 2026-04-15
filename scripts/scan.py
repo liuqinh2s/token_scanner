@@ -36,7 +36,7 @@ v6 架构: 极速扫描 (1 分钟一轮)
   - 币龄 > 15min 且最高持币数 < 3
   - 币龄 > 1h 且最高持币数 < 5
   - 币龄 > 48h
-  - 明星保护: 峰值价格 ≥ 0.0001 且当前价 ≥ 峰值×30% → 48h 内免除其他淘汰条件 (便于回顾)
+  - 价格突破: 峰值价格 ≥ 0.0001 → 从队列移出到「已突破」列表, 冻结快照不再跟踪
 
 精筛条件 (动量筛选):
   - 币龄 ≥ 15 分钟 (数据稳定后再判断)
@@ -210,9 +210,9 @@ ELIM_EARLY_AGE_MIN = 0.25             # 15 分钟 = 0.25h
 ELIM_MID_PEAK_HOLDERS = 5             # 币龄>1h 最高持币数 < 5 淘汰
 ELIM_MID_AGE_HOURS = 1                # 1 小时
 
-# 明星保护 (表现优异的代币免淘汰, 留在队列便于回顾)
-STAR_PROTECT_PEAK_PRICE = 0.0001      # 峰值价格 ≥ 0.0001 视为明星币
-STAR_PROTECT_MAX_DRAWDOWN = 0.70      # 明星币当前价 ≥ 峰值 × 30% 才保护 (跌超 70% 不保护)
+# 价格突破阈值 (突破后从队列移出, 冻结快照, 不再跟踪)
+# 我们的目标价区间: 0.000001 ~ 0.0001, 突破 0.0001 的币不在买入范围内
+BREAKTHROUGH_PRICE = 0.0001           # 峰值价格 ≥ 0.0001 视为已突破
 
 
 # 已知的 DEX Router 地址 (用于识别买入/卖出行为)
@@ -1877,31 +1877,21 @@ def admission_filter(new_tokens: list[dict],
 #  Step 3: 淘汰检查 — DexScreener + four.meme detail + BSCScan
 # ===================================================================
 def elimination_check(queue: list[dict], now_ms: int,
-                      api_key: str) -> tuple[list[dict], list[dict]]:
+                      api_key: str) -> tuple[list[dict], list[dict], list[dict]]:
     """
     淘汰检查: 对队列中代币定期检查, 永久淘汰弃盘币
     持币数: GeckoTerminal (链上索引) > detail API (bonding curve) > 缓存
-    返回: (survivors, eliminated)
+    返回: (survivors, eliminated, breakthrough)
+      - breakthrough: 峰值价格突破 0.0001 的代币, 冻结快照不再跟踪
     """
     survivors = []
     eliminated = []
+    breakthrough = []
 
     if not queue:
-        return survivors, eliminated
+        return survivors, eliminated, breakthrough
 
-    # 0. 明星保护判定函数 (峰值价格突破阈值且未大跌 → 免非币龄淘汰条件)
-    # 注意: 币龄 > 48h 仍然正常淘汰, 明星保护只豁免其他淘汰条件
-    def _is_star_protected(t: dict) -> bool:
-        peak_p = t.get("peakPrice", 0)
-        cur_p = t.get("price", 0)
-        if peak_p < STAR_PROTECT_PEAK_PRICE:
-            return False
-        # 峰值够高, 且当前价没有从峰值暴跌
-        if cur_p > 0 and cur_p >= peak_p * (1 - STAR_PROTECT_MAX_DRAWDOWN):
-            return True
-        return False
-
-    # 1. 币龄淘汰 (无需 API, 明星币也不豁免)
+    # 1. 币龄淘汰 (无需 API)
     max_age_ms = MAX_AGE_HOURS * 3600 * 1000
     age_filtered = []
     for t in queue:
@@ -1915,7 +1905,7 @@ def elimination_check(queue: list[dict], now_ms: int,
         log.info("淘汰: 币龄超限 %d 个", len(eliminated))
 
     if not age_filtered:
-        return survivors, eliminated
+        return survivors, eliminated, breakthrough
 
     # 1b. 本地预淘汰: 用已有数据快速剔除明显垃圾币 (零 API 调用)
     pre_filtered = []
@@ -1938,7 +1928,7 @@ def elimination_check(queue: list[dict], now_ms: int,
         log.info("淘汰: 本地预淘汰 %d 个 (持币数不足)", pre_elim_count)
 
     if not pre_filtered:
-        return survivors, eliminated
+        return survivors, eliminated, breakthrough
 
     # 2. DexScreener + four.meme detail + 已毕业代币持币数 并行查询
     addrs = [t["address"] for t in pre_filtered]
@@ -1970,22 +1960,13 @@ def elimination_check(queue: list[dict], now_ms: int,
                     detail_map[addr] = detail
         return detail_map
 
-    with ThreadPoolExecutor(max_workers=4) as pool:
+    with ThreadPoolExecutor(max_workers=3) as pool:
         ds_future = pool.submit(ds_batch_prices, addrs)
         detail_future = pool.submit(_fetch_all_details)
         grad_future = pool.submit(graduated_holder_counts, graduated_addrs)
-        # K线峰值: 只查存活超过 12h 的老币 (新币数量多且大部分会被淘汰, 查了浪费;
-        #   老币存活久说明有价值, peakPrice 更可能因扫描间隔遗漏冲高, 需要修复)
-        mature_tokens = [t for t in pre_filtered
-                         if (now_ms - t.get("createdAt", 0)) / 3600000 >= 12]
-        peak_future = pool.submit(gt_batch_peak_prices, mature_tokens)
         ds_data = ds_future.result()
         detail_map = detail_future.result()
         grad_holders = grad_future.result()
-        ohlcv_peaks = peak_future.result()
-
-    if ohlcv_peaks:
-        log.info("K线峰值: 成功获取 %d/%d 个代币 (存活≥12h)", len(ohlcv_peaks), len(mature_tokens))
 
     # 3. 逐个检查淘汰条件
     for t in pre_filtered:
@@ -2050,11 +2031,8 @@ def elimination_check(queue: list[dict], now_ms: int,
             t["buysH24"] = ds.get("buysH24", 0)
             t["sellsH24"] = ds.get("sellsH24", 0)
 
-        # 更新峰值 (K线 high 值补充: 覆盖扫描间隔内的价格冲高)
-        ohlcv_high = ohlcv_peaks.get(t["address"], 0)
-        t["peakPrice"] = max(t.get("peakPrice", 0), current_price, ohlcv_high)
-        if ohlcv_high > 0:
-            t["peakFixed"] = True  # 标记已通过K线修复, 后续只需拉少量K线
+        # 更新峰值 (仅用 DexScreener 实时价)
+        t["peakPrice"] = max(t.get("peakPrice", 0), current_price)
         t["peakHolders"] = max(t.get("peakHolders", 0), current_holders)
         t["peakLiquidity"] = max(t.get("peakLiquidity", 0), current_liq)
         t["peakProgress"] = max(t.get("peakProgress", 0), current_progress)
@@ -2072,15 +2050,16 @@ def elimination_check(queue: list[dict], now_ms: int,
             t["consecDrops"] = 0
         t["lastPrice"] = current_price
 
-        # --- 淘汰条件 (明星币跳过所有淘汰) ---
-        elim_reason = None
-
-        if _is_star_protected(t):
-            t["starProtected"] = True
-            survivors.append(t)
+        # --- 价格突破检测: 峰值 ≥ 0.0001 → 移出队列, 冻结快照 ---
+        if t.get("peakPrice", 0) >= BREAKTHROUGH_PRICE:
+            t["breakthroughAt"] = now_ms
+            breakthrough.append(t)
+            log.info("  🚀 价格突破 %s — 峰值 %.2e (移出队列)",
+                     t.get("name") or t["address"][:16], t["peakPrice"])
             continue
 
-        t["starProtected"] = False
+        # --- 淘汰条件 ---
+        elim_reason = None
 
         # 1. 价格从峰值跌 90%+
         peak = t.get("peakPrice", 0)
@@ -2156,8 +2135,10 @@ def elimination_check(queue: list[dict], now_ms: int,
         log.info("淘汰: 条件淘汰 %d 个", elim_count)
         for e in eliminated[-elim_count:]:
             log.info("  ✗ %s — %s", e.get("name") or e["address"][:16], e["elimReason"])
+    if breakthrough:
+        log.info("价格突破: %d 个代币移出队列", len(breakthrough))
 
-    return survivors, eliminated
+    return survivors, eliminated, breakthrough
 
 
 # ===================================================================
@@ -2508,9 +2489,9 @@ def main():
 
     log.info("入队后: %d 个代币", len(queue_state["tokens"]))
 
-    # Step 3: 淘汰检查 (v6: 返回 survivors, eliminated, 无 rpc_logs_map)
+    # Step 3: 淘汰检查 (v6: 返回 survivors, eliminated, breakthrough)
     log.info("\n--- Step 3: 淘汰检查 ---")
-    survivors, eliminated = elimination_check(queue_state["tokens"], now_ms, bscscan_key)
+    survivors, eliminated, breakthrough_tokens = elimination_check(queue_state["tokens"], now_ms, bscscan_key)
     queue_state["tokens"] = survivors
     queue_state["eliminated"].extend([{
         "address": e["address"], "name": e.get("name", ""),
@@ -2518,6 +2499,25 @@ def main():
         "elimReason": e["elimReason"], "eliminatedAt": e["eliminatedAt"],
         "createdAt": e.get("createdAt", 0),
     } for e in eliminated])
+
+    # 价格突破的代币记入 breakthrough 持久化列表 (冻结快照, 不再跟踪)
+    if "breakthrough" not in queue_state:
+        queue_state["breakthrough"] = []
+    queue_state["breakthrough"].extend([{
+        "address": t["address"], "name": t.get("name", ""),
+        "symbol": t.get("symbol", ""),
+        "breakthroughAt": t.get("breakthroughAt", now_ms),
+        "createdAt": t.get("createdAt", 0),
+        "peakPrice": t.get("peakPrice", 0),
+        "price": t.get("price", 0),
+        "holders": t.get("holders", 0),
+        "peakHolders": t.get("peakHolders", 0),
+        "liquidity": t.get("liquidity", 0),
+        "progress": t.get("progress", 0),
+        "socialCount": t.get("socialCount", 0),
+        "socialLinks": t.get("socialLinks", {}),
+        "raisedAmount": t.get("raisedAmount", 0),
+    } for t in breakthrough_tokens])
 
     # 入场被拒的代币也记入 eliminated (避免重复入场筛)
     queue_state["eliminated"].extend([{
@@ -2529,7 +2529,7 @@ def main():
         "createdAt": r["token"].get("createdAt", 0),
     } for r in rejected_at_entry if r["token"].get("address")])
 
-    log.info("淘汰后: %d 个存活, %d 个淘汰", len(survivors), len(eliminated))
+    log.info("淘汰后: %d 个存活, %d 个淘汰, %d 个突破", len(survivors), len(eliminated), len(breakthrough_tokens))
 
     # Step 4: 仿盘检测 + 精筛
     log.info("\n--- Step 4: 仿盘检测 + 精筛 ---")
@@ -2750,7 +2750,6 @@ def main():
             "consec_drops": t.get("consecDrops", 0),
             "copycat_count": cc.get("count", 0),
             "is_copycat": cc.get("isCopycat", False),
-            "star_protected": t.get("starProtected", False),
         })
 
     # eliminatedThisRound: 本轮淘汰
@@ -2794,16 +2793,62 @@ def main():
             "is_copycat": False,
         })
 
+    # breakthroughTokens: 本轮新突破 + 历史突破 (从 queue_state 累积)
+    out_breakthrough = []
+    # 本轮新突破
+    for t in breakthrough_tokens:
+        out_breakthrough.append({
+            "address": t.get("address", ""),
+            "name": t.get("name", ""),
+            "symbol": t.get("symbol", ""),
+            "holders": t.get("holders", 0),
+            "peak_holders": t.get("peakHolders", 0),
+            "created_at": t.get("createdAt", 0),
+            "price": t.get("price", 0),
+            "peak_price": t.get("peakPrice", 0),
+            "liquidity": t.get("liquidity", 0),
+            "progress": t.get("progress", 0),
+            "social_count": t.get("socialCount", 0),
+            "social_links": t.get("socialLinks", {}),
+            "raised_amount": t.get("raisedAmount", 0),
+            "age_hours": round((now_ms - t.get("createdAt", 0)) / 3600000, 2),
+            "breakthrough_at": t.get("breakthroughAt", now_ms),
+        })
+    # 历史突破 (从 queue_state 累积, 不含本轮)
+    for t in queue_state.get("breakthrough", []):
+        # 跳过本轮已输出的
+        if any(b["address"] == t["address"] for b in out_breakthrough):
+            continue
+        out_breakthrough.append({
+            "address": t.get("address", ""),
+            "name": t.get("name", ""),
+            "symbol": t.get("symbol", ""),
+            "holders": t.get("holders", 0),
+            "peak_holders": t.get("peakHolders", 0),
+            "created_at": t.get("createdAt", 0),
+            "price": t.get("price", 0),
+            "peak_price": t.get("peakPrice", 0),
+            "liquidity": t.get("liquidity", 0),
+            "progress": t.get("progress", 0),
+            "social_count": t.get("socialCount", 0),
+            "social_links": t.get("socialLinks", {}),
+            "raised_amount": t.get("raisedAmount", 0),
+            "age_hours": round((now_ms - t.get("createdAt", 0)) / 3600000, 2),
+            "breakthrough_at": t.get("breakthroughAt", 0),
+        })
+
     output = {
         "scanTime": scan_time_str,
         "totalTokens": len(new_on_chain),
         "newDiscovered": len(new_on_chain),
         "newAdmitted": len(admitted),
         "eliminatedCount": len(eliminated),
+        "breakthroughCount": len(breakthrough_tokens),
         "filteredTokens": len(quality_results),
         "queueSize": len(survivors),
         "tokens": out_tokens,
         "queue": out_queue,
+        "breakthroughTokens": out_breakthrough,
         "eliminatedThisRound": out_eliminated,
         "rejectedAtEntry": out_rejected,
     }
@@ -2822,7 +2867,7 @@ def main():
     log.info("扫描完成")
     log.info("  链上发现: %d", len(new_on_chain))
     log.info("  入场通过: %d, 入场淘汰: %d", len(admitted), len(rejected_at_entry))
-    log.info("  队列淘汰: %d, 队列存活: %d", len(eliminated), len(survivors))
+    log.info("  队列淘汰: %d, 价格突破: %d, 队列存活: %d", len(eliminated), len(breakthrough_tokens), len(survivors))
     log.info("  精筛通过: %d", len(quality_results))
     log.info("  总耗时: %.1f 秒", time.time() - _t_start)
     log.info("=" * 50)

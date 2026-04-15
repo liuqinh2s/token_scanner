@@ -2,12 +2,12 @@
  * Build Script - generates static JSON files for GitHub Pages frontend.
  *
  * Reads scan results from data/, generates:
- *   site/data/latest.json    - most recent scan result (含 queue/eliminated 快照)
- *   site/data/history.json   - list of all scans (summary, 含 queue_size/eliminated_count)
+ *   site/data/latest.json    - most recent scan result (含 queue/breakthrough 快照)
+ *   site/data/history.json   - list of all scans (summary, 含 queue_size/breakthrough_count)
  *   site/data/scans/0.json   - individual scan results (0 = newest)
  *   site/data/search-index.json - deduplicated tokens for client-side search
  *
- * 搜索索引包含 wallet_signals (钱包行为信号: 开发者加仓/加池子/聪明钱加仓)
+ * 搜索索引包含所有类型代币: 精筛/队列/已突破/淘汰/入场淘汰 (淘汰类仅供搜索)
  * Also copies public/index.html to site/index.html with API paths rewritten.
  */
 
@@ -64,6 +64,7 @@ if (scanFiles.length === 0) {
       total_tokens: data.totalTokens,
       filtered_tokens: data.filteredTokens,
       queue_size: (data.queue || []).length,
+      breakthrough_count: (data.breakthroughTokens || []).length,
       eliminated_count: (data.eliminatedThisRound || []).length,
       rejected_count: (data.rejectedAtEntry || []).length,
     });
@@ -73,7 +74,7 @@ if (scanFiles.length === 0) {
 
   // search-index.json - 包含所有时间点的代币快照，支持历史时间线查看
   // 同一地址在不同扫描时间点保留多条记录，但做采样：同一地址+来源 每30分钟最多保留一条
-  // 包含所有四类代币: 精筛结果、队列存活、本轮淘汰、入场淘汰
+  // 包含所有五类代币: 精筛结果、队列存活、已突破、本轮淘汰、入场淘汰
   const searchIndex = [];
   const lastSeen = {}; // key: addr+source -> 上次记录的时间戳
 
@@ -83,7 +84,7 @@ if (scanFiles.length === 0) {
     const addr = t.address || '';
     if (!addr) return;
 
-    // 采样: 同一地址+来源，30分钟内只保留一条（淘汰/拒绝类不采样，因为只出现一次）
+    // 采样: 同一地址+来源，14分钟内只保留一条（淘汰/拒绝/突破类不采样，因为只出现一次）
     if (source === 'queue' || source === 'filtered') {
       const key = addr + '|' + source;
       const scanTs = new Date(scanTime).getTime() || 0;
@@ -128,6 +129,7 @@ if (scanFiles.length === 0) {
     const st = data.scanTime;
     for (const t of (data.tokens || [])) addToIndex(t, 'filtered', st);
     for (const t of (data.queue || [])) addToIndex(t, 'queue', st);
+    for (const t of (data.breakthroughTokens || [])) addToIndex(t, 'breakthrough', st);
     for (const t of (data.eliminatedThisRound || [])) addToIndex(t, 'eliminated', st);
     for (const t of (data.rejectedAtEntry || [])) addToIndex(t, 'rejected', st);
   });

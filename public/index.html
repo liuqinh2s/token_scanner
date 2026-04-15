@@ -41,9 +41,9 @@
       --tag-website: #238636;
       --progress-track: #1e2736;
       --spinner-border: #1e2736;
-      --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
-      --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
-      --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+      --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
       --glow-accent: 0 0 20px rgba(240, 185, 11, 0.15);
     }
 
@@ -80,13 +80,17 @@
       --tag-website: #1a7f37;
       --progress-track: #e1e4e8;
       --spinner-border: #e1e4e8;
-      --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
-      --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
-      --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+      --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
       --glow-accent: 0 0 20px rgba(212, 160, 10, 0.1);
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
@@ -99,7 +103,11 @@
       -moz-osx-font-smoothing: grayscale;
     }
 
-    @supports (height: 100dvh) { body { height: 100dvh; } }
+    @supports (height: 100dvh) {
+      body {
+        height: 100dvh;
+      }
+    }
 
     #app {
       max-width: 1800px;
@@ -112,9 +120,15 @@
       background: var(--bg-primary);
     }
 
-    @supports (height: 100dvh) { #app { height: 100dvh; } }
+    @supports (height: 100dvh) {
+      #app {
+        height: 100dvh;
+      }
+    }
 
-    .fixed-header { flex-shrink: 0; }
+    .fixed-header {
+      flex-shrink: 0;
+    }
 
     .scroll-area {
       flex: 1;
@@ -187,7 +201,9 @@
       user-select: none;
     }
 
-    .filter-toggle:hover { color: var(--text-secondary); }
+    .filter-toggle:hover {
+      color: var(--text-secondary);
+    }
 
     .filter-desc {
       color: var(--text-muted);
@@ -203,7 +219,10 @@
       opacity: 0;
     }
 
-    .filter-desc.expanded { max-height: 200px; opacity: 1; }
+    .filter-desc.expanded {
+      max-height: 200px;
+      opacity: 1;
+    }
 
     /* ===== 统计栏 ===== */
     .stats-bar {
@@ -314,9 +333,17 @@
       border-right: none;
     }
 
-    .tab-btn:last-child { border-right: 1px solid var(--border-primary); }
-    .tab-btn:first-child { border-radius: 10px 0 0 10px; }
-    .tab-btn:last-child { border-radius: 0 10px 10px 0; }
+    .tab-btn:last-child {
+      border-right: 1px solid var(--border-primary);
+    }
+
+    .tab-btn:first-child {
+      border-radius: 10px 0 0 10px;
+    }
+
+    .tab-btn:last-child {
+      border-radius: 0 10px 10px 0;
+    }
 
     .tab-btn.active {
       background: var(--accent);
@@ -355,7 +382,9 @@
       box-shadow: 0 0 0 3px var(--accent-dim);
     }
 
-    .search-inline input::placeholder { color: var(--text-muted); }
+    .search-inline input::placeholder {
+      color: var(--text-muted);
+    }
 
     .search-results-info {
       text-align: center;
@@ -364,7 +393,10 @@
       margin: 6px 0;
     }
 
-    .search-results-info .highlight { color: var(--accent); font-weight: 600; }
+    .search-results-info .highlight {
+      color: var(--accent);
+      font-weight: 600;
+    }
 
     .search-results-info .clear-search {
       color: var(--link-blue);
@@ -412,8 +444,13 @@
       transition: background .15s;
     }
 
-    tbody tr:nth-child(even) td { background: var(--bg-secondary); }
-    tbody tr:hover td { background: var(--bg-hover); }
+    tbody tr:nth-child(even) td {
+      background: var(--bg-secondary);
+    }
+
+    tbody tr:hover td {
+      background: var(--bg-hover);
+    }
 
     /* 名称列 */
     .name-cell {
@@ -464,7 +501,9 @@
       transition: opacity .2s;
     }
 
-    tr:hover .addr-links { opacity: 1; }
+    tr:hover .addr-links {
+      opacity: 1;
+    }
 
     .addr-links a,
     .copy-btn {
@@ -493,21 +532,62 @@
       border-color: var(--accent);
     }
 
-    .link-bsc { color: var(--link-blue); }
-    .link-bsc:hover { background: color-mix(in srgb, var(--link-blue) 13%, transparent); border-color: color-mix(in srgb, var(--link-blue) 27%, transparent); }
-    .link-4m { color: var(--accent); }
-    .link-4m:hover { background: color-mix(in srgb, var(--accent) 13%, transparent); border-color: color-mix(in srgb, var(--accent) 27%, transparent); }
-    .link-bn { color: var(--link-green); }
-    .link-bn:hover { background: color-mix(in srgb, var(--link-green) 13%, transparent); border-color: color-mix(in srgb, var(--link-green) 27%, transparent); }
+    .link-bsc {
+      color: var(--link-blue);
+    }
+
+    .link-bsc:hover {
+      background: color-mix(in srgb, var(--link-blue) 13%, transparent);
+      border-color: color-mix(in srgb, var(--link-blue) 27%, transparent);
+    }
+
+    .link-4m {
+      color: var(--accent);
+    }
+
+    .link-4m:hover {
+      background: color-mix(in srgb, var(--accent) 13%, transparent);
+      border-color: color-mix(in srgb, var(--accent) 27%, transparent);
+    }
+
+    .link-bn {
+      color: var(--link-green);
+    }
+
+    .link-bn:hover {
+      background: color-mix(in srgb, var(--link-green) 13%, transparent);
+      border-color: color-mix(in srgb, var(--link-green) 27%, transparent);
+    }
 
     /* 持币数 */
-    .holders-val { color: var(--accent); font-weight: 700; font-size: 14px; }
-    .holders-peak { color: var(--text-muted); font-size: 10px; }
+    .holders-val {
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .holders-peak {
+      color: var(--text-muted);
+      font-size: 10px;
+    }
 
     /* 价格 */
-    .price-info { font-size: 11px; color: var(--text-secondary); line-height: 1.6; }
-    .price-label { color: var(--text-muted); font-size: 10px; }
-    .price-ratio { font-size: 10px; color: var(--accent); font-weight: 500; }
+    .price-info {
+      font-size: 11px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .price-label {
+      color: var(--text-muted);
+      font-size: 10px;
+    }
+
+    .price-ratio {
+      font-size: 10px;
+      color: var(--accent);
+      font-weight: 500;
+    }
 
     /* 标签 */
     .tag {
@@ -524,17 +604,57 @@
       vertical-align: middle;
     }
 
-    .tag a { color: inherit; text-decoration: none; }
-    .tag a:hover { text-decoration: underline; }
-    .tag-dev-buy { background: var(--tag-dev-buy); color: #fff; }
-    .tag-dev-lp { background: var(--tag-dev-lp); color: #fff; }
-    .tag-smart-buy { background: var(--tag-smart-buy); color: #fff; }
-    .tag-copycat { background: var(--tag-copycat); color: #fff; }
-    .tag-twitter { background: var(--tag-twitter); color: #fff; }
-    .tag-telegram { background: var(--tag-telegram); color: #fff; }
-    .tag-website { background: var(--tag-website); color: #fff; }
-    .tags-cell { max-width: 220px; }
-    .tags-cell .tag { vertical-align: middle; }
+    .tag a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .tag a:hover {
+      text-decoration: underline;
+    }
+
+    .tag-dev-buy {
+      background: var(--tag-dev-buy);
+      color: #fff;
+    }
+
+    .tag-dev-lp {
+      background: var(--tag-dev-lp);
+      color: #fff;
+    }
+
+    .tag-smart-buy {
+      background: var(--tag-smart-buy);
+      color: #fff;
+    }
+
+    .tag-copycat {
+      background: var(--tag-copycat);
+      color: #fff;
+    }
+
+    .tag-twitter {
+      background: var(--tag-twitter);
+      color: #fff;
+    }
+
+    .tag-telegram {
+      background: var(--tag-telegram);
+      color: #fff;
+    }
+
+    .tag-website {
+      background: var(--tag-website);
+      color: #fff;
+    }
+
+    .tags-cell {
+      max-width: 220px;
+    }
+
+    .tags-cell .tag {
+      vertical-align: middle;
+    }
 
     /* 淘汰原因 */
     .elim-reason {
@@ -549,7 +669,11 @@
     }
 
     /* 进度条 */
-    .progress-bar { display: flex; align-items: center; gap: 6px; }
+    .progress-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
 
     .progress-track {
       width: 48px;
@@ -566,10 +690,18 @@
       transition: width .3s ease;
     }
 
-    .progress-text { font-size: 10px; color: var(--text-secondary); font-weight: 500; }
+    .progress-text {
+      font-size: 10px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
 
     /* 币龄 */
-    .age-text { color: var(--text-secondary); font-size: 11px; white-space: nowrap; }
+    .age-text {
+      color: var(--text-secondary);
+      font-size: 11px;
+      white-space: nowrap;
+    }
 
     /* 空状态 */
     .no-data {
@@ -578,11 +710,27 @@
       color: var(--text-muted);
     }
 
-    .no-data-icon { font-size: 40px; margin-bottom: 12px; display: block; opacity: 0.5; }
-    .no-data-text { font-size: 14px; margin-bottom: 6px; color: var(--text-secondary); }
-    .no-data-hint { font-size: 11px; color: var(--text-muted); }
+    .no-data-icon {
+      font-size: 40px;
+      margin-bottom: 12px;
+      display: block;
+      opacity: 0.5;
+    }
 
-    .hidden { display: none !important; }
+    .no-data-text {
+      font-size: 14px;
+      margin-bottom: 6px;
+      color: var(--text-secondary);
+    }
+
+    .no-data-hint {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .hidden {
+      display: none !important;
+    }
 
     /* ===== 历史侧栏 ===== */
     .history-panel {
@@ -618,16 +766,27 @@
       margin-bottom: 1px;
     }
 
-    .hist-row:last-child { border-bottom: none; }
-    .hist-row:hover { background: var(--bg-hover); }
+    .hist-row:last-child {
+      border-bottom: none;
+    }
+
+    .hist-row:hover {
+      background: var(--bg-hover);
+    }
 
     .hist-row.active {
       background: var(--accent-dim);
       border-left: 3px solid var(--accent);
     }
 
-    .hist-row .ht { color: var(--text-secondary); }
-    .hist-row .hv { color: var(--accent); font-weight: 700; }
+    .hist-row .ht {
+      color: var(--text-secondary);
+    }
+
+    .hist-row .hv {
+      color: var(--accent);
+      font-weight: 700;
+    }
 
     /* 历史列表中精筛>0的行标记 */
     .hist-row .hist-dot {
@@ -685,9 +844,17 @@
         min-height: 0;
       }
 
-      #historyPanel { display: none !important; }
-      #btnHistory { display: none; }
-      #btnLatest { display: inline-block; }
+      #historyPanel {
+        display: none !important;
+      }
+
+      #btnHistory {
+        display: none;
+      }
+
+      #btnLatest {
+        display: inline-block;
+      }
     }
 
     .toast {
@@ -708,11 +875,21 @@
     }
 
     /* ===== Mobile card layout ===== */
-    .card-list { display: none; }
+    .card-list {
+      display: none;
+    }
 
     @media (max-width: 768px) {
-      body { height: auto; overflow: visible; overscroll-behavior-y: auto; }
-      #app { height: auto; overflow: visible; }
+      body {
+        height: auto;
+        overflow: visible;
+        overscroll-behavior-y: auto;
+      }
+
+      #app {
+        height: auto;
+        overflow: visible;
+      }
 
       .fixed-header {
         position: sticky;
@@ -730,7 +907,9 @@
         overflow: visible;
       }
 
-      .history-sidebar { display: none !important; }
+      .history-sidebar {
+        display: none !important;
+      }
 
       .detail-main {
         display: flex !important;
@@ -747,9 +926,19 @@
         padding-bottom: 60px;
       }
 
-      h1 { font-size: 16px; }
-      .subtitle, .filter-toggle, .filter-desc { display: none; }
-      header { padding: 4px 0 2px; }
+      h1 {
+        font-size: 16px;
+      }
+
+      .subtitle,
+      .filter-toggle,
+      .filter-desc {
+        display: none;
+      }
+
+      header {
+        padding: 4px 0 2px;
+      }
 
       /* 统计栏 */
       .stats-bar {
@@ -775,13 +964,33 @@
       }
 
       .stat:first-child .label,
-      .stat:first-child .val { display: inline; font-size: 11px; }
-      .stat:first-child .label { color: var(--text-muted); }
-      .stat:first-child .val { color: var(--accent); font-weight: 600; }
-      .stat .label { font-size: 9px; }
-      .stat .val { font-size: 13px; font-weight: 700; margin-top: 1px; }
+      .stat:first-child .val {
+        display: inline;
+        font-size: 11px;
+      }
 
-      .stat-highlight .val { font-size: 15px !important; }
+      .stat:first-child .label {
+        color: var(--text-muted);
+      }
+
+      .stat:first-child .val {
+        color: var(--accent);
+        font-weight: 600;
+      }
+
+      .stat .label {
+        font-size: 9px;
+      }
+
+      .stat .val {
+        font-size: 13px;
+        font-weight: 700;
+        margin-top: 1px;
+      }
+
+      .stat-highlight .val {
+        font-size: 15px !important;
+      }
 
       /* 工具栏 */
       .toolbar {
@@ -791,10 +1000,26 @@
         align-items: stretch;
       }
 
-      .tab-bar { display: flex; width: 100%; border-radius: 10px; }
-      .tab-btn { flex: 1; text-align: center; padding: 7px 4px; font-size: 12px; }
-      .toolbar>button { display: none; }
-      .toolbar>#btnHistory { display: none; }
+      .tab-bar {
+        display: flex;
+        width: 100%;
+        border-radius: 10px;
+      }
+
+      .tab-btn {
+        flex: 1;
+        text-align: center;
+        padding: 7px 4px;
+        font-size: 12px;
+      }
+
+      .toolbar>button {
+        display: none;
+      }
+
+      .toolbar>#btnHistory {
+        display: none;
+      }
 
       .toolbar>#btnLatest {
         display: inline-block;
@@ -816,18 +1041,56 @@
         transform: none;
       }
 
-      .search-inline { width: 100%; display: flex; gap: 6px; }
-      .search-inline input { flex: 1; padding: 7px 12px; font-size: 13px; border-radius: 10px; }
-      .search-inline button { padding: 7px 16px; font-size: 12px; border-radius: 10px; white-space: nowrap; }
+      .search-inline {
+        width: 100%;
+        display: flex;
+        gap: 6px;
+      }
 
-      .history-panel { max-height: 25vh; padding: 8px; margin: 0 0 4px; }
-      .history-panel h3 { font-size: 11px; margin-bottom: 4px; }
-      .hist-row { padding: 4px 6px; font-size: 10px; }
+      .search-inline input {
+        flex: 1;
+        padding: 7px 12px;
+        font-size: 13px;
+        border-radius: 10px;
+      }
 
-      #app { padding: 6px 10px; position: relative; }
+      .search-inline button {
+        padding: 7px 16px;
+        font-size: 12px;
+        border-radius: 10px;
+        white-space: nowrap;
+      }
 
-      #tokenTable table, #queueTable table, #elimTable table, #rejectedTable table { display: none; }
-      .card-list { display: block; }
+      .history-panel {
+        max-height: 25vh;
+        padding: 8px;
+        margin: 0 0 4px;
+      }
+
+      .history-panel h3 {
+        font-size: 11px;
+        margin-bottom: 4px;
+      }
+
+      .hist-row {
+        padding: 4px 6px;
+        font-size: 10px;
+      }
+
+      #app {
+        padding: 6px 10px;
+        position: relative;
+      }
+
+      #tokenTable table,
+      #queueTable table,
+      #breakthroughTable table {
+        display: none;
+      }
+
+      .card-list {
+        display: block;
+      }
 
       /* 卡片样式 */
       .token-card {
@@ -840,7 +1103,9 @@
         transition: all .2s;
       }
 
-      .token-card:active { transform: scale(0.99); }
+      .token-card:active {
+        transform: scale(0.99);
+      }
 
       .card-top {
         display: flex;
@@ -849,8 +1114,17 @@
         margin-bottom: 10px;
       }
 
-      .card-name { font-size: 15px; font-weight: 700; color: var(--text-bright); }
-      .card-symbol { color: var(--text-secondary); font-size: 11px; margin-left: 6px; }
+      .card-name {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--text-bright);
+      }
+
+      .card-symbol {
+        color: var(--text-secondary);
+        font-size: 11px;
+        margin-left: 6px;
+      }
 
       .card-holders {
         font-size: 22px;
@@ -900,8 +1174,16 @@
         border-top: 1px solid var(--border-primary);
       }
 
-      .card-social { margin-top: 8px; }
-      .card-social .tag { font-size: 10px; padding: 3px 10px; border-radius: 6px; margin: 2px 3px 2px 0; }
+      .card-social {
+        margin-top: 8px;
+      }
+
+      .card-social .tag {
+        font-size: 10px;
+        padding: 3px 10px;
+        border-radius: 6px;
+        margin: 2px 3px 2px 0;
+      }
 
       .card-price-row {
         display: flex;
@@ -914,14 +1196,30 @@
         line-height: 1.7;
       }
 
-      .token-card .elim-reason { font-size: 11px; padding: 4px 10px; border-radius: 6px; }
-      .search-results-info { font-size: 11px; margin: 2px 0; }
+      .token-card .elim-reason {
+        font-size: 11px;
+        padding: 4px 10px;
+        border-radius: 6px;
+      }
+
+      .search-results-info {
+        font-size: 11px;
+        margin: 2px 0;
+      }
     }
 
     /* ===== 手机端底部导航栏 ===== */
-    .mobile-tabbar { display: none; }
-    .about-page { display: none; }
-    .history-page { display: none; }
+    .mobile-tabbar {
+      display: none;
+    }
+
+    .about-page {
+      display: none;
+    }
+
+    .history-page {
+      display: none;
+    }
 
     @media (max-width: 768px) {
       .mobile-tabbar {
@@ -954,8 +1252,14 @@
         transition: color .2s;
       }
 
-      .mobile-tab:hover { background: none; color: var(--text-secondary); }
-      .mobile-tab.active { color: var(--accent); }
+      .mobile-tab:hover {
+        background: none;
+        color: var(--text-secondary);
+      }
+
+      .mobile-tab.active {
+        color: var(--accent);
+      }
 
       .mobile-tab-icon {
         font-size: 20px;
@@ -978,7 +1282,10 @@
         stroke-linejoin: round;
       }
 
-      .mobile-tab-label { font-weight: 600; letter-spacing: 0.3px; }
+      .mobile-tab-label {
+        font-weight: 600;
+        letter-spacing: 0.3px;
+      }
 
       .about-page {
         position: fixed;
@@ -994,7 +1301,9 @@
         padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
       }
 
-      .about-page:not(.hidden) { display: block; }
+      .about-page:not(.hidden) {
+        display: block;
+      }
 
       .history-page {
         position: fixed;
@@ -1010,7 +1319,9 @@
         padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
       }
 
-      .history-page:not(.hidden) { display: block; }
+      .history-page:not(.hidden) {
+        display: block;
+      }
 
       .history-page-header {
         display: flex;
@@ -1021,8 +1332,17 @@
         border-bottom: 1px solid var(--border-primary);
       }
 
-      .history-page-header h2 { color: var(--accent); font-size: 18px; font-weight: 800; }
-      .history-back-btn { font-size: 12px; padding: 5px 14px; border-radius: 8px; }
+      .history-page-header h2 {
+        color: var(--accent);
+        font-size: 18px;
+        font-weight: 800;
+      }
+
+      .history-back-btn {
+        font-size: 12px;
+        padding: 5px 14px;
+        border-radius: 8px;
+      }
 
       .history-page .hist-row {
         padding: 12px 12px;
@@ -1040,7 +1360,10 @@
         margin-bottom: 2px;
       }
 
-      .history-page .hist-row .hist-stats { font-size: 11px; color: var(--text-secondary); }
+      .history-page .hist-row .hist-stats {
+        font-size: 11px;
+        color: var(--text-secondary);
+      }
 
       .about-content h2 {
         color: var(--accent);
@@ -1058,7 +1381,9 @@
         letter-spacing: 0.5px;
       }
 
-      .about-section { margin-bottom: 24px; }
+      .about-section {
+        margin-bottom: 24px;
+      }
 
       .about-section h3 {
         font-size: 14px;
@@ -1069,9 +1394,17 @@
         font-weight: 700;
       }
 
-      .about-flow { display: flex; flex-direction: column; gap: 12px; }
+      .about-flow {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
 
-      .flow-step { display: flex; align-items: flex-start; gap: 12px; }
+      .flow-step {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+      }
 
       .flow-num {
         flex-shrink: 0;
@@ -1088,10 +1421,23 @@
         box-shadow: var(--glow-accent);
       }
 
-      .flow-title { font-size: 13px; font-weight: 700; color: var(--text-primary); }
-      .flow-desc { font-size: 11px; color: var(--text-secondary); margin-top: 3px; line-height: 1.6; }
+      .flow-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text-primary);
+      }
 
-      .about-list { list-style: none; padding: 0; }
+      .flow-desc {
+        font-size: 11px;
+        color: var(--text-secondary);
+        margin-top: 3px;
+        line-height: 1.6;
+      }
+
+      .about-list {
+        list-style: none;
+        padding: 0;
+      }
 
       .about-list li {
         font-size: 12px;
@@ -1108,8 +1454,19 @@
         margin-right: 8px;
       }
 
-      .about-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; line-height: 2; }
-      .about-tag-desc { font-size: 11px; color: var(--text-secondary); margin-right: 8px; }
+      .about-tags {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        line-height: 2;
+      }
+
+      .about-tag-desc {
+        font-size: 11px;
+        color: var(--text-secondary);
+        margin-right: 8px;
+      }
 
       .detail-main .scroll-area {
         padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
@@ -1131,7 +1488,9 @@
       transition: color .2s;
     }
 
-    .auto-refresh-indicator:hover { color: var(--text-secondary); }
+    .auto-refresh-indicator:hover {
+      color: var(--text-secondary);
+    }
 
     .refresh-dot {
       width: 6px;
@@ -1147,8 +1506,15 @@
     }
 
     @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.3;
+      }
     }
   </style>
   <script>
@@ -1173,20 +1539,20 @@
         <p class="filter-desc" id="filterDesc">
           链上扫描 four.meme TokenCreated 事件 → 入场筛(社交≥1、总量10亿、币龄&lt;48h) →
           队列淘汰(价格跌90%/持币30→10/持币跌70%(峰≥50)/无社交/流动性1k→100(仅毕业)/进度&lt;1%且币龄&gt;2h/进度&lt;5%且币龄&gt;4h/进度跌50%且币龄&gt;6h/15min峰值持币&lt;3/1h峰值持币&lt;5/币龄&gt;48h)
-          ⭐明星保护(峰值≥0.0001且当前≥峰值30%, 48h内免除其他淘汰)
+          🚀价格突破(峰值≥0.0001 → 移出队列, 冻结快照, 不再跟踪)
           → 动量精筛(币龄≥15min/持币≥15/价格动量/持币增长/买卖比≥1.2/进度20%~97%/回撤保护/冷却6轮)
           → 精筛后防线(Top10持仓≤85%/开发者清仓撤池排除/假K线: 排除全阳线实体柱控盘币)<br>
-          数据源: DexScreener 价格 · GeckoTerminal 已毕业持币数+K线 · four.meme Detail API · BSCScan Top Holder+开发者行为<br>
-          🔥仿盘标记(≥3个同名, 仅标记不排除)
+          数据源: DexScreener 价格 · GeckoTerminal 已毕业持币数 · four.meme Detail API · BSCScan Top Holder+开发者行为<br>
+          🔥仿盘标记(≥3个同名, 仅标记不排除) · 目标价区间: 0.000001 ~ 0.0001
         </p>
       </header>
 
       <div class="stats-bar" id="statsBar">
         <div class="stat"><span class="label">扫描时间</span><span class="val" id="scanTime">--</span></div>
         <div class="stat"><span class="label">队列存活</span><span class="val" id="queueSize">--</span></div>
-        <div class="stat"><span class="label">本轮淘汰</span><span class="val" id="elimCount">--</span></div>
-        <div class="stat"><span class="label">入场淘汰</span><span class="val" id="rejectedCount">--</span></div>
-        <div class="stat stat-highlight"><span class="label">精筛通过</span><span class="val" id="filteredTokens">--</span></div>
+        <div class="stat"><span class="label">已突破</span><span class="val" id="breakthroughCount">--</span></div>
+        <div class="stat stat-highlight"><span class="label">精筛通过</span><span class="val" id="filteredTokens">--</span>
+        </div>
       </div>
 
       <div class="toolbar">
@@ -1199,8 +1565,7 @@
         <div class="tab-bar" id="tabBar">
           <button class="tab-btn active" data-tab="filtered" onclick="switchTab('filtered')">精筛结果</button>
           <button class="tab-btn" data-tab="queue" onclick="switchTab('queue')">队列存活</button>
-          <button class="tab-btn" data-tab="eliminated" onclick="switchTab('eliminated')">本轮淘汰</button>
-          <button class="tab-btn" data-tab="rejected" onclick="switchTab('rejected')">入场淘汰</button>
+          <button class="tab-btn" data-tab="breakthrough" onclick="switchTab('breakthrough')">已突破</button>
         </div>
         <div class="search-inline">
           <input type="text" id="searchInput" placeholder="搜索名称、代号或地址..." aria-label="搜索代币"
@@ -1275,7 +1640,7 @@
             <div id="queueCardList" class="card-list"></div>
           </div>
 
-          <div id="elimTable" class="hidden">
+          <div id="breakthroughTable" class="hidden">
             <table>
               <thead>
                 <tr>
@@ -1284,43 +1649,20 @@
                   <th>合约</th>
                   <th style="text-align:right">持币</th>
                   <th>价格</th>
-                  <th>淘汰原因</th>
-                  <th style="text-align:right">币龄</th>
-                </tr>
-              </thead>
-              <tbody id="elimBody"></tbody>
-            </table>
-            <div id="noElim" class="no-data hidden">
-              <span class="no-data-icon">✅</span>
-              <div class="no-data-text">本轮无淘汰</div>
-              <div class="no-data-hint">所有队列中的代币都还在跟踪中</div>
-            </div>
-            <div id="elimCardList" class="card-list"></div>
-          </div>
-
-          <div id="rejectedTable" class="hidden">
-            <table>
-              <thead>
-                <tr>
-                  <th style="width:30px">#</th>
-                  <th>名称</th>
-                  <th>合约</th>
-                  <th style="text-align:right">持币</th>
-                  <th>价格</th>
+                  <th>流动性</th>
                   <th>进度</th>
-                  <th>淘汰原因</th>
-                  <th>社交</th>
+                  <th>标签</th>
                   <th style="text-align:right">币龄</th>
                 </tr>
               </thead>
-              <tbody id="rejectedBody"></tbody>
+              <tbody id="breakthroughBody"></tbody>
             </table>
-            <div id="noRejected" class="no-data hidden">
-              <span class="no-data-icon">🚫</span>
-              <div class="no-data-text">本轮无入场淘汰</div>
-              <div class="no-data-hint">没有新代币被入场筛拦截</div>
+            <div id="noBreakthrough" class="no-data hidden">
+              <span class="no-data-icon">🚀</span>
+              <div class="no-data-text">暂无价格突破的代币</div>
+              <div class="no-data-hint">峰值价格突破 0.0001 的代币会显示在这里</div>
             </div>
-            <div id="rejectedCardList" class="card-list"></div>
+            <div id="breakthroughCardList" class="card-list"></div>
           </div>
         </div>
       </div>
@@ -1332,15 +1674,25 @@
   <!-- 手机端底部导航栏 - 使用 SVG icon -->
   <nav class="mobile-tabbar" id="mobileTabbar">
     <button class="mobile-tab active" data-page="home" onclick="switchPage('home')">
-      <span class="mobile-tab-icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
+      <span class="mobile-tab-icon"><svg viewBox="0 0 24 24">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          <polyline points="9 22 9 12 15 12 15 22" />
+        </svg></span>
       <span class="mobile-tab-label">首页</span>
     </button>
     <button class="mobile-tab" data-page="history" onclick="switchPage('history')">
-      <span class="mobile-tab-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+      <span class="mobile-tab-icon"><svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" />
+        </svg></span>
       <span class="mobile-tab-label">历史</span>
     </button>
     <button class="mobile-tab" data-page="about" onclick="switchPage('about')">
-      <span class="mobile-tab-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>
+      <span class="mobile-tab-icon"><svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="16" x2="12" y2="12" />
+          <line x1="12" y1="8" x2="12.01" y2="8" />
+        </svg></span>
       <span class="mobile-tab-label">关于</span>
     </button>
   </nav>
@@ -1423,7 +1775,7 @@
           <li>币龄 &gt; 15min 且最高持币 &lt; 3</li>
           <li>币龄 &gt; 1h 且最高持币 &lt; 5</li>
           <li>币龄 &gt; 48h</li>
-          <li>⭐ 明星保护: 峰值价格 ≥ 0.0001 且当前价 ≥ 峰值×30% → 48h 内免除其他淘汰条件（便于回顾）</li>
+          <li>🚀 价格突破: 峰值价格 ≥ 0.0001 → 从队列移出到「已突破」列表，冻结快照不再跟踪（不在目标价区间内）</li>
         </ul>
       </div>
 
@@ -1447,7 +1799,8 @@
 
       <div class="about-section">
         <h3>🛡️ 精筛后防线（深度检查）</h3>
-        <p style="font-size:11px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;">仅对精筛通过的少量代币执行，不影响扫描速度</p>
+        <p style="font-size:11px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;">仅对精筛通过的少量代币执行，不影响扫描速度
+        </p>
         <ul class="about-list">
           <li>Top10 持仓占比 ≤ 85%（排除庄家控盘）</li>
           <li>开发者行为: 清仓/撤池子 → 排除（跑路信号）</li>
@@ -1461,20 +1814,23 @@
           <li>BSC RPC — 链上 TokenCreated 事件发现</li>
           <li>four.meme Detail API — 代币详情 / 社交 / 进度 / 未毕业持币数</li>
           <li>DexScreener — 批量价格 / 流动性 / 交易量 / 买卖笔数</li>
-          <li>GeckoTerminal — 已毕业代币持币数 + 15min K线（假K线检测 + 峰值价格补充）</li>
+          <li>GeckoTerminal — 已毕业代币持币数 + 假K线检测</li>
           <li>BSCScan (Etherscan V2) — Top Holder 集中度 + 开发者行为分析（仅精筛后防线）</li>
         </ul>
       </div>
 
       <div class="about-section">
-        <h3>📈 峰值价格说明</h3>
+        <h3>📈 目标价区间</h3>
         <p style="font-size:11px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;">
-          峰值价格（峰）是代币在队列存活期间记录到的最高价格，用于淘汰判断（跌90%淘汰）、明星保护和回撤保护。
-          由于扫描间隔为 15 分钟，两轮扫描之间的价格冲高可能被遗漏。
+          目标价区间: 0.000001 ~ 0.0001。尽可能低价买入，等突破 0.0001 卖出。
         </p>
-        <p style="font-size:11px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;"><strong>当前方案：</strong>每轮扫描时，对存活 ≥ 12h 的老币用 GeckoTerminal 15 分钟 K 线的最高价（high）补充峰值。新币不查（数量多且大部分会被淘汰，避免浪费 API 配额拖慢扫描）。</p>
-        <p style="font-size:11px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;"><strong>分层策略：</strong>首次修复拉 48 根 K 线（12h 历史），补全之前遗漏的冲高；后续每轮只拉 4 根（1h），补上一轮间隔的遗漏。修复后打 peakFixed 标记，持久化在队列中。</p>
-        <p style="font-size:11px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;"><strong>已知局限：</strong>DexScreener、four.meme、GeckoTerminal 均不提供"历史最高价"字段。峰值依赖 K 线 high 值逐轮累积，精度为 15 分钟级别，无法达到秒级精度。对于瞬间冲高又回落的极端行情，峰值仍可能略低于真实最高价。</p>
+        <p style="font-size:11px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;">
+          峰值价格突破 0.0001 的代币自动从队列移出到「已突破」列表，冻结最后一个快照，不再跟踪更新。
+          这些币不在买入范围内：价格已经涨完的币，要么随时崩盘（短期风险大），要么跌下来后很难再涨回去。
+        </p>
+        <p style="font-size:11px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;">
+          剥离已突破的币后，队列更精简，扫描更快，完全聚焦在还没涨的目标币上。已突破的币单独展示，便于回顾和统计分析。
+        </p>
       </div>
 
       <div class="about-section">
@@ -1570,7 +1926,7 @@
         const dotHtml = hasPassed ? '<span class="hist-dot"></span>' : '';
         return `<div class="hist-row${activeHistoryId === r.id ? ' active' : ''}" onclick="loadScanMobile(${r.id})" data-id="${r.id}">
         <span class="ht">${r.scan_time}</span>
-        <span class="hist-stats">队列:${r.queue_size != null ? r.queue_size : r.total_tokens} | 淘汰:${r.eliminated_count || 0} | ${dotHtml}精筛:<span class="hv">${r.filtered_tokens}</span></span>
+        <span class="hist-stats">队列:${r.queue_size != null ? r.queue_size : r.total_tokens} | 突破:${r.breakthrough_count || 0} | ${dotHtml}精筛:<span class="hv">${r.filtered_tokens}</span></span>
       </div>`;
       }).join('');
     }
@@ -1705,13 +2061,11 @@
       currentData = data;
       document.getElementById('scanTime').textContent = data.scanTime || '--';
       document.getElementById('queueSize').textContent = (data.queue || []).length || data.totalTokens || '--';
-      document.getElementById('elimCount').textContent = (data.eliminatedThisRound || []).length || data.eliminatedCount || '0';
-      document.getElementById('rejectedCount').textContent = (data.rejectedAtEntry || []).length || '0';
+      document.getElementById('breakthroughCount').textContent = (data.breakthroughTokens || []).length || '0';
       document.getElementById('filteredTokens').textContent = data.filteredTokens != null ? data.filteredTokens.toLocaleString() : '--';
       renderFiltered(data);
       renderQueue(data);
-      renderEliminated(data);
-      renderRejected(data);
+      renderBreakthrough(data);
     }
 
     function renderFiltered(data) {
@@ -1803,11 +2157,11 @@
         const addr = t.address || '';
         const tagsHtml = buildAllTags(t);
         const pctProgress = ((t.progress || 0) * 100).toFixed(1);
-        const starHtml = t.star_protected ? '<span style="color:#f0b90b;font-size:12px" title="明星保护: 峰值≥0.0001且未大跌">⭐</span>' : '';
+        const starHtml = '';
         const scanTimeHtml = searchMode && t._scanTime ? `<span class="search-scan-time">📍 ${esc(t._scanTime)}</span>` : '';
         return `<tr>
           <td>${i + 1}</td>
-          <td><div class="name-cell"><span class="name-symbol-primary">${starHtml}${esc(t.symbol || '--')}</span><span class="name-secondary">${esc(t.name || '--')}</span>${scanTimeHtml}</div></td>
+          <td><div class="name-cell"><span class="name-symbol-primary">${esc(t.symbol || '--')}</span><span class="name-secondary">${esc(t.name || '--')}</span>${scanTimeHtml}</div></td>
           <td>${addrHtml(addr)}</td>
           <td style="text-align:right"><span class="holders-val">${t.holders || 0}</span><br><span class="holders-peak">峰${t.peak_holders || 0}</span></td>
           <td><div class="price-info"><span class="price-label">现</span> ${fmtPrice(t.price)}</div><div class="price-info"><span class="price-label">峰</span> ${fmtPrice(t.peak_price)}</div></td>
@@ -1823,12 +2177,12 @@
         const shortA = addr.length > 16 ? addr.slice(0, 8) + '...' + addr.slice(-6) : addr;
         const tagsHtml = buildAllTags(t);
         const pctProgress = ((t.progress || 0) * 100).toFixed(1);
-        const starHtml = t.star_protected ? '⭐' : '';
+        const starHtml = '';
         const scanTimeHtml = searchMode && t._scanTime ? `<div class="search-scan-time" style="margin-bottom:4px">📍 ${esc(t._scanTime)}</div>` : '';
         return `<div class="token-card">
           ${scanTimeHtml}
           <div class="card-top">
-            <span><span class="card-name">${starHtml}${esc(t.symbol || '--')}</span><span class="card-symbol">${esc(t.name || '--')}</span></span>
+            <span><span class="card-name">${esc(t.symbol || '--')}</span><span class="card-symbol">${esc(t.name || '--')}</span></span>
             <span class="card-holders">${t.holders || 0}</span>
           </div>
           <div class="card-addr-row">
@@ -1852,43 +2206,48 @@
       }).join('');
     }
 
-    function renderEliminated(data) {
-      const tbody = document.getElementById('elimBody');
-      const noElim = document.getElementById('noElim');
-      const elimCardList = document.getElementById('elimCardList');
-      const items = data.eliminatedThisRound || [];
+    function renderBreakthrough(data) {
+      const tbody = document.getElementById('breakthroughBody');
+      const noBreakthrough = document.getElementById('noBreakthrough');
+      const cardList = document.getElementById('breakthroughCardList');
+      const items = (data.breakthroughTokens || []).slice().sort((a, b) => (b.breakthrough_at || 0) - (a.breakthrough_at || 0));
 
       if (items.length === 0) {
         tbody.innerHTML = '';
-        elimCardList.innerHTML = '';
-        noElim.classList.remove('hidden');
+        cardList.innerHTML = '';
+        noBreakthrough.classList.remove('hidden');
         return;
       }
-      noElim.classList.add('hidden');
+      noBreakthrough.classList.add('hidden');
 
       tbody.innerHTML = items.map((t, i) => {
         const addr = t.address || '';
+        const tagsHtml = buildAllTags(t);
+        const pctProgress = ((t.progress || 0) * 100).toFixed(1);
         const scanTimeHtml = searchMode && t._scanTime ? `<span class="search-scan-time">📍 ${esc(t._scanTime)}</span>` : '';
         return `<tr>
           <td>${i + 1}</td>
-          <td><div class="name-cell"><span class="name-symbol-primary">${esc(t.symbol || '--')}</span><span class="name-secondary">${esc(t.name || '--')}</span>${scanTimeHtml}</div></td>
+          <td><div class="name-cell"><span class="name-symbol-primary">🚀${esc(t.symbol || '--')}</span><span class="name-secondary">${esc(t.name || '--')}</span>${scanTimeHtml}</div></td>
           <td>${addrHtml(addr)}</td>
-          <td style="text-align:right"><span class="holders-val">${t.holders || 0}</span></td>
+          <td style="text-align:right"><span class="holders-val">${t.holders || 0}</span><br><span class="holders-peak">峰${t.peak_holders || 0}</span></td>
           <td><div class="price-info"><span class="price-label">现</span> ${fmtPrice(t.price)}</div><div class="price-info"><span class="price-label">峰</span> ${fmtPrice(t.peak_price)}</div></td>
-          <td><span class="elim-reason">${esc(t.reason || '--')}</span></td>
+          <td><div class="price-info">${fmtLiq(t)}</div></td>
+          <td><div class="progress-bar"><div class="progress-track"><div class="progress-fill" style="width:${Math.min(parseFloat(pctProgress), 100)}%"></div></div><span class="progress-text">${pctProgress}%</span></div></td>
+          <td class="tags-cell">${tagsHtml}</td>
           <td style="text-align:right"><span class="age-text">${fmtAge(t.age_hours)}</span></td>
         </tr>`;
       }).join('');
 
-      elimCardList.innerHTML = items.map((t, i) => {
+      cardList.innerHTML = items.map((t, i) => {
         const addr = t.address || '';
         const shortA = addr.length > 16 ? addr.slice(0, 8) + '...' + addr.slice(-6) : addr;
         const tagsHtml = buildAllTags(t);
+        const pctProgress = ((t.progress || 0) * 100).toFixed(1);
         const scanTimeHtml = searchMode && t._scanTime ? `<div class="search-scan-time" style="margin-bottom:4px">📍 ${esc(t._scanTime)}</div>` : '';
         return `<div class="token-card">
           ${scanTimeHtml}
           <div class="card-top">
-            <span><span class="card-name">${esc(t.symbol || '--')}</span><span class="card-symbol">${esc(t.name || '--')}</span></span>
+            <span><span class="card-name">🚀${esc(t.symbol || '--')}</span><span class="card-symbol">${esc(t.name || '--')}</span></span>
             <span class="card-holders">${t.holders || 0}</span>
           </div>
           <div class="card-addr-row">
@@ -1900,66 +2259,14 @@
           <div class="card-price-row">
             <span>现:${fmtPrice(t.price)}</span>
             <span>峰:${fmtPrice(t.peak_price)}</span>
+            <span>${fmtLiq(t)}</span>
+            <span>进度:${pctProgress}%</span>
           </div>
           ${tagsHtml ? '<div class="card-social">' + tagsHtml + '</div>' : ''}
-          <div style="margin-top:6px"><span class="elim-reason">${esc(t.reason || '--')}</span></div>
-          <div class="card-meta"><span>#${i + 1} · ${fmtAge(t.age_hours)}</span></div>
-        </div>`;
-      }).join('');
-    }
-
-    function renderRejected(data) {
-      const tbody = document.getElementById('rejectedBody');
-      const noRejected = document.getElementById('noRejected');
-      const rejectedCardList = document.getElementById('rejectedCardList');
-      const items = data.rejectedAtEntry || [];
-
-      if (items.length === 0) {
-        tbody.innerHTML = '';
-        rejectedCardList.innerHTML = '';
-        noRejected.classList.remove('hidden');
-        return;
-      }
-      noRejected.classList.add('hidden');
-
-      tbody.innerHTML = items.map((t, i) => {
-        const addr = t.address || '';
-        const socialHtml = buildSocialOnly(t.social_links);
-        const pctProgress = ((t.progress || 0) * 100).toFixed(1);
-        const scanTimeHtml = searchMode && t._scanTime ? `<span class="search-scan-time">📍 ${esc(t._scanTime)}</span>` : '';
-        return `<tr>
-          <td>${i + 1}</td>
-          <td><div class="name-cell"><span class="name-symbol-primary">${esc(t.symbol || '--')}</span><span class="name-secondary">${esc(t.name || '--')}</span>${scanTimeHtml}</div></td>
-          <td>${addrHtml(addr)}</td>
-          <td style="text-align:right"><span class="holders-val">${t.holders || 0}</span></td>
-          <td><div class="price-info">${fmtPrice(t.price)}</div></td>
-          <td><span class="progress-text">${pctProgress}%</span></td>
-          <td><span class="elim-reason">${esc(t.reason || '--')}</span></td>
-          <td>${socialHtml}</td>
-          <td style="text-align:right"><span class="age-text">${fmtAge(t.age_hours)}</span></td>
-        </tr>`;
-      }).join('');
-
-      rejectedCardList.innerHTML = items.map((t, i) => {
-        const addr = t.address || '';
-        const shortA = addr.length > 16 ? addr.slice(0, 8) + '...' + addr.slice(-6) : addr;
-        const tagsHtml = buildAllTags(t);
-        const scanTimeHtml = searchMode && t._scanTime ? `<div class="search-scan-time" style="margin-bottom:4px">📍 ${esc(t._scanTime)}</div>` : '';
-        return `<div class="token-card">
-          ${scanTimeHtml}
-          <div class="card-top">
-            <span><span class="card-name">${esc(t.symbol || '--')}</span><span class="card-symbol">${esc(t.name || '--')}</span></span>
-            <span class="card-holders">${t.holders || 0}</span>
+          <div class="card-meta">
+            <span>#${i + 1} · ${fmtAge(t.age_hours)}</span>
+            <span>峰值 ${t.peak_holders || 0}</span>
           </div>
-          <div class="card-addr-row">
-            <span class="card-addr-text">${shortA}</span>
-            <button class="copy-btn" onclick="copyAddr('${addr}')">Copy</button>
-            <a class="link-bsc" href="https://bscscan.com/token/${addr}" target="_blank" rel="noopener">BSC</a>
-            <a class="link-4m" href="https://four.meme/token/${addr}" target="_blank" rel="noopener">4M</a>
-          </div>
-          <div style="margin-top:6px"><span class="elim-reason">${esc(t.reason || '--')}</span></div>
-          ${tagsHtml ? '<div class="card-social">' + tagsHtml + '</div>' : ''}
-          <div class="card-meta"><span>#${i + 1} · ${fmtAge(t.age_hours)}</span></div>
         </div>`;
       }).join('');
     }
@@ -1969,8 +2276,7 @@
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
       document.getElementById('tokenTable').classList.toggle('hidden', tab !== 'filtered');
       document.getElementById('queueTable').classList.toggle('hidden', tab !== 'queue');
-      document.getElementById('elimTable').classList.toggle('hidden', tab !== 'eliminated');
-      document.getElementById('rejectedTable').classList.toggle('hidden', tab !== 'rejected');
+      document.getElementById('breakthroughTable').classList.toggle('hidden', tab !== 'breakthrough');
     }
 
     function esc(s) {
@@ -2022,7 +2328,7 @@
         const dotHtml = hasPassed ? '<span class="hist-dot"></span>' : '';
         return `<div class="hist-row${activeHistoryId === r.id ? ' active' : ''}" onclick="loadScan(${r.id})" data-id="${r.id}">
         <span class="ht">${r.scan_time}</span>
-        <span>队列:${r.queue_size != null ? r.queue_size : r.total_tokens} | 淘汰:${r.eliminated_count || 0} | ${dotHtml}精筛:<span class="hv">${r.filtered_tokens}</span></span>
+        <span>队列:${r.queue_size != null ? r.queue_size : r.total_tokens} | 突破:${r.breakthrough_count || 0} | ${dotHtml}精筛:<span class="hv">${r.filtered_tokens}</span></span>
       </div>`;
       }).join('');
     }
@@ -2143,11 +2449,12 @@
 
         const filtered = allResults.filter(t => t._source === 'filtered');
         const queue = allResults.filter(t => t._source === 'queue');
+        const breakthroughResults = allResults.filter(t => t._source === 'breakthrough');
         const eliminated = allResults.filter(t => t._source === 'eliminated');
         const rejected = allResults.filter(t => t._source === 'rejected');
 
         if (addrSearch) {
-          [allResults, filtered, queue, eliminated, rejected].forEach(arr =>
+          [allResults, filtered, queue, breakthroughResults, eliminated, rejected].forEach(arr =>
             arr.sort((a, b) => (b._scanTime || '').localeCompare(a._scanTime || '')));
         } else {
           allResults.sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
@@ -2159,6 +2466,7 @@
         const parts = [];
         if (filtered.length) parts.push(`精筛${filtered.length}`);
         if (queue.length) parts.push(`队列${queue.length}`);
+        if (breakthroughResults.length) parts.push(`已突破${breakthroughResults.length}`);
         if (eliminated.length) parts.push(`淘汰${eliminated.length}`);
         if (rejected.length) parts.push(`入场淘汰${rejected.length}`);
         const countDesc = addrSearch
@@ -2172,8 +2480,7 @@
           filteredTokens: filtered.length,
           tokens: filtered,
           queue: queue,
-          eliminatedThisRound: eliminated,
-          rejectedAtEntry: rejected,
+          breakthroughTokens: breakthroughResults,
         });
         showToast(allResults.length + ' 条结果');
       } catch (e) {
