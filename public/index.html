@@ -1173,6 +1173,7 @@
         <p class="filter-desc" id="filterDesc">
           链上扫描 four.meme TokenCreated 事件 → 入场筛(社交≥1、总量10亿、币龄&lt;48h) →
           队列淘汰(价格跌90%/持币30→10/持币跌70%(峰≥50)/无社交/流动性1k→100(仅毕业)/进度&lt;1%且币龄&gt;2h/进度&lt;5%且币龄&gt;4h/进度跌50%且币龄&gt;6h/15min峰值持币&lt;3/1h峰值持币&lt;5/币龄&gt;48h)
+          ⭐明星保护(峰值≥0.0001且当前≥峰值30%, 48h内免除其他淘汰)
           → 动量精筛(币龄≥15min/持币≥15/价格动量/持币增长/买卖比≥1.2/进度20%~97%/回撤保护/冷却6轮)
           → 精筛后防线(Top10持仓≤85%/开发者清仓撤池排除/假K线: 排除全阳线实体柱控盘币)<br>
           数据源: DexScreener 价格 · GeckoTerminal 已毕业持币数+K线 · four.meme Detail API · BSCScan Top Holder+开发者行为<br>
@@ -1422,6 +1423,7 @@
           <li>币龄 &gt; 15min 且最高持币 &lt; 3</li>
           <li>币龄 &gt; 1h 且最高持币 &lt; 5</li>
           <li>币龄 &gt; 48h</li>
+          <li>⭐ 明星保护: 峰值价格 ≥ 0.0001 且当前价 ≥ 峰值×30% → 48h 内免除其他淘汰条件（便于回顾）</li>
         </ul>
       </div>
 
@@ -1790,10 +1792,11 @@
         const addr = t.address || '';
         const tagsHtml = buildAllTags(t);
         const pctProgress = ((t.progress || 0) * 100).toFixed(1);
+        const starHtml = t.star_protected ? '<span style="color:#f0b90b;font-size:12px" title="明星保护: 峰值≥0.0001且未大跌">⭐</span>' : '';
         const scanTimeHtml = searchMode && t._scanTime ? `<span class="search-scan-time">📍 ${esc(t._scanTime)}</span>` : '';
         return `<tr>
           <td>${i + 1}</td>
-          <td><div class="name-cell"><span class="name-symbol-primary">${esc(t.symbol || '--')}</span><span class="name-secondary">${esc(t.name || '--')}</span>${scanTimeHtml}</div></td>
+          <td><div class="name-cell"><span class="name-symbol-primary">${starHtml}${esc(t.symbol || '--')}</span><span class="name-secondary">${esc(t.name || '--')}</span>${scanTimeHtml}</div></td>
           <td>${addrHtml(addr)}</td>
           <td style="text-align:right"><span class="holders-val">${t.holders || 0}</span><br><span class="holders-peak">峰${t.peak_holders || 0}</span></td>
           <td><div class="price-info"><span class="price-label">现</span> ${fmtPrice(t.price)}</div><div class="price-info"><span class="price-label">峰</span> ${fmtPrice(t.peak_price)}</div></td>
@@ -1809,11 +1812,12 @@
         const shortA = addr.length > 16 ? addr.slice(0, 8) + '...' + addr.slice(-6) : addr;
         const tagsHtml = buildAllTags(t);
         const pctProgress = ((t.progress || 0) * 100).toFixed(1);
+        const starHtml = t.star_protected ? '⭐' : '';
         const scanTimeHtml = searchMode && t._scanTime ? `<div class="search-scan-time" style="margin-bottom:4px">📍 ${esc(t._scanTime)}</div>` : '';
         return `<div class="token-card">
           ${scanTimeHtml}
           <div class="card-top">
-            <span><span class="card-name">${esc(t.symbol || '--')}</span><span class="card-symbol">${esc(t.name || '--')}</span></span>
+            <span><span class="card-name">${starHtml}${esc(t.symbol || '--')}</span><span class="card-symbol">${esc(t.name || '--')}</span></span>
             <span class="card-holders">${t.holders || 0}</span>
           </div>
           <div class="card-addr-row">

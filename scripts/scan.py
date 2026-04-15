@@ -36,6 +36,7 @@ v6 架构: 极速扫描 (1 分钟一轮)
   - 币龄 > 15min 且最高持币数 < 3
   - 币龄 > 1h 且最高持币数 < 5
   - 币龄 > 48h
+  - 明星保护: 峰值价格 ≥ 0.0001 且当前价 ≥ 峰值×30% → 48h 内免除其他淘汰条件 (便于回顾)
 
 精筛条件 (动量筛选):
   - 币龄 ≥ 15 分钟 (数据稳定后再判断)
@@ -208,6 +209,10 @@ ELIM_EARLY_PEAK_HOLDERS = 3           # 币龄>15min 最高持币数 < 3 淘汰
 ELIM_EARLY_AGE_MIN = 0.25             # 15 分钟 = 0.25h
 ELIM_MID_PEAK_HOLDERS = 5             # 币龄>1h 最高持币数 < 5 淘汰
 ELIM_MID_AGE_HOURS = 1                # 1 小时
+
+# 明星保护 (表现优异的代币免淘汰, 留在队列便于回顾)
+STAR_PROTECT_PEAK_PRICE = 0.0001      # 峰值价格 ≥ 0.0001 视为明星币
+STAR_PROTECT_MAX_DRAWDOWN = 0.70      # 明星币当前价 ≥ 峰值 × 30% 才保护 (跌超 70% 不保护)
 
 
 # 已知的 DEX Router 地址 (用于识别买入/卖出行为)
@@ -1854,7 +1859,19 @@ def elimination_check(queue: list[dict], now_ms: int,
     if not queue:
         return survivors, eliminated
 
-    # 1. 币龄淘汰 (无需 API)
+    # 0. 明星保护判定函数 (峰值价格突破阈值且未大跌 → 免非币龄淘汰条件)
+    # 注意: 币龄 > 48h 仍然正常淘汰, 明星保护只豁免其他淘汰条件
+    def _is_star_protected(t: dict) -> bool:
+        peak_p = t.get("peakPrice", 0)
+        cur_p = t.get("price", 0)
+        if peak_p < STAR_PROTECT_PEAK_PRICE:
+            return False
+        # 峰值够高, 且当前价没有从峰值暴跌
+        if cur_p > 0 and cur_p >= peak_p * (1 - STAR_PROTECT_MAX_DRAWDOWN):
+            return True
+        return False
+
+    # 1. 币龄淘汰 (无需 API, 明星币也不豁免)
     max_age_ms = MAX_AGE_HOURS * 3600 * 1000
     age_filtered = []
     for t in queue:
@@ -2013,8 +2030,15 @@ def elimination_check(queue: list[dict], now_ms: int,
             t["consecDrops"] = 0
         t["lastPrice"] = current_price
 
-        # --- 淘汰条件 ---
+        # --- 淘汰条件 (明星币跳过所有淘汰) ---
         elim_reason = None
+
+        if _is_star_protected(t):
+            t["starProtected"] = True
+            survivors.append(t)
+            continue
+
+        t["starProtected"] = False
 
         # 1. 价格从峰值跌 90%+
         peak = t.get("peakPrice", 0)
@@ -2684,6 +2708,7 @@ def main():
             "consec_drops": t.get("consecDrops", 0),
             "copycat_count": cc.get("count", 0),
             "is_copycat": cc.get("isCopycat", False),
+            "star_protected": t.get("starProtected", False),
         })
 
     # eliminatedThisRound: 本轮淘汰
