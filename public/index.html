@@ -1461,9 +1461,19 @@
           <li>BSC RPC — 链上 TokenCreated 事件发现</li>
           <li>four.meme Detail API — 代币详情 / 社交 / 进度 / 未毕业持币数</li>
           <li>DexScreener — 批量价格 / 流动性 / 交易量 / 买卖笔数</li>
-          <li>GeckoTerminal — 已毕业代币持币数 + 15min K线（假K线检测）</li>
+          <li>GeckoTerminal — 已毕业代币持币数 + 15min K线（假K线检测 + 峰值价格补充）</li>
           <li>BSCScan (Etherscan V2) — Top Holder 集中度 + 开发者行为分析（仅精筛后防线）</li>
         </ul>
+      </div>
+
+      <div class="about-section">
+        <h3>📈 峰值价格说明</h3>
+        <p style="font-size:11px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;">
+          峰值价格（峰）是代币在队列存活期间记录到的最高价格，用于淘汰判断（跌90%淘汰）、明星保护和回撤保护。
+          由于扫描间隔为 15 分钟，两轮扫描之间的价格冲高可能被遗漏。
+        </p>
+        <p style="font-size:11px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;"><strong>当前方案：</strong>每轮扫描时，同时用 GeckoTerminal 15 分钟 K 线的最高价（high）补充峰值，覆盖扫描间隔内的价格波动。对币龄 &lt; 6h 的代币生效。</p>
+        <p style="font-size:11px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;"><strong>已知局限：</strong>DexScreener、four.meme、GeckoTerminal 均不提供"历史最高价"字段。峰值依赖 K 线 high 值逐轮累积，精度为 15 分钟级别，无法达到秒级精度。对于瞬间冲高又回落的极端行情，峰值仍可能略低于真实最高价。</p>
       </div>
 
       <div class="about-section">
