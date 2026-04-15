@@ -1639,6 +1639,29 @@ def gt_ohlcv_15min(token_address: str, limit: int = 48) -> list[list]:
     return (data.get("data", {}).get("attributes", {}).get("ohlcv_list", []))
 
 
+def gt_batch_peak_prices(addresses: list[str]) -> dict[str, float]:
+    """
+    批量查询 GeckoTerminal 15 分钟 K线, 提取每个代币最近 2 根 K线的最高价
+    用于补充 peakPrice (扫描间隔内的价格冲高不会被 DexScreener 实时价捕获)
+    OHLCV 格式: [timestamp, open, high, low, close, volume], c[2] = high
+    限流策略: 串行查询, 每个请求间隔 2s, 避免触发 GT 30 req/min 限制
+    """
+    result = {}
+    if not addresses:
+        return result
+    for addr in addresses:
+        try:
+            candles = gt_ohlcv_15min(addr, limit=2)
+            if candles:
+                high = max(float(c[2]) for c in candles)
+                if high > 0:
+                    result[addr] = high
+        except Exception as e:
+            log.debug("GT K线峰值查询失败 [%s]: %s", addr[:16], e)
+        time.sleep(2)  # 限流: ~30 req/min
+    return result
+
+
 def detect_fake_candles(candles: list[list]) -> dict:
     """
     假K线检测: 识别价格被人为控制的代币
@@ -1940,13 +1963,21 @@ def elimination_check(queue: list[dict], now_ms: int,
                     detail_map[addr] = detail
         return detail_map
 
-    with ThreadPoolExecutor(max_workers=3) as pool:
+    with ThreadPoolExecutor(max_workers=4) as pool:
         ds_future = pool.submit(ds_batch_prices, addrs)
         detail_future = pool.submit(_fetch_all_details)
         grad_future = pool.submit(graduated_holder_counts, graduated_addrs)
+        # K线峰值: 只查币龄 < 6h 的代币 (老币峰值已在之前扫描中记录, 不会有大遗漏)
+        young_addrs = [t["address"] for t in pre_filtered
+                       if (now_ms - t.get("createdAt", 0)) / 3600000 < 6]
+        peak_future = pool.submit(gt_batch_peak_prices, young_addrs)
         ds_data = ds_future.result()
         detail_map = detail_future.result()
         grad_holders = grad_future.result()
+        ohlcv_peaks = peak_future.result()
+
+    if ohlcv_peaks:
+        log.info("K线峰值: 成功获取 %d/%d 个代币 (币龄<6h)", len(ohlcv_peaks), len(young_addrs))
 
     # 3. 逐个检查淘汰条件
     for t in pre_filtered:
@@ -2011,8 +2042,9 @@ def elimination_check(queue: list[dict], now_ms: int,
             t["buysH24"] = ds.get("buysH24", 0)
             t["sellsH24"] = ds.get("sellsH24", 0)
 
-        # 更新峰值
-        t["peakPrice"] = max(t.get("peakPrice", 0), current_price)
+        # 更新峰值 (K线 high 值补充: 覆盖扫描间隔内的价格冲高)
+        ohlcv_high = ohlcv_peaks.get(t["address"], 0)
+        t["peakPrice"] = max(t.get("peakPrice", 0), current_price, ohlcv_high)
         t["peakHolders"] = max(t.get("peakHolders", 0), current_holders)
         t["peakLiquidity"] = max(t.get("peakLiquidity", 0), current_liq)
         t["peakProgress"] = max(t.get("peakProgress", 0), current_progress)
