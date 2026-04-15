@@ -39,7 +39,9 @@ v6 架构: 极速扫描 (1 分钟一轮)
   - 价格突破: 峰值价格 ≥ 0.0001 → 从队列移出到「已突破」列表, 冻结快照不再跟踪
 
 精筛条件 (动量筛选):
-  - 币龄 ≥ 15 分钟 (数据稳定后再判断)
+  - 币龄 ≥ 1 小时 (太短归零风险大)
+  - 币龄 ≤ 36 小时 (太老失去市场关注)
+  - 当前价 ≤ 0.00005 (离突破线太近利润空间不够)
   - 持币地址数 ≥ 15
   - 价格动量: 当前价 ≥ 入队价 × 1.5 或 当前价 ≥ 历史最低价 × 2.5
   - 持币增长: 当前持币 ≥ 入队持币 × 1.5 或 近 3 轮持续递增
@@ -166,7 +168,9 @@ BINANCE_HEADERS = {
 MAX_AGE_HOURS = 48
 SCAN_INTERVAL_MIN = 15                 # GitHub Actions cron 间隔 (分钟)
 TOTAL_SUPPLY = 1_000_000_000           # 10亿
-QUALITY_MIN_AGE_MIN = 15               # 精筛: 币龄 ≥ 15 分钟 (数据稳定后再判断, 0-1h 币龄代币亏损率高)
+QUALITY_MIN_AGE_MIN = 60               # 精筛: 币龄 ≥ 1 小时 (太短的币归零风险大, 让它先证明自己不是骗局)
+QUALITY_MAX_AGE_HOURS = 36             # 精筛: 币龄 ≤ 36 小时 (太老的币失去市场关注, 动量不可信)
+QUALITY_MAX_PRICE = 0.00005            # 精筛: 当前价 ≤ 0.00005 (离突破线太近利润空间不够, 不追)
 QUALITY_MIN_HOLDERS = 15               # 精筛: 持币地址数 ≥ 15
 QUALITY_PRICE_MOMENTUM_VS_ADDED = 1.5  # 精筛: 当前价 ≥ 入队价 × 1.5
 QUALITY_PRICE_MOMENTUM_VS_LOW = 2.5    # 精筛: 当前价 ≥ 历史最低价 × 2.5
@@ -2188,12 +2192,21 @@ def quality_filter(candidates: list[dict], now_ms: int,
         if current_round - last_pass < QUALITY_COOLDOWN_ROUNDS:
             continue
 
-        # 条件 1: 币龄 ≥ 15 分钟 (太新的数据不稳定)
+        # 条件 1: 币龄 ≥ 1 小时 (太短的币归零风险大)
         if age_ms < min_age_ms:
+            continue
+
+        # 条件 1b: 币龄 ≤ 36 小时 (太老的币失去市场关注, 动量不可信)
+        age_hours = age_ms / 3600000
+        if age_hours > QUALITY_MAX_AGE_HOURS:
             continue
 
         # 条件 2: 持币地址数 ≥ 15
         if holders < QUALITY_MIN_HOLDERS:
+            continue
+
+        # 条件 2b: 当前价 ≤ 0.00005 (离突破线太近利润空间不够, 不追)
+        if current_price > QUALITY_MAX_PRICE:
             continue
 
         # 条件 3: 价格动量 (二选一)
