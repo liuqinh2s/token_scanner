@@ -24,8 +24,8 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
    → 从存活币中找起飞信号
 
 5. 精筛后防线 (~数秒)
-   BSCScan Top Holder 集中度 + 开发者行为分析
-   → 排除庄家控盘和跑路币
+   BSCScan Top Holder 集中度 + 开发者行为分析 + GeckoTerminal 假K线检测
+   → 排除庄家控盘、跑路币和控盘刷量币
 
 6. 仿盘检测
    本地统计同名代币数量 (零 API 调用)
@@ -110,6 +110,7 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 | Top10 持仓集中度 | ≤ 85% | BSCScan Top Holders，排除庄家控盘 |
 | 开发者清仓 | 卖出 ≥ 90% | BSCScan Transfer 分析，开发者跑路信号 |
 | 开发者撤池子 | LP token burn | 撤流动性，准备跑路 |
+| 假K线检测 | 无影线实体柱 ≥ 80% 或全阳线 ≥ 90% | GeckoTerminal 15min K线，排除控盘刷量币 |
 
 ### 开发者行为判定
 
@@ -172,6 +173,8 @@ npm run dev                     # 启动开发服务器（live-server）
 | `QUALITY_MAX_DRAWDOWN` | 0.50 | 精筛: 回撤保护 (当前价≥峰值×0.5) |
 | `QUALITY_COOLDOWN_ROUNDS` | 6 | 精筛: 同一代币冷却轮数 |
 | `QUALITY_MAX_TOP10_CONCENTRATION` | 0.85 | 精筛后防线: Top10持仓占比上限 |
+| `QUALITY_FAKE_CANDLE_RATIO` | 0.80 | 精筛后防线: 无影线实体柱占比上限 |
+| `QUALITY_FAKE_CANDLE_MIN_COUNT` | 4 | 精筛后防线: 假K线检测最少K线数 |
 | `ELIM_PRICE_DROP_PCT` | 0.90 | 价格跌幅淘汰阈值 |
 | `ELIM_HOLDERS_FLOOR` | 10 | 持币数淘汰下限 |
 | `ELIM_LIQ_FLOOR` | 100 | 流动性淘汰下限（USD） |
