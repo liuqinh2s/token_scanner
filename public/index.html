@@ -1472,7 +1472,8 @@
           峰值价格（峰）是代币在队列存活期间记录到的最高价格，用于淘汰判断（跌90%淘汰）、明星保护和回撤保护。
           由于扫描间隔为 15 分钟，两轮扫描之间的价格冲高可能被遗漏。
         </p>
-        <p style="font-size:11px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;"><strong>当前方案：</strong>每轮扫描时，同时用 GeckoTerminal 15 分钟 K 线的最高价（high）补充峰值，覆盖扫描间隔内的价格波动。对币龄 &lt; 6h 的代币生效。</p>
+        <p style="font-size:11px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;"><strong>当前方案：</strong>每轮扫描时，对存活 ≥ 12h 的老币用 GeckoTerminal 15 分钟 K 线的最高价（high）补充峰值。新币不查（数量多且大部分会被淘汰，避免浪费 API 配额拖慢扫描）。</p>
+        <p style="font-size:11px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;"><strong>分层策略：</strong>首次修复拉 48 根 K 线（12h 历史），补全之前遗漏的冲高；后续每轮只拉 4 根（1h），补上一轮间隔的遗漏。修复后打 peakFixed 标记，持久化在队列中。</p>
         <p style="font-size:11px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;"><strong>已知局限：</strong>DexScreener、four.meme、GeckoTerminal 均不提供"历史最高价"字段。峰值依赖 K 线 high 值逐轮累积，精度为 15 分钟级别，无法达到秒级精度。对于瞬间冲高又回落的极端行情，峰值仍可能略低于真实最高价。</p>
       </div>
 

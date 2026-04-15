@@ -39,7 +39,7 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 | four.meme Detail API | 社交链接/持币数(bonding curve阶段)/进度/募资额 | ~5 req/s |
 | DexScreener API | 批量价格+流动性+交易量+买卖笔数 | ~300 req/min |
 | GeckoTerminal Token Info | 持币地址数 (已毕业代币, 链上索引) | ~30 req/min |
-| GeckoTerminal OHLCV | 15min K线峰值价格补充 (币龄<6h代币) | ~30 req/min (共享) |
+| GeckoTerminal OHLCV | 15min K线峰值价格补充 (存活≥12h老币) | ~30 req/min (共享) |
 | BSCScan API (Etherscan V2) | Top Holder 集中度 + 开发者行为分析 (仅精筛后防线) | ~5 req/s |
 | 本地队列统计 | 仿盘检测：同名/近似名代币数量 | 无 |
 
@@ -49,7 +49,9 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 
 **问题：** 扫描间隔为 15 分钟，仅靠每轮 DexScreener 实时价格做 `max()` 更新，两轮之间的价格冲高会被完全遗漏，导致峰值偏低。
 
-**当前方案：** 每轮淘汰检查时，额外查询 GeckoTerminal 15 分钟 K 线（limit=2，覆盖最近 30 分钟），取 high 值补充峰值。对币龄 < 6h 的代币生效（老币峰值已在之前多轮扫描中积累）。K 线查询与 DS/detail 并行执行，不额外增加扫描耗时。
+**当前方案：** 每轮淘汰检查时，对存活 ≥ 12h 的老币额外查询 GeckoTerminal 15 分钟 K 线，取 high 值补充峰值。新币不查（数量多且大部分会被淘汰，查了浪费 API 配额和时间）。K 线查询与 DS/detail 并行执行，不额外增加扫描耗时。
+
+K 线数量采用分层策略：首次修复（无 `peakFixed` 标记）拉 48 根 K 线（覆盖 12 小时历史），补全老币之前可能遗漏的冲高；后续轮次（已有 `peakFixed` 标记）只拉 4 根（覆盖 1 小时），仅补上一轮扫描间隔的遗漏。成功获取 K 线最高价后打上 `peakFixed` 标记，持久化在队列中。
 
 **已知局限：** DexScreener、four.meme、GeckoTerminal 均不提供"历史最高价"（ATH）字段。峰值依赖 K 线 high 值逐轮累积，精度为 15 分钟级别，无法达到秒级精度。对于极短时间内冲高又回落的行情，峰值仍可能略低于真实最高价。
 
