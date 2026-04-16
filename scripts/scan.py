@@ -46,11 +46,12 @@ v6 架构: 极速扫描 (1 分钟一轮)
   - 持币地址数 ≥ 15
   - 价格动量: 当前价 ≥ 入队价 × 1.5 或 当前价 ≥ 历史最低价 × 2.5
   - 持币增长: 当前持币 ≥ 入队持币 × 1.5 或 近 3 轮持续递增
-  - 进度 ≥ 20% 且 < 97% (已毕业/接近毕业代币买入即亏)
+  - 进度 ≥ 40% 且 < 97% (已毕业/接近毕业代币买入即亏)
   - 进度从 10%+ 跌破 5% 排除 (衰退信号)
   - 已毕业代币流动性 ≥ $500
   - 买卖比 ≥ 1.2 (买入笔数/卖出笔数, 买压>卖压)
-  - 价格加速度 ≥ 5% (最近 2 轮价格上涨速率)
+  - 价格加速度 ≥ 15% (最近 2 轮价格上涨速率)
+  - 进度加速度 ≥ 5% (最近 2 轮进度增长, 资金持续涌入信号)
   - 持币增速 ≥ 10% (最近 2 轮持币增长速率)
   - 回撤保护: 当前价 ≥ 峰值 × 0.5 (从峰值跌超 50% 不推)
   - 精筛冷却: 同一代币通过精筛后, 6 轮内不再重复推送
@@ -177,7 +178,7 @@ QUALITY_PRICE_MOMENTUM_VS_ADDED = 1.5  # 精筛: 当前价 ≥ 入队价 × 1.5
 QUALITY_PRICE_MOMENTUM_VS_LOW = 2.5    # 精筛: 当前价 ≥ 历史最低价 × 2.5
 QUALITY_HOLDERS_GROWTH_VS_ADDED = 1.5  # 精筛: 当前持币 ≥ 入队持币 × 1.5
 QUALITY_HOLDERS_CONSEC_ROUNDS = 3      # 精筛: 持币数连续递增轮数 ≥ 3
-QUALITY_MIN_PROGRESS = 0.20            # 精筛: 进度 ≥ 20% (10%以下代币表现差, 提高门槛)
+QUALITY_MIN_PROGRESS = 0.40            # 精筛: 进度 ≥ 40% (历史数据: 40%+代币avg 2.2x, 20-40%代币avg 1.4x)
 QUALITY_MAX_PROGRESS = 0.97            # 精筛: 进度 < 97% (已毕业/接近毕业代币买入即亏, 排除)
 QUALITY_PROGRESS_DROP_PEAK = 0.10     # 精筛: 进度曾达到 10% 以上
 QUALITY_PROGRESS_DROP_FLOOR = 0.05    # 精筛: 进度从 10%+ 跌破 5% 则排除
@@ -186,7 +187,8 @@ QUALITY_MAX_DRAWDOWN = 0.50           # 精筛: 当前价 ≥ 峰值 × 0.5 (回
 QUALITY_COOLDOWN_ROUNDS = 6           # 精筛: 同一代币冷却轮数 (通过后 N 轮内不再推送)
 QUALITY_MIN_BUY_SELL_RATIO = 1.2      # 精筛: 买卖比 ≥ 1.2 (买入笔数/卖出笔数, 买压>卖压)
 QUALITY_MIN_VOLUME_USD = 100          # 精筛: 24h 交易量 ≥ $100 (有真实交易活动)
-QUALITY_MIN_PRICE_ACCEL = 0.05        # 精筛: 价格加速度 ≥ 5% (最近 2 轮价格变化率)
+QUALITY_MIN_PRICE_ACCEL = 0.15        # 精筛: 价格加速度 ≥ 15% (最近 2 轮价格变化率, 历史数据: ≥20%止盈率75%)
+QUALITY_MIN_PROGRESS_ACCEL = 0.05     # 精筛: 进度加速度 ≥ 5% (最近 2 轮进度变化, 历史数据: ≥5%+价格涨≥10%止盈率91%)
 QUALITY_MIN_HOLDERS_GROWTH_RATE = 0.10  # 精筛: 持币增速 ≥ 10% (最近 2 轮持币变化率)
 QUALITY_MAX_TOP10_CONCENTRATION = 0.85  # 精筛: Top10 持仓占比 ≤ 85% (防庄家控盘)
 QUALITY_FAKE_CANDLE_RATIO = 0.80       # 精筛: 实体柱占比 ≥ 80% 判定为假K线 (无影线=价格被控制)
@@ -2055,6 +2057,11 @@ def elimination_check(queue: list[dict], now_ms: int,
         price_hist.append(current_price)
         t["priceHistory"] = price_hist[-5:]
 
+        # 记录进度历史 (只保留最近 5 轮, 与 priceHistory 对齐)
+        prog_hist = t.get("progressHistory", [])
+        prog_hist.append(current_progress)
+        t["progressHistory"] = prog_hist[-5:]
+
         # 连续下跌计数
         last_price = t.get("lastPrice", 0)
         if last_price > 0 and current_price < last_price:
@@ -2174,11 +2181,12 @@ def quality_filter(candidates: list[dict], now_ms: int,
       - 持币地址数 ≥ 15
       - 价格动量: 当前价 ≥ 入队价 × 1.5 或 当前价 ≥ 历史最低价 × 2.5
       - 持币增长: 当前持币 ≥ 入队持币 × 1.5 或 近 3 轮持续递增
-      - 进度 ≥ 20% 且 < 97% (进度低表现差; 已毕业/接近毕业代币买入即亏)
+      - 进度 ≥ 40% 且 < 97% (进度低表现差; 已毕业/接近毕业代币买入即亏)
       - 进度从 10%+ 跌破 5% 排除 (衰退信号)
       - 已毕业代币流动性 ≥ $500
       - 买卖比 ≥ 1.2 (买压 > 卖压, 有人在吸筹)
-      - 价格加速度 ≥ 5% (最近 2 轮价格上涨速率)
+      - 价格加速度 ≥ 15% (最近 2 轮价格上涨速率)
+      - 进度加速度 ≥ 5% (最近 2 轮进度增长, 资金持续涌入)
       - 持币增速 ≥ 10% (最近 2 轮持币增长速率)
       - 回撤保护: 当前价 ≥ 峰值 × 0.5 (从峰值跌超 50% 不推)
       - 精筛冷却: 同一代币通过精筛后, 6 轮内不再重复推送
@@ -2287,7 +2295,7 @@ def quality_filter(candidates: list[dict], now_ms: int,
         if not holders_ok:
             continue
 
-        # 条件 5: 进度 ≥ 20% 且 < 97% (已毕业/接近毕业代币买入即亏)
+        # 条件 5: 进度 ≥ 40% 且 < 97% (已毕业/接近毕业代币买入即亏)
         if progress < QUALITY_MIN_PROGRESS:
             continue
         if progress >= QUALITY_MAX_PROGRESS:
@@ -2330,7 +2338,15 @@ def quality_filter(candidates: list[dict], now_ms: int,
                 if holders_growth_rate < QUALITY_MIN_HOLDERS_GROWTH_RATE:
                     continue
 
-        # 条件 9: 仿盘标记 (不排除, 仅标记)
+        # 条件 9: 进度加速度 (最近 2 轮进度变化 ≥ 5%)
+        prog_hist = t.get("progressHistory", [])
+        if len(prog_hist) >= 2:
+            prev_prog = prog_hist[-2]
+            prog_accel = progress - prev_prog
+            if prog_accel < QUALITY_MIN_PROGRESS_ACCEL:
+                continue
+
+        # 条件 10: 仿盘标记 (不排除, 仅标记)
 
         results.append(t)
         # 记录本轮通过精筛
