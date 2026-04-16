@@ -144,6 +144,64 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 | 开发者撤池子 | LP token burn | 撤流动性，准备跑路 |
 | 假K线检测 | 无影线实体柱 ≥ 80% 或全阳线 ≥ 90% | GeckoTerminal 15min K线，排除控盘刷量币 |
 
+## 待启用的数据源（已实现未接入）
+
+代码中已实现但扫描主流程未调用的函数和数据，后续可接入以提升筛选准确率。
+
+> 注意：币安 Web3 API 可能禁止美国 IP 访问。本项目运行在 GitHub Actions（美国服务器），需验证可用性后再决定是否接入。姊妹项目 `token_trading`（韩国首尔服务器）已确认可用。
+
+### 币安 Web3 Token Dynamic API (`fetch_binance_token_dynamic`)
+
+对精筛后防线价值最大的数据源，单次调用即可获取以下字段：
+
+| 字段 | 含义 | 潜在用途 |
+|------|------|----------|
+| `top10HoldersPercentage` | Top10 持仓占比 | 替代当前失效的 BSCScan `tokenholderlist`，判断庄家控盘 |
+| `devHoldingPercent` | 开发者持仓占比 | 开发者持仓过高=跑路风险，过低=已清仓 |
+| `smartMoneyHolders` | 聪明钱持仓人数 | 聪明钱在买=正向信号 |
+| `smartMoneyHoldingPercent` | 聪明钱持仓占比 | 聪明钱重仓=高置信度 |
+| `kolHolders` | KOL 持仓人数 | KOL 关注=有传播潜力 |
+| `kolHoldingPercent` | KOL 持仓占比 | KOL 重仓=强信号 |
+| `proHolders` | 专业交易者人数 | 专业玩家在场=非纯散户盘 |
+| `proHoldingPercent` | 专业交易者持仓占比 | 专业玩家重仓=值得跟 |
+| `percentChange1h` | 1h 涨跌幅 | 短期动量参考 |
+| `percentChange24h` | 24h 涨跌幅 | 中期趋势参考 |
+
+当前问题：精筛后防线的 Top10 检查用 BSCScan `tokenholderlist` API，但 four.meme 未毕业代币不产生标准 ERC20 Transfer，BSCScan 索引不到 holder 列表，导致 `top10_concentration` 全部为 null（115 条精筛记录无一有值）。用币安 Token Dynamic API 可直接解决。
+
+### 币安聪明钱信号 (`fetch_binance_smart_signals`)
+
+| 字段 | 含义 | 潜在用途 |
+|------|------|----------|
+| `direction` | 买入/卖出方向 | 聪明钱正在买入=强正向信号 |
+| `smartMoneyCount` | 聪明钱数量 | 多个聪明钱同时买入=高置信度 |
+| `exitRate` | 退出率 | 退出率高=风险信号 |
+| `maxGain` | 最大收益 | 历史收益参考 |
+| `tagEvents` | 敏感事件标签 | 风险预警（如 rug pull 标记） |
+
+### 钱包分析 (`batch_wallet_analysis`)
+
+整合开发者行为 + 币安信号 + 聪明钱匹配的完整分析流程，已实现但未在扫描主流程中调用。
+
+### DexScreener 未使用字段
+
+当前 `ds_batch_prices` 已提取价格/流动性/交易量/买卖笔数，但 DexScreener API 还返回了以下字段被丢弃：
+
+| 字段 | 含义 | 潜在用途 |
+|------|------|----------|
+| `priceChange` (m5/h1/h6/h24) | 各时间段涨跌幅 | 多时间维度动量判断，比自己算更准 |
+| `fdv` | 完全稀释估值 | 估值过高的币利润空间小 |
+| `marketCap` | 市值 | 市值筛选 |
+| `boosts.active` | 是否有付费推广 | 有推广=项目方在花钱运营，正向信号 |
+| `info.socials` | 社交媒体列表 | 补充 four.meme 的社交数据 |
+
+### 优先级建议
+
+1. 币安 Token Dynamic → 替换 BSCScan Top Holder（解决 top10 数据缺失问题，同时获得聪明钱/KOL/开发者持仓）
+2. DexScreener `priceChange` → 零额外 API 调用，直接从现有响应中提取
+3. 币安聪明钱信号 → 作为精筛加分项或防线加固
+4. DexScreener `boosts` → 零额外调用，项目方付费推广是正向信号
+
 ### 开发者行为判定
 
 - 开发者地址来源：链上 `TokenCreated` 事件解码的 `creator` 字段
