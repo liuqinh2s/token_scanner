@@ -2119,13 +2119,13 @@
           <div class="ios-toggle" id="themeIosToggle" onclick="event.stopPropagation();toggleMobileTheme(event)"></div>
         </div>
       </div>
-      <div class="settings-row" onclick="toggleMobileAutoRefresh(event)">
+      <div class="settings-row" onclick="toggleMobileAutoRefresh()">
         <div class="settings-row-left">
           <span class="settings-row-icon">🔄</span>
           <span class="settings-row-label">自动刷新</span>
         </div>
         <div class="settings-row-right">
-          <div class="ios-toggle" id="autoRefreshIosToggle" onclick="event.stopPropagation();toggleMobileAutoRefresh(event)"></div>
+          <div class="ios-toggle" id="autoRefreshIosToggle" onclick="event.stopPropagation();toggleMobileAutoRefresh()"></div>
         </div>
       </div>
       <div class="settings-row" onclick="openAboutFromSettings()">
@@ -2333,20 +2333,19 @@
       autoRefreshEnabled = !autoRefreshEnabled;
       const dot = document.getElementById('refreshDot');
       const label = document.getElementById('refreshLabel');
-      if (autoRefreshEnabled) {
-        dot.classList.remove('paused');
-        label.textContent = '自动刷新: ON';
-      } else {
-        dot.classList.add('paused');
-        label.textContent = '自动刷新: OFF';
-      }
+      if (dot) dot.classList.toggle('paused', !autoRefreshEnabled);
+      if (label) label.textContent = autoRefreshEnabled ? '自动刷新: ON' : '自动刷新: OFF';
       updateAutoRefreshIosToggle();
     }
 
     /* 手机端设置页自动刷新切换 */
-    function toggleMobileAutoRefresh(e) {
-      if (e) e.stopPropagation();
-      toggleAutoRefresh();
+    function toggleMobileAutoRefresh() {
+      autoRefreshEnabled = !autoRefreshEnabled;
+      const dot = document.getElementById('refreshDot');
+      const label = document.getElementById('refreshLabel');
+      if (dot) dot.classList.toggle('paused', !autoRefreshEnabled);
+      if (label) label.textContent = autoRefreshEnabled ? '自动刷新: ON' : '自动刷新: OFF';
+      updateAutoRefreshIosToggle();
     }
 
     function updateAutoRefreshIosToggle() {
