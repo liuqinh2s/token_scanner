@@ -2872,12 +2872,20 @@ def main():
             "breakthrough_at": t.get("breakthroughAt", 0),
         })
 
+    # 统计近48小时淘汰的唯一代币数 (从 queue_state 累计, 前端直接读取)
+    cutoff_48h = now_ms - 48 * 3600 * 1000
+    elim_48h_addrs = set()
+    for e in queue_state.get("eliminated", []):
+        if e.get("eliminatedAt", 0) >= cutoff_48h and e.get("address"):
+            elim_48h_addrs.add(e["address"])
+
     output = {
         "scanTime": scan_time_str,
         "totalTokens": len(new_on_chain),
         "newDiscovered": len(new_on_chain),
         "newAdmitted": len(admitted),
         "eliminatedCount": len(eliminated),
+        "eliminatedTotal48h": len(elim_48h_addrs),
         "breakthroughCount": len(breakthrough_tokens),
         "filteredTokens": len(quality_results),
         "queueSize": len(survivors),
