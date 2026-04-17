@@ -1577,6 +1577,7 @@
         color: var(--text-secondary);
         border: 1px solid var(--border-primary);
         border-right: none;
+        border-radius: 0;
         cursor: pointer;
         transition: all .2s;
         font-weight: 500;
@@ -2187,402 +2188,402 @@
         <div id="searchRejectedCards" style="display:none"></div>
       </div>
     </div>
+  </div>
 
-    <!-- 设置页面（手机端） -->
-    <div class="settings-page hidden" id="settingsPage">
-      <h2>设置</h2>
-      <div class="settings-group">
-        <div class="settings-row" onclick="toggleMobileTheme(event)">
-          <div class="settings-row-left">
-            <span class="settings-row-icon">🎨</span>
-            <span class="settings-row-label">深色模式</span>
-          </div>
-          <div class="settings-row-right">
-            <div class="ios-toggle" id="themeIosToggle" onclick="event.stopPropagation();toggleMobileTheme(event)">
-            </div>
+  <!-- 设置页面（手机端） -->
+  <div class="settings-page hidden" id="settingsPage">
+    <h2>设置</h2>
+    <div class="settings-group">
+      <div class="settings-row" onclick="toggleMobileTheme(event)">
+        <div class="settings-row-left">
+          <span class="settings-row-icon">🎨</span>
+          <span class="settings-row-label">深色模式</span>
+        </div>
+        <div class="settings-row-right">
+          <div class="ios-toggle" id="themeIosToggle" onclick="event.stopPropagation();toggleMobileTheme(event)">
           </div>
         </div>
-        <div class="settings-row" onclick="toggleMobileAutoRefresh()">
-          <div class="settings-row-left">
-            <span class="settings-row-icon">🔄</span>
-            <span class="settings-row-label">自动刷新</span>
-          </div>
-          <div class="settings-row-right">
-            <div class="ios-toggle" id="autoRefreshIosToggle"
-              onclick="event.stopPropagation();toggleMobileAutoRefresh()">
-            </div>
+      </div>
+      <div class="settings-row" onclick="toggleMobileAutoRefresh()">
+        <div class="settings-row-left">
+          <span class="settings-row-icon">🔄</span>
+          <span class="settings-row-label">自动刷新</span>
+        </div>
+        <div class="settings-row-right">
+          <div class="ios-toggle" id="autoRefreshIosToggle" onclick="event.stopPropagation();toggleMobileAutoRefresh()">
           </div>
         </div>
-        <div class="settings-row" onclick="openAboutFromSettings()">
-          <div class="settings-row-left">
-            <span class="settings-row-icon">ℹ️</span>
-            <span class="settings-row-label">关于</span>
-          </div>
-          <div class="settings-row-right">
-            <span class="chevron">›</span>
-          </div>
+      </div>
+      <div class="settings-row" onclick="openAboutFromSettings()">
+        <div class="settings-row-left">
+          <span class="settings-row-icon">ℹ️</span>
+          <span class="settings-row-label">关于</span>
+        </div>
+        <div class="settings-row-right">
+          <span class="chevron">›</span>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- 关于页面（从设置进入） -->
-    <div class="about-page hidden" id="aboutPage">
-      <div class="about-page-header">
-        <button class="about-back-btn" onclick="backToSettings()"><svg viewBox="0 0 24 24">
-            <polyline points="15 18 9 12 15 6" />
-          </svg></button>
-        <h2>关于</h2>
+  <!-- 关于页面（从设置进入） -->
+  <div class="about-page hidden" id="aboutPage">
+    <div class="about-page-header">
+      <button class="about-back-btn" onclick="backToSettings()"><svg viewBox="0 0 24 24">
+          <polyline points="15 18 9 12 15 6" />
+        </svg></button>
+      <h2>关于</h2>
+    </div>
+    <div class="about-content">
+      <h2>BSC Token Scanner</h2>
+      <p class="about-subtitle">链上发现 · 队列淘汰 · 增量精筛 · 极速 15min</p>
+
+      <div class="about-section">
+        <h3>🔍 扫描流程</h3>
+        <div class="about-flow">
+          <div class="flow-step">
+            <span class="flow-num">1</span>
+            <div>
+              <div class="flow-title">链上发现 (~1s)</div>
+              <div class="flow-desc">BSC RPC eth_getLogs 扫描 four.meme TokenCreated 事件，100% 覆盖链上新代币</div>
+            </div>
+          </div>
+          <div class="flow-step">
+            <span class="flow-num">2</span>
+            <div>
+              <div class="flow-title">入场筛选 (~数秒)</div>
+              <div class="flow-desc">four.meme Detail API → 淘汰无社交 / 总量≠10亿 / 币龄过大</div>
+            </div>
+          </div>
+          <div class="flow-step">
+            <span class="flow-num">3</span>
+            <div>
+              <div class="flow-title">队列淘汰 (~数秒)</div>
+              <div class="flow-desc">DexScreener 批量查价 + GeckoTerminal 持币数 + Detail API → 永久淘汰弃盘币</div>
+            </div>
+          </div>
+          <div class="flow-step">
+            <span class="flow-num">4</span>
+            <div>
+              <div class="flow-title">增量精筛 (瞬时)</div>
+              <div class="flow-desc">从存活币中找起飞信号：近 1~3 轮持币+45 / 进度+20%(未毕业)或流动性+5%(已毕业) / 价格+20%</div>
+            </div>
+          </div>
+          <div class="flow-step">
+            <span class="flow-num">5</span>
+            <div>
+              <div class="flow-title">仿盘检测 (零 API)</div>
+              <div class="flow-desc">本地统计同名代币数量，≥3 个同名标记为仿盘（仅标记，不排除）</div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="about-content">
-        <h2>BSC Token Scanner</h2>
-        <p class="about-subtitle">链上发现 · 队列淘汰 · 增量精筛 · 极速 15min</p>
 
-        <div class="about-section">
-          <h3>🔍 扫描流程</h3>
-          <div class="about-flow">
-            <div class="flow-step">
-              <span class="flow-num">1</span>
-              <div>
-                <div class="flow-title">链上发现 (~1s)</div>
-                <div class="flow-desc">BSC RPC eth_getLogs 扫描 four.meme TokenCreated 事件，100% 覆盖链上新代币</div>
-              </div>
-            </div>
-            <div class="flow-step">
-              <span class="flow-num">2</span>
-              <div>
-                <div class="flow-title">入场筛选 (~数秒)</div>
-                <div class="flow-desc">four.meme Detail API → 淘汰无社交 / 总量≠10亿 / 币龄过大</div>
-              </div>
-            </div>
-            <div class="flow-step">
-              <span class="flow-num">3</span>
-              <div>
-                <div class="flow-title">队列淘汰 (~数秒)</div>
-                <div class="flow-desc">DexScreener 批量查价 + GeckoTerminal 持币数 + Detail API → 永久淘汰弃盘币</div>
-              </div>
-            </div>
-            <div class="flow-step">
-              <span class="flow-num">4</span>
-              <div>
-                <div class="flow-title">增量精筛 (瞬时)</div>
-                <div class="flow-desc">从存活币中找起飞信号：近 1~3 轮持币+45 / 进度+20%(未毕业)或流动性+5%(已毕业) / 价格+20%</div>
-              </div>
-            </div>
-            <div class="flow-step">
-              <span class="flow-num">5</span>
-              <div>
-                <div class="flow-title">仿盘检测 (零 API)</div>
-                <div class="flow-desc">本地统计同名代币数量，≥3 个同名标记为仿盘（仅标记，不排除）</div>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div class="about-section">
+        <h3>❌ 淘汰条件</h3>
+        <ul class="about-list">
+          <li>价格从峰值跌 90%+</li>
+          <li>持币数从 ≥30 跌破 10</li>
+          <li>持币数从峰值跌 70%+（峰值≥50，清理僵尸币）</li>
+          <li>无社交媒体</li>
+          <li>流动性从 &gt;$1k 跌破 $100（仅已毕业代币）</li>
+          <li>进度 &lt; 1% 且币龄 &gt; 2h</li>
+          <li>进度 &lt; 5% 且币龄 &gt; 4h</li>
+          <li>进度从峰值跌 50%+ 且币龄 &gt; 6h（热度消退）</li>
+          <li>币龄 &gt; 15min 且最高持币 &lt; 3</li>
+          <li>币龄 &gt; 1h 且最高持币 &lt; 5</li>
+          <li>币龄 &gt; 48h</li>
+          <li>🚀 价格突破: 峰值价格 ≥ 0.0001 → 标记为「已突破」，保留在队列中继续跟踪，仅受币龄淘汰</li>
+        </ul>
+      </div>
 
-        <div class="about-section">
-          <h3>❌ 淘汰条件</h3>
-          <ul class="about-list">
-            <li>价格从峰值跌 90%+</li>
-            <li>持币数从 ≥30 跌破 10</li>
-            <li>持币数从峰值跌 70%+（峰值≥50，清理僵尸币）</li>
-            <li>无社交媒体</li>
-            <li>流动性从 &gt;$1k 跌破 $100（仅已毕业代币）</li>
-            <li>进度 &lt; 1% 且币龄 &gt; 2h</li>
-            <li>进度 &lt; 5% 且币龄 &gt; 4h</li>
-            <li>进度从峰值跌 50%+ 且币龄 &gt; 6h（热度消退）</li>
-            <li>币龄 &gt; 15min 且最高持币 &lt; 3</li>
-            <li>币龄 &gt; 1h 且最高持币 &lt; 5</li>
-            <li>币龄 &gt; 48h</li>
-            <li>🚀 价格突破: 峰值价格 ≥ 0.0001 → 标记为「已突破」，保留在队列中继续跟踪，仅受币龄淘汰</li>
-          </ul>
-        </div>
+      <div class="about-section">
+        <h3>✅ 精筛条件（增量筛选）</h3>
+        <p style="font-size:11px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;">
+          核心思路：近期有真实增长才推。判断窗口：近 1~3 轮（先查 3 轮差 → 2 轮差 → 1 轮差，任一窗口满足即可）。
+        </p>
+        <ul class="about-list">
+          <li>持币增量: 近 1~3 轮持币数增长 ≥ 45（有真实买盘涌入）</li>
+          <li>动力增量（未毕业）: 近 1~3 轮进度增长 ≥ 20%（资金持续涌入 bonding curve）</li>
+          <li>动力增量（已毕业）: 近 1~3 轮流动性增长 ≥ 5%（毕业后流动性持续增加）</li>
+          <li>价格增量: 近 1~3 轮价格涨幅 ≥ 20%（价格正在加速上涨）</li>
+          <li>仿盘数: 仅标记, 不排除（仿盘多=热门信号）</li>
+        </ul>
+      </div>
 
-        <div class="about-section">
-          <h3>✅ 精筛条件（增量筛选）</h3>
-          <p style="font-size:11px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;">
-            核心思路：近期有真实增长才推。判断窗口：近 1~3 轮（先查 3 轮差 → 2 轮差 → 1 轮差，任一窗口满足即可）。
-          </p>
-          <ul class="about-list">
-            <li>持币增量: 近 1~3 轮持币数增长 ≥ 45（有真实买盘涌入）</li>
-            <li>动力增量（未毕业）: 近 1~3 轮进度增长 ≥ 20%（资金持续涌入 bonding curve）</li>
-            <li>动力增量（已毕业）: 近 1~3 轮流动性增长 ≥ 5%（毕业后流动性持续增加）</li>
-            <li>价格增量: 近 1~3 轮价格涨幅 ≥ 20%（价格正在加速上涨）</li>
-            <li>仿盘数: 仅标记, 不排除（仿盘多=热门信号）</li>
-          </ul>
-        </div>
+      <div class="about-section">
+        <h3>📊 数据源</h3>
+        <ul class="about-list">
+          <li>BSC RPC — 链上 TokenCreated 事件发现</li>
+          <li>four.meme Detail API — 代币详情 / 社交 / 进度 / 未毕业持币数</li>
+          <li>DexScreener — 批量价格 / 流动性 / 交易量 / 买卖笔数</li>
+          <li>GeckoTerminal — 已毕业代币持币数</li>
+        </ul>
+      </div>
 
-        <div class="about-section">
-          <h3>📊 数据源</h3>
-          <ul class="about-list">
-            <li>BSC RPC — 链上 TokenCreated 事件发现</li>
-            <li>four.meme Detail API — 代币详情 / 社交 / 进度 / 未毕业持币数</li>
-            <li>DexScreener — 批量价格 / 流动性 / 交易量 / 买卖笔数</li>
-            <li>GeckoTerminal — 已毕业代币持币数</li>
-          </ul>
-        </div>
+      <div class="about-section">
+        <h3>📈 目标价区间</h3>
+        <p style="font-size:11px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;">
+          目标价区间: 0.000001 ~ 0.0001。尽可能低价买入，等突破 0.0001 卖出。
+        </p>
+        <p style="font-size:11px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;">
+          峰值价格突破 0.0001 的代币标记为「已突破」，保留在队列中继续跟踪更新，仅受币龄 &gt;48h 淘汰。
+          已突破代币可正常参与精筛，同时出现在队列存活和已突破 tab 中。
+        </p>
+        <p style="font-size:11px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;">
+          剥离已突破的币后，队列更精简，扫描更快，完全聚焦在还没涨的目标币上。已突破的币单独展示，便于回顾和统计分析。
+        </p>
+      </div>
 
-        <div class="about-section">
-          <h3>📈 目标价区间</h3>
-          <p style="font-size:11px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;">
-            目标价区间: 0.000001 ~ 0.0001。尽可能低价买入，等突破 0.0001 卖出。
-          </p>
-          <p style="font-size:11px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;">
-            峰值价格突破 0.0001 的代币标记为「已突破」，保留在队列中继续跟踪更新，仅受币龄 &gt;48h 淘汰。
-            已突破代币可正常参与精筛，同时出现在队列存活和已突破 tab 中。
-          </p>
-          <p style="font-size:11px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;">
-            剥离已突破的币后，队列更精简，扫描更快，完全聚焦在还没涨的目标币上。已突破的币单独展示，便于回顾和统计分析。
-          </p>
-        </div>
-
-        <div class="about-section">
-          <h3>🏷️ 标签说明</h3>
-          <div class="about-tags">
-            <span class="tag tag-copycat">🔥 仿盘</span> <span class="about-tag-desc">≥3 个同名代币标记（仅标记，不排除）</span>
-            <span class="tag tag-twitter">𝕏</span> <span class="about-tag-desc">Twitter</span>
-            <span class="tag tag-telegram">TG</span> <span class="about-tag-desc">Telegram</span>
-            <span class="tag tag-website">Web</span> <span class="about-tag-desc">官网</span>
-          </div>
+      <div class="about-section">
+        <h3>🏷️ 标签说明</h3>
+        <div class="about-tags">
+          <span class="tag tag-copycat">🔥 仿盘</span> <span class="about-tag-desc">≥3 个同名代币标记（仅标记，不排除）</span>
+          <span class="tag tag-twitter">𝕏</span> <span class="about-tag-desc">Twitter</span>
+          <span class="tag tag-telegram">TG</span> <span class="about-tag-desc">Telegram</span>
+          <span class="tag tag-website">Web</span> <span class="about-tag-desc">官网</span>
         </div>
       </div>
     </div>
+  </div>
 
-    <script>
-      let historyVisible = false;
-      let currentTab = 'filtered';
-      let currentData = null;
-      let activeHistoryId = null;
-      let autoRefreshEnabled = true;
-      const cache = {};
-      const isDesktop = () => window.innerWidth > 768;
+  <script>
+    let historyVisible = false;
+    let currentTab = 'filtered';
+    let currentData = null;
+    let activeHistoryId = null;
+    let autoRefreshEnabled = true;
+    const cache = {};
+    const isDesktop = () => window.innerWidth > 768;
 
-      /* 主题切换 */
-      function toggleTheme() {
-        const html = document.documentElement;
-        const current = html.getAttribute('data-theme');
-        const next = current === 'dark' ? 'light' : 'dark';
-        html.setAttribute('data-theme', next);
-        localStorage.setItem('theme', next);
-        updateThemeIcon();
-        updateIosToggle();
-      }
-
-      function updateThemeIcon() {
-        const btn = document.getElementById('themeToggle');
-        if (!btn) return;
-        const theme = document.documentElement.getAttribute('data-theme');
-        btn.textContent = theme === 'dark' ? '🌙' : '☀️';
-        btn.title = theme === 'dark' ? '切换到白色主题' : '切换到黑色主题';
-      }
-
-      /* iOS 风格主题切换 */
-      function updateIosToggle() {
-        const toggle = document.getElementById('themeIosToggle');
-        if (!toggle) return;
-        const theme = document.documentElement.getAttribute('data-theme');
-        toggle.classList.toggle('on', theme === 'dark');
-      }
-
-      function toggleMobileTheme(e) {
-        if (e) e.stopPropagation();
-        toggleTheme();
-      }
-
+    /* 主题切换 */
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
       updateThemeIcon();
       updateIosToggle();
+    }
 
-      /* 自动刷新切换 */
-      function toggleAutoRefresh() {
-        autoRefreshEnabled = !autoRefreshEnabled;
-        const dot = document.getElementById('refreshDot');
-        const label = document.getElementById('refreshLabel');
-        if (dot) dot.classList.toggle('paused', !autoRefreshEnabled);
-        if (label) label.textContent = autoRefreshEnabled ? '自动刷新: ON' : '自动刷新: OFF';
-        updateAutoRefreshIosToggle();
-      }
+    function updateThemeIcon() {
+      const btn = document.getElementById('themeToggle');
+      if (!btn) return;
+      const theme = document.documentElement.getAttribute('data-theme');
+      btn.textContent = theme === 'dark' ? '🌙' : '☀️';
+      btn.title = theme === 'dark' ? '切换到白色主题' : '切换到黑色主题';
+    }
 
-      /* 手机端设置页自动刷新切换 */
-      function toggleMobileAutoRefresh() {
-        autoRefreshEnabled = !autoRefreshEnabled;
-        const dot = document.getElementById('refreshDot');
-        const label = document.getElementById('refreshLabel');
-        if (dot) dot.classList.toggle('paused', !autoRefreshEnabled);
-        if (label) label.textContent = autoRefreshEnabled ? '自动刷新: ON' : '自动刷新: OFF';
-        updateAutoRefreshIosToggle();
-      }
+    /* iOS 风格主题切换 */
+    function updateIosToggle() {
+      const toggle = document.getElementById('themeIosToggle');
+      if (!toggle) return;
+      const theme = document.documentElement.getAttribute('data-theme');
+      toggle.classList.toggle('on', theme === 'dark');
+    }
 
-      function updateAutoRefreshIosToggle() {
-        const toggle = document.getElementById('autoRefreshIosToggle');
-        if (toggle) toggle.classList.toggle('on', autoRefreshEnabled);
-      }
+    function toggleMobileTheme(e) {
+      if (e) e.stopPropagation();
+      toggleTheme();
+    }
 
+    updateThemeIcon();
+    updateIosToggle();
+
+    /* 自动刷新切换 */
+    function toggleAutoRefresh() {
+      autoRefreshEnabled = !autoRefreshEnabled;
+      const dot = document.getElementById('refreshDot');
+      const label = document.getElementById('refreshLabel');
+      if (dot) dot.classList.toggle('paused', !autoRefreshEnabled);
+      if (label) label.textContent = autoRefreshEnabled ? '自动刷新: ON' : '自动刷新: OFF';
       updateAutoRefreshIosToggle();
+    }
 
-      /* ===== 底部导航页面切换 ===== */
-      let currentMobilePage = 'home';
+    /* 手机端设置页自动刷新切换 */
+    function toggleMobileAutoRefresh() {
+      autoRefreshEnabled = !autoRefreshEnabled;
+      const dot = document.getElementById('refreshDot');
+      const label = document.getElementById('refreshLabel');
+      if (dot) dot.classList.toggle('paused', !autoRefreshEnabled);
+      if (label) label.textContent = autoRefreshEnabled ? '自动刷新: ON' : '自动刷新: OFF';
+      updateAutoRefreshIosToggle();
+    }
 
-      function switchPage(page) {
-        currentMobilePage = page;
-        const app = document.getElementById('app');
-        const aboutPage = document.getElementById('aboutPage');
-        const historyPage = document.getElementById('historyPage');
-        const searchPage = document.getElementById('searchPage');
-        const settingsPage = document.getElementById('settingsPage');
+    function updateAutoRefreshIosToggle() {
+      const toggle = document.getElementById('autoRefreshIosToggle');
+      if (toggle) toggle.classList.toggle('on', autoRefreshEnabled);
+    }
 
-        document.querySelectorAll('.mobile-tab').forEach(t => t.classList.toggle('active', t.dataset.page === page));
+    updateAutoRefreshIosToggle();
 
-        // 隐藏所有页面
-        app.style.display = 'none';
-        aboutPage.classList.add('hidden');
-        if (historyPage) historyPage.classList.add('hidden');
-        if (searchPage) searchPage.classList.add('hidden');
-        if (settingsPage) settingsPage.classList.add('hidden');
+    /* ===== 底部导航页面切换 ===== */
+    let currentMobilePage = 'home';
 
-        if (page === 'home') {
-          app.style.display = '';
-        } else if (page === 'history') {
-          if (historyPage) {
-            historyPage.classList.remove('hidden');
-            renderMobileHistoryList();
-          }
-        } else if (page === 'search') {
-          if (searchPage) {
-            searchPage.classList.remove('hidden');
-            // 自动聚焦搜索框
-            setTimeout(() => {
-              const input = document.getElementById('mobileSearchInput');
-              if (input) input.focus();
-            }, 100);
-          }
-        } else if (page === 'settings') {
-          if (settingsPage) {
-            settingsPage.classList.remove('hidden');
-            updateIosToggle();
-            updateAutoRefreshIosToggle();
-          }
+    function switchPage(page) {
+      currentMobilePage = page;
+      const app = document.getElementById('app');
+      const aboutPage = document.getElementById('aboutPage');
+      const historyPage = document.getElementById('historyPage');
+      const searchPage = document.getElementById('searchPage');
+      const settingsPage = document.getElementById('settingsPage');
+
+      document.querySelectorAll('.mobile-tab').forEach(t => t.classList.toggle('active', t.dataset.page === page));
+
+      // 隐藏所有页面
+      app.style.display = 'none';
+      aboutPage.classList.add('hidden');
+      if (historyPage) historyPage.classList.add('hidden');
+      if (searchPage) searchPage.classList.add('hidden');
+      if (settingsPage) settingsPage.classList.add('hidden');
+
+      if (page === 'home') {
+        app.style.display = '';
+      } else if (page === 'history') {
+        if (historyPage) {
+          historyPage.classList.remove('hidden');
+          renderMobileHistoryList();
+        }
+      } else if (page === 'search') {
+        if (searchPage) {
+          searchPage.classList.remove('hidden');
+          // 自动聚焦搜索框
+          setTimeout(() => {
+            const input = document.getElementById('mobileSearchInput');
+            if (input) input.focus();
+          }, 100);
+        }
+      } else if (page === 'settings') {
+        if (settingsPage) {
+          settingsPage.classList.remove('hidden');
+          updateIosToggle();
+          updateAutoRefreshIosToggle();
         }
       }
+    }
 
-      /* 从设置进入关于 */
-      function openAboutFromSettings() {
-        const settingsPage = document.getElementById('settingsPage');
-        const aboutPage = document.getElementById('aboutPage');
-        if (settingsPage) settingsPage.classList.add('hidden');
-        if (aboutPage) aboutPage.classList.remove('hidden');
+    /* 从设置进入关于 */
+    function openAboutFromSettings() {
+      const settingsPage = document.getElementById('settingsPage');
+      const aboutPage = document.getElementById('aboutPage');
+      if (settingsPage) settingsPage.classList.add('hidden');
+      if (aboutPage) aboutPage.classList.remove('hidden');
+    }
+
+    /* 从关于返回设置 */
+    function backToSettings() {
+      const aboutPage = document.getElementById('aboutPage');
+      const settingsPage = document.getElementById('settingsPage');
+      if (aboutPage) aboutPage.classList.add('hidden');
+      if (settingsPage) settingsPage.classList.remove('hidden');
+    }
+
+    /* 手机端历史列表渲染 */
+    async function renderMobileHistoryList(bustCache) {
+      const rows = await cachedFetch('/api/history', bustCache);
+      const list = document.getElementById('historyListMobile');
+      if (!list) return;
+      if (rows.length === 0) {
+        list.innerHTML = '<p style="color:var(--text-muted);font-size:12px;text-align:center;padding:20px;">暂无历史记录</p>';
+        return;
       }
-
-      /* 从关于返回设置 */
-      function backToSettings() {
-        const aboutPage = document.getElementById('aboutPage');
-        const settingsPage = document.getElementById('settingsPage');
-        if (aboutPage) aboutPage.classList.add('hidden');
-        if (settingsPage) settingsPage.classList.remove('hidden');
-      }
-
-      /* 手机端历史列表渲染 */
-      async function renderMobileHistoryList(bustCache) {
-        const rows = await cachedFetch('/api/history', bustCache);
-        const list = document.getElementById('historyListMobile');
-        if (!list) return;
-        if (rows.length === 0) {
-          list.innerHTML = '<p style="color:var(--text-muted);font-size:12px;text-align:center;padding:20px;">暂无历史记录</p>';
-          return;
-        }
-        list.innerHTML = rows.map(r => {
-          const hasPassed = r.filtered_tokens > 0;
-          const dotHtml = hasPassed ? '<span class="hist-dot"></span>' : '';
-          return `<div class="hist-row${activeHistoryId === r.id ? ' active' : ''}" onclick="loadScanMobile(${r.id})" data-id="${r.id}">
+      list.innerHTML = rows.map(r => {
+        const hasPassed = r.filtered_tokens > 0;
+        const dotHtml = hasPassed ? '<span class="hist-dot"></span>' : '';
+        return `<div class="hist-row${activeHistoryId === r.id ? ' active' : ''}" onclick="loadScanMobile(${r.id})" data-id="${r.id}">
         <span class="ht">${r.scan_time}</span>
         <span class="hist-stats">队列:${r.queue_size != null ? r.queue_size : r.total_tokens} | 突破:${r.breakthrough_count || 0} | ${dotHtml}精筛:<span class="hv">${r.filtered_tokens}</span></span>
       </div>`;
-        }).join('');
-      }
+      }).join('');
+    }
 
-      /* 手机端点击历史记录 */
-      async function loadScanMobile(id) {
-        try {
-          const data = await cachedFetch('/api/scan/' + id);
-          renderData(data);
-          updateHistoryHighlight(id);
-          updateHistoryPageHighlight(id);
-          switchPage('home');
-          showToast('已加载 #' + id);
-        } catch (e) { showToast('加载失败'); }
-      }
+    /* 手机端点击历史记录 */
+    async function loadScanMobile(id) {
+      try {
+        const data = await cachedFetch('/api/scan/' + id);
+        renderData(data);
+        updateHistoryHighlight(id);
+        updateHistoryPageHighlight(id);
+        switchPage('home');
+        showToast('已加载 #' + id);
+      } catch (e) { showToast('加载失败'); }
+    }
 
-      function updateHistoryPageHighlight(id) {
-        const list = document.getElementById('historyListMobile');
-        if (!list) return;
-        list.querySelectorAll('.hist-row').forEach(row => {
-          row.classList.toggle('active', row.dataset.id == id);
-        });
-      }
+    function updateHistoryPageHighlight(id) {
+      const list = document.getElementById('historyListMobile');
+      if (!list) return;
+      list.querySelectorAll('.hist-row').forEach(row => {
+        row.classList.toggle('active', row.dataset.id == id);
+      });
+    }
 
-      function toggleFilterDesc() {
-        const desc = document.getElementById('filterDesc');
-        const toggle = document.getElementById('filterToggle');
-        desc.classList.toggle('expanded');
-        toggle.textContent = desc.classList.contains('expanded') ? '▼ 规则' : '▶ 规则';
-      }
+    function toggleFilterDesc() {
+      const desc = document.getElementById('filterDesc');
+      const toggle = document.getElementById('filterToggle');
+      desc.classList.toggle('expanded');
+      toggle.textContent = desc.classList.contains('expanded') ? '▼ 规则' : '▶ 规则';
+    }
 
-      async function cachedFetch(url, bustCache) {
-        if (!bustCache && cache[url]) return cache[url];
-        const fetchUrl = bustCache ? url + (url.includes('?') ? '&' : '?') + '_t=' + Date.now() : url;
-        const res = await fetch(fetchUrl);
-        const data = await res.json();
-        cache[url] = data;
-        return data;
-      }
+    async function cachedFetch(url, bustCache) {
+      if (!bustCache && cache[url]) return cache[url];
+      const fetchUrl = bustCache ? url + (url.includes('?') ? '&' : '?') + '_t=' + Date.now() : url;
+      const res = await fetch(fetchUrl);
+      const data = await res.json();
+      cache[url] = data;
+      return data;
+    }
 
-      async function loadLatest() {
-        try {
-          const data = await cachedFetch('/api/latest', true);
-          renderData(data);
-          if (isDesktop()) await renderHistoryList('historyListDesktop', true);
-          if (historyVisible) await renderHistoryList('historyList', true);
-          if (!isDesktop()) await renderMobileHistoryList(true);
-        } catch (e) { console.error(e); }
-      }
+    async function loadLatest() {
+      try {
+        const data = await cachedFetch('/api/latest', true);
+        renderData(data);
+        if (isDesktop()) await renderHistoryList('historyListDesktop', true);
+        if (historyVisible) await renderHistoryList('historyList', true);
+        if (!isDesktop()) await renderMobileHistoryList(true);
+      } catch (e) { console.error(e); }
+    }
 
-      function fmtPrice(p) {
-        if (!p || p === 0) return '--';
-        if (p < 0.000001) {
-          const digits = Math.max(8, Math.ceil(-Math.log10(p)) + 3);
-          return p.toFixed(digits);
-        }
-        if (p < 0.01) return p.toFixed(8);
-        return p.toFixed(6);
+    function fmtPrice(p) {
+      if (!p || p === 0) return '--';
+      if (p < 0.000001) {
+        const digits = Math.max(8, Math.ceil(-Math.log10(p)) + 3);
+        return p.toFixed(digits);
       }
+      if (p < 0.01) return p.toFixed(8);
+      return p.toFixed(6);
+    }
 
-      function fmtLiq(t) {
-        const liq = t.liquidity || 0;
-        const ra = t.raised_amount || 0;
-        const progress = t.progress || 0;
-        if (progress >= 1 && liq > 0) return '$' + fmtNum(liq);
-        if (ra > 0) return '<span style="color:var(--text-muted)">募</span>' + ra.toFixed(2) + ' BNB';
-        return '<span style="color:var(--text-muted)">内盘</span>';
-      }
+    function fmtLiq(t) {
+      const liq = t.liquidity || 0;
+      const ra = t.raised_amount || 0;
+      const progress = t.progress || 0;
+      if (progress >= 1 && liq > 0) return '$' + fmtNum(liq);
+      if (ra > 0) return '<span style="color:var(--text-muted)">募</span>' + ra.toFixed(2) + ' BNB';
+      return '<span style="color:var(--text-muted)">内盘</span>';
+    }
 
-      function fmtNum(n) {
-        if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
-        if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
-        return n.toFixed(0);
-      }
+    function fmtNum(n) {
+      if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+      if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+      return n.toFixed(0);
+    }
 
-      function shortAddr(addr) {
-        if (!addr || addr.length <= 16) return addr;
-        return addr.slice(0, 6) + '…' + addr.slice(-4);
-      }
+    function shortAddr(addr) {
+      if (!addr || addr.length <= 16) return addr;
+      return addr.slice(0, 6) + '…' + addr.slice(-4);
+    }
 
-      function fmtAge(hours) {
-        if (hours == null) return '--';
-        if (hours < 0) return '刚创建';
-        if (hours < 1) return Math.round(hours * 60) + '分';
-        if (hours < 24) return hours.toFixed(1) + 'h';
-        return (hours / 24).toFixed(1) + '天';
-      }
+    function fmtAge(hours) {
+      if (hours == null) return '--';
+      if (hours < 0) return '刚创建';
+      if (hours < 1) return Math.round(hours * 60) + '分';
+      if (hours < 24) return hours.toFixed(1) + 'h';
+      return (hours / 24).toFixed(1) + '天';
+    }
 
-      function addrHtml(addr) {
-        return `<div class="addr-cell">
+    function addrHtml(addr) {
+      return `<div class="addr-cell">
         <span class="addr-text" title="${addr}">${shortAddr(addr)}</span>
         <span class="addr-links">
           <button class="copy-btn" onclick="copyAddr('${addr}')">Copy</button>
@@ -2591,99 +2592,99 @@
           <a class="link-bn" href="https://web3.binance.com/zh-CN/token/bsc/${addr}" target="_blank" rel="noopener">币安</a>
         </span>
       </div>`;
+    }
+
+    function buildAllTags(token) {
+      let html = '';
+      if (token.wallet_signals && token.wallet_signals.length > 0) {
+        const iconMap = { '开发者加仓': ['💰', 'tag-dev-buy'], '开发者加池子': ['🏊', 'tag-dev-lp'], '聪明钱加仓': ['🧠', 'tag-smart-buy'] };
+        for (const s of token.wallet_signals) {
+          const [icon, cls] = iconMap[s] || ['💰', 'tag-dev-buy'];
+          html += `<span class="tag ${cls}" title="${esc(s)}">${icon}${esc(s)}</span>`;
+        }
+      }
+      if (token.is_copycat && token.copycat_count > 0) {
+        html += `<span class="tag tag-copycat" title="${token.copycat_count}个同名仿盘">🔥${token.copycat_count}仿</span>`;
+      }
+      const sl = token.social_links;
+      if (sl) {
+        if (sl.twitter) html += `<span class="tag tag-twitter"><a href="${esc(sl.twitter)}" target="_blank" rel="noopener">𝕏</a></span>`;
+        if (sl.telegram) html += `<span class="tag tag-telegram"><a href="${esc(sl.telegram)}" target="_blank" rel="noopener">TG</a></span>`;
+        if (sl.website) html += `<span class="tag tag-website"><a href="${esc(sl.website)}" target="_blank" rel="noopener">Web</a></span>`;
+      }
+      return html || '<span style="color:var(--text-muted)">--</span>';
+    }
+
+    function buildSocialOnly(socialLinks) {
+      if (!socialLinks) return '<span style="color:var(--text-muted)">--</span>';
+      let html = '';
+      if (socialLinks.twitter) html += `<span class="tag tag-twitter"><a href="${esc(socialLinks.twitter)}" target="_blank" rel="noopener">𝕏</a></span>`;
+      if (socialLinks.telegram) html += `<span class="tag tag-telegram"><a href="${esc(socialLinks.telegram)}" target="_blank" rel="noopener">TG</a></span>`;
+      if (socialLinks.website) html += `<span class="tag tag-website"><a href="${esc(socialLinks.website)}" target="_blank" rel="noopener">Web</a></span>`;
+      return html || '<span style="color:var(--text-muted)">--</span>';
+    }
+
+    function renderData(data) {
+      currentData = data;
+      document.getElementById('scanTime').textContent = data.scanTime || '--';
+      document.getElementById('queueSize').textContent = (data.queue || []).length || data.totalTokens || '--';
+      document.getElementById('breakthroughCount').textContent = (data.breakthroughTokens || []).length || '0';
+      document.getElementById('eliminatedCount').textContent = (data.eliminatedThisRound || []).length || '0';
+      document.getElementById('rejectedCount').textContent = (data.rejectedAtEntry || []).length || '0';
+      document.getElementById('filteredTokens').textContent = data.filteredTokens != null ? data.filteredTokens.toLocaleString() : '--';
+
+      // 近48小时淘汰数 (后端已统计, 直接读取)
+      if (data.eliminatedTotal48h != null) {
+        const heroEl = document.getElementById('heroElimCount');
+        if (heroEl) heroEl.textContent = data.eliminatedTotal48h.toLocaleString();
+        const heroStat = document.getElementById('mobileHeroStat');
+        if (heroStat && !isDesktop()) heroStat.style.display = '';
       }
 
-      function buildAllTags(token) {
-        let html = '';
-        if (token.wallet_signals && token.wallet_signals.length > 0) {
-          const iconMap = { '开发者加仓': ['💰', 'tag-dev-buy'], '开发者加池子': ['🏊', 'tag-dev-lp'], '聪明钱加仓': ['🧠', 'tag-smart-buy'] };
-          for (const s of token.wallet_signals) {
-            const [icon, cls] = iconMap[s] || ['💰', 'tag-dev-buy'];
-            html += `<span class="tag ${cls}" title="${esc(s)}">${icon}${esc(s)}</span>`;
-          }
-        }
-        if (token.is_copycat && token.copycat_count > 0) {
-          html += `<span class="tag tag-copycat" title="${token.copycat_count}个同名仿盘">🔥${token.copycat_count}仿</span>`;
-        }
-        const sl = token.social_links;
-        if (sl) {
-          if (sl.twitter) html += `<span class="tag tag-twitter"><a href="${esc(sl.twitter)}" target="_blank" rel="noopener">𝕏</a></span>`;
-          if (sl.telegram) html += `<span class="tag tag-telegram"><a href="${esc(sl.telegram)}" target="_blank" rel="noopener">TG</a></span>`;
-          if (sl.website) html += `<span class="tag tag-website"><a href="${esc(sl.website)}" target="_blank" rel="noopener">Web</a></span>`;
-        }
-        return html || '<span style="color:var(--text-muted)">--</span>';
+      // 更新手机端 tab 标题中的数字
+      if (!isDesktop()) {
+        const qLen = (data.queue || []).length;
+        const bLen = (data.breakthroughTokens || []).length;
+        const fLen = data.filteredTokens || 0;
+        const eLen = (data.eliminatedThisRound || []).length;
+        const rLen = (data.rejectedAtEntry || []).length;
+        document.querySelectorAll('#tabBar .tab-btn').forEach(btn => {
+          const tab = btn.dataset.tab;
+          if (tab === 'filtered') btn.textContent = '精筛 ' + fLen;
+          else if (tab === 'queue') btn.textContent = '存活 ' + qLen;
+          else if (tab === 'breakthrough') btn.textContent = '突破 ' + bLen;
+          else if (tab === 'eliminated') btn.textContent = '淘汰 ' + eLen;
+          else if (tab === 'rejected') btn.textContent = '拒绝 ' + rLen;
+        });
       }
 
-      function buildSocialOnly(socialLinks) {
-        if (!socialLinks) return '<span style="color:var(--text-muted)">--</span>';
-        let html = '';
-        if (socialLinks.twitter) html += `<span class="tag tag-twitter"><a href="${esc(socialLinks.twitter)}" target="_blank" rel="noopener">𝕏</a></span>`;
-        if (socialLinks.telegram) html += `<span class="tag tag-telegram"><a href="${esc(socialLinks.telegram)}" target="_blank" rel="noopener">TG</a></span>`;
-        if (socialLinks.website) html += `<span class="tag tag-website"><a href="${esc(socialLinks.website)}" target="_blank" rel="noopener">Web</a></span>`;
-        return html || '<span style="color:var(--text-muted)">--</span>';
+      renderFiltered(data);
+      renderQueue(data);
+      renderBreakthrough(data);
+      renderEliminated(data);
+      renderRejected(data);
+    }
+
+    function renderFiltered(data) {
+      const tbody = document.getElementById('tokenBody');
+      const noData = document.getElementById('noData');
+      const tokens = (data.tokens || []).slice().sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
+
+      if (tokens.length === 0) {
+        tbody.innerHTML = '';
+        document.getElementById('cardList').innerHTML = '';
+        noData.classList.remove('hidden');
+        return;
       }
+      noData.classList.add('hidden');
 
-      function renderData(data) {
-        currentData = data;
-        document.getElementById('scanTime').textContent = data.scanTime || '--';
-        document.getElementById('queueSize').textContent = (data.queue || []).length || data.totalTokens || '--';
-        document.getElementById('breakthroughCount').textContent = (data.breakthroughTokens || []).length || '0';
-        document.getElementById('eliminatedCount').textContent = (data.eliminatedThisRound || []).length || '0';
-        document.getElementById('rejectedCount').textContent = (data.rejectedAtEntry || []).length || '0';
-        document.getElementById('filteredTokens').textContent = data.filteredTokens != null ? data.filteredTokens.toLocaleString() : '--';
-
-        // 近48小时淘汰数 (后端已统计, 直接读取)
-        if (data.eliminatedTotal48h != null) {
-          const heroEl = document.getElementById('heroElimCount');
-          if (heroEl) heroEl.textContent = data.eliminatedTotal48h.toLocaleString();
-          const heroStat = document.getElementById('mobileHeroStat');
-          if (heroStat && !isDesktop()) heroStat.style.display = '';
-        }
-
-        // 更新手机端 tab 标题中的数字
-        if (!isDesktop()) {
-          const qLen = (data.queue || []).length;
-          const bLen = (data.breakthroughTokens || []).length;
-          const fLen = data.filteredTokens || 0;
-          const eLen = (data.eliminatedThisRound || []).length;
-          const rLen = (data.rejectedAtEntry || []).length;
-          document.querySelectorAll('#tabBar .tab-btn').forEach(btn => {
-            const tab = btn.dataset.tab;
-            if (tab === 'filtered') btn.textContent = '精筛 ' + fLen;
-            else if (tab === 'queue') btn.textContent = '存活 ' + qLen;
-            else if (tab === 'breakthrough') btn.textContent = '突破 ' + bLen;
-            else if (tab === 'eliminated') btn.textContent = '淘汰 ' + eLen;
-            else if (tab === 'rejected') btn.textContent = '拒绝 ' + rLen;
-          });
-        }
-
-        renderFiltered(data);
-        renderQueue(data);
-        renderBreakthrough(data);
-        renderEliminated(data);
-        renderRejected(data);
-      }
-
-      function renderFiltered(data) {
-        const tbody = document.getElementById('tokenBody');
-        const noData = document.getElementById('noData');
-        const tokens = (data.tokens || []).slice().sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
-
-        if (tokens.length === 0) {
-          tbody.innerHTML = '';
-          document.getElementById('cardList').innerHTML = '';
-          noData.classList.remove('hidden');
-          return;
-        }
-        noData.classList.add('hidden');
-
-        tbody.innerHTML = tokens.map((t, i) => {
-          const addr = t.address || '';
-          const priceRatio = t.price_ratio != null ? (t.price_ratio * 100).toFixed(1) + '%' : '--';
-          const tags = buildAllTags(t);
-          const pctProgress = ((t.progress || 0) * 100).toFixed(1);
-          const scanTimeHtml = searchMode && t._scanTime ? `<span class="search-scan-time">📍 ${esc(t._scanTime)}</span>` : '';
-          return `<tr>
+      tbody.innerHTML = tokens.map((t, i) => {
+        const addr = t.address || '';
+        const priceRatio = t.price_ratio != null ? (t.price_ratio * 100).toFixed(1) + '%' : '--';
+        const tags = buildAllTags(t);
+        const pctProgress = ((t.progress || 0) * 100).toFixed(1);
+        const scanTimeHtml = searchMode && t._scanTime ? `<span class="search-scan-time">📍 ${esc(t._scanTime)}</span>` : '';
+        return `<tr>
       <td>${i + 1}</td>
       <td><div class="name-cell"><span class="name-symbol-primary" onclick="copySymbol('${esc(t.symbol || '--')}')" title="点击复制">${esc(t.symbol || '--')}</span><span class="name-secondary">${esc(t.name || '--')}</span>${scanTimeHtml}</div></td>
       <td>${addrHtml(addr)}</td>
@@ -2698,32 +2699,32 @@
       <td class="tags-cell">${tags}</td>
       <td style="text-align:right"><span class="age-text">${fmtAge(t.age_hours)}</span></td>
     </tr>`;
-        }).join('');
+      }).join('');
 
-        const cardList = document.getElementById('cardList');
-        cardList.innerHTML = tokens.map((t, i) => buildTokenCard(t, i, searchMode)).join('');
+      const cardList = document.getElementById('cardList');
+      cardList.innerHTML = tokens.map((t, i) => buildTokenCard(t, i, searchMode)).join('');
+    }
+
+    function renderQueue(data) {
+      const tbody = document.getElementById('queueBody');
+      const noQueue = document.getElementById('noQueue');
+      const queueCardList = document.getElementById('queueCardList');
+      const items = (data.queue || []).slice().sort((a, b) => (b.holders || 0) - (a.holders || 0));
+
+      if (items.length === 0) {
+        tbody.innerHTML = '';
+        queueCardList.innerHTML = '';
+        noQueue.classList.remove('hidden');
+        return;
       }
+      noQueue.classList.add('hidden');
 
-      function renderQueue(data) {
-        const tbody = document.getElementById('queueBody');
-        const noQueue = document.getElementById('noQueue');
-        const queueCardList = document.getElementById('queueCardList');
-        const items = (data.queue || []).slice().sort((a, b) => (b.holders || 0) - (a.holders || 0));
-
-        if (items.length === 0) {
-          tbody.innerHTML = '';
-          queueCardList.innerHTML = '';
-          noQueue.classList.remove('hidden');
-          return;
-        }
-        noQueue.classList.add('hidden');
-
-        tbody.innerHTML = items.map((t, i) => {
-          const addr = t.address || '';
-          const tagsHtml = buildAllTags(t);
-          const pctProgress = ((t.progress || 0) * 100).toFixed(1);
-          const scanTimeHtml = searchMode && t._scanTime ? `<span class="search-scan-time">📍 ${esc(t._scanTime)}</span>` : '';
-          return `<tr>
+      tbody.innerHTML = items.map((t, i) => {
+        const addr = t.address || '';
+        const tagsHtml = buildAllTags(t);
+        const pctProgress = ((t.progress || 0) * 100).toFixed(1);
+        const scanTimeHtml = searchMode && t._scanTime ? `<span class="search-scan-time">📍 ${esc(t._scanTime)}</span>` : '';
+        return `<tr>
           <td>${i + 1}</td>
           <td><div class="name-cell"><span class="name-symbol-primary" onclick="copySymbol('${esc(t.symbol || '--')}')" title="点击复制">${esc(t.symbol || '--')}</span><span class="name-secondary">${esc(t.name || '--')}</span>${scanTimeHtml}</div></td>
           <td>${addrHtml(addr)}</td>
@@ -2734,31 +2735,31 @@
           <td class="tags-cell">${tagsHtml}</td>
           <td style="text-align:right"><span class="age-text">${fmtAge(t.age_hours)}</span></td>
         </tr>`;
-        }).join('');
+      }).join('');
 
-        queueCardList.innerHTML = items.map((t, i) => buildQueueCard(t, i, searchMode)).join('');
+      queueCardList.innerHTML = items.map((t, i) => buildQueueCard(t, i, searchMode)).join('');
+    }
+
+    function renderBreakthrough(data) {
+      const tbody = document.getElementById('breakthroughBody');
+      const noBreakthrough = document.getElementById('noBreakthrough');
+      const cardList = document.getElementById('breakthroughCardList');
+      const items = (data.breakthroughTokens || []).slice().sort((a, b) => (b.breakthrough_at || 0) - (a.breakthrough_at || 0));
+
+      if (items.length === 0) {
+        tbody.innerHTML = '';
+        cardList.innerHTML = '';
+        noBreakthrough.classList.remove('hidden');
+        return;
       }
+      noBreakthrough.classList.add('hidden');
 
-      function renderBreakthrough(data) {
-        const tbody = document.getElementById('breakthroughBody');
-        const noBreakthrough = document.getElementById('noBreakthrough');
-        const cardList = document.getElementById('breakthroughCardList');
-        const items = (data.breakthroughTokens || []).slice().sort((a, b) => (b.breakthrough_at || 0) - (a.breakthrough_at || 0));
-
-        if (items.length === 0) {
-          tbody.innerHTML = '';
-          cardList.innerHTML = '';
-          noBreakthrough.classList.remove('hidden');
-          return;
-        }
-        noBreakthrough.classList.add('hidden');
-
-        tbody.innerHTML = items.map((t, i) => {
-          const addr = t.address || '';
-          const tagsHtml = buildAllTags(t);
-          const pctProgress = ((t.progress || 0) * 100).toFixed(1);
-          const scanTimeHtml = searchMode && t._scanTime ? `<span class="search-scan-time">📍 ${esc(t._scanTime)}</span>` : '';
-          return `<tr>
+      tbody.innerHTML = items.map((t, i) => {
+        const addr = t.address || '';
+        const tagsHtml = buildAllTags(t);
+        const pctProgress = ((t.progress || 0) * 100).toFixed(1);
+        const scanTimeHtml = searchMode && t._scanTime ? `<span class="search-scan-time">📍 ${esc(t._scanTime)}</span>` : '';
+        return `<tr>
           <td>${i + 1}</td>
           <td><div class="name-cell"><span class="name-symbol-primary" onclick="copySymbol('${esc(t.symbol || '--')}')" title="点击复制">🚀${esc(t.symbol || '--')}</span><span class="name-secondary">${esc(t.name || '--')}</span>${scanTimeHtml}</div></td>
           <td>${addrHtml(addr)}</td>
@@ -2769,19 +2770,19 @@
           <td class="tags-cell">${tagsHtml}</td>
           <td style="text-align:right"><span class="age-text">${fmtAge(t.age_hours)}</span></td>
         </tr>`;
-        }).join('');
+      }).join('');
 
-        cardList.innerHTML = items.map((t, i) => buildBreakthroughCard(t, i, searchMode)).join('');
-      }
+      cardList.innerHTML = items.map((t, i) => buildBreakthroughCard(t, i, searchMode)).join('');
+    }
 
-      /* ===== 通用卡片构建函数 ===== */
-      function buildTokenCard(t, i, showScanTime) {
-        const addr = t.address || '';
-        const shortA = addr.length > 16 ? addr.slice(0, 8) + '...' + addr.slice(-6) : addr;
-        const tags = buildAllTags(t);
-        const priceRatio = t.price_ratio != null ? (t.price_ratio * 100).toFixed(1) + '%' : '--';
-        const scanTimeHtml = showScanTime && t._scanTime ? `<div class="search-scan-time" style="margin-bottom:4px">📍 ${esc(t._scanTime)}</div>` : '';
-        return `<div class="token-card">
+    /* ===== 通用卡片构建函数 ===== */
+    function buildTokenCard(t, i, showScanTime) {
+      const addr = t.address || '';
+      const shortA = addr.length > 16 ? addr.slice(0, 8) + '...' + addr.slice(-6) : addr;
+      const tags = buildAllTags(t);
+      const priceRatio = t.price_ratio != null ? (t.price_ratio * 100).toFixed(1) + '%' : '--';
+      const scanTimeHtml = showScanTime && t._scanTime ? `<div class="search-scan-time" style="margin-bottom:4px">📍 ${esc(t._scanTime)}</div>` : '';
+      return `<div class="token-card">
         ${scanTimeHtml}
         <div class="card-top">
           <span><span class="card-name" onclick="copySymbol('${esc(t.symbol || '--')}')" title="点击复制">${esc(t.symbol || '--')}</span><span class="card-symbol">${esc(t.name || '--')}</span></span>
@@ -2806,15 +2807,15 @@
           <span>峰值 ${t.peak_holders || 0}</span>
         </div>
       </div>`;
-      }
+    }
 
-      function buildQueueCard(t, i, showScanTime) {
-        const addr = t.address || '';
-        const shortA = addr.length > 16 ? addr.slice(0, 8) + '...' + addr.slice(-6) : addr;
-        const tagsHtml = buildAllTags(t);
-        const pctProgress = ((t.progress || 0) * 100).toFixed(1);
-        const scanTimeHtml = showScanTime && t._scanTime ? `<div class="search-scan-time" style="margin-bottom:4px">📍 ${esc(t._scanTime)}</div>` : '';
-        return `<div class="token-card">
+    function buildQueueCard(t, i, showScanTime) {
+      const addr = t.address || '';
+      const shortA = addr.length > 16 ? addr.slice(0, 8) + '...' + addr.slice(-6) : addr;
+      const tagsHtml = buildAllTags(t);
+      const pctProgress = ((t.progress || 0) * 100).toFixed(1);
+      const scanTimeHtml = showScanTime && t._scanTime ? `<div class="search-scan-time" style="margin-bottom:4px">📍 ${esc(t._scanTime)}</div>` : '';
+      return `<div class="token-card">
         ${scanTimeHtml}
         <div class="card-top">
           <span><span class="card-name" onclick="copySymbol('${esc(t.symbol || '--')}')" title="点击复制">${esc(t.symbol || '--')}</span><span class="card-symbol">${esc(t.name || '--')}</span></span>
@@ -2838,15 +2839,15 @@
           <span>峰值 ${t.peak_holders || 0}</span>
         </div>
       </div>`;
-      }
+    }
 
-      function buildBreakthroughCard(t, i, showScanTime) {
-        const addr = t.address || '';
-        const shortA = addr.length > 16 ? addr.slice(0, 8) + '...' + addr.slice(-6) : addr;
-        const tagsHtml = buildAllTags(t);
-        const pctProgress = ((t.progress || 0) * 100).toFixed(1);
-        const scanTimeHtml = showScanTime && t._scanTime ? `<div class="search-scan-time" style="margin-bottom:4px">📍 ${esc(t._scanTime)}</div>` : '';
-        return `<div class="token-card">
+    function buildBreakthroughCard(t, i, showScanTime) {
+      const addr = t.address || '';
+      const shortA = addr.length > 16 ? addr.slice(0, 8) + '...' + addr.slice(-6) : addr;
+      const tagsHtml = buildAllTags(t);
+      const pctProgress = ((t.progress || 0) * 100).toFixed(1);
+      const scanTimeHtml = showScanTime && t._scanTime ? `<div class="search-scan-time" style="margin-bottom:4px">📍 ${esc(t._scanTime)}</div>` : '';
+      return `<div class="token-card">
         ${scanTimeHtml}
         <div class="card-top">
           <span><span class="card-name" onclick="copySymbol('${esc(t.symbol || '--')}')" title="点击复制">🚀${esc(t.symbol || '--')}</span><span class="card-symbol">${esc(t.name || '--')}</span></span>
@@ -2870,26 +2871,26 @@
           <span>峰值 ${t.peak_holders || 0}</span>
         </div>
       </div>`;
+    }
+
+    function renderEliminated(data) {
+      const tbody = document.getElementById('eliminatedBody');
+      const noElim = document.getElementById('noEliminated');
+      const cardList = document.getElementById('eliminatedCardList');
+      const items = (data.eliminatedThisRound || []);
+
+      if (items.length === 0) {
+        tbody.innerHTML = '';
+        cardList.innerHTML = '';
+        noElim.classList.remove('hidden');
+        return;
       }
+      noElim.classList.add('hidden');
 
-      function renderEliminated(data) {
-        const tbody = document.getElementById('eliminatedBody');
-        const noElim = document.getElementById('noEliminated');
-        const cardList = document.getElementById('eliminatedCardList');
-        const items = (data.eliminatedThisRound || []);
-
-        if (items.length === 0) {
-          tbody.innerHTML = '';
-          cardList.innerHTML = '';
-          noElim.classList.remove('hidden');
-          return;
-        }
-        noElim.classList.add('hidden');
-
-        tbody.innerHTML = items.map((t, i) => {
-          const addr = t.address || '';
-          const tagsHtml = buildAllTags(t);
-          return `<tr>
+      tbody.innerHTML = items.map((t, i) => {
+        const addr = t.address || '';
+        const tagsHtml = buildAllTags(t);
+        return `<tr>
           <td>${i + 1}</td>
           <td><div class="name-cell"><span class="name-symbol-primary" onclick="copySymbol('${esc(t.symbol || '--')}')" title="点击复制">${esc(t.symbol || '--')}</span><span class="name-secondary">${esc(t.name || '--')}</span></div></td>
           <td>${addrHtml(addr)}</td>
@@ -2899,29 +2900,29 @@
           <td class="tags-cell">${tagsHtml}</td>
           <td style="text-align:right"><span class="age-text">${fmtAge(t.age_hours)}</span></td>
         </tr>`;
-        }).join('');
+      }).join('');
 
-        cardList.innerHTML = items.map(t => buildElimCard(t, false)).join('');
+      cardList.innerHTML = items.map(t => buildElimCard(t, false)).join('');
+    }
+
+    function renderRejected(data) {
+      const tbody = document.getElementById('rejectedBody');
+      const noRej = document.getElementById('noRejected');
+      const cardList = document.getElementById('rejectedCardList');
+      const items = (data.rejectedAtEntry || []);
+
+      if (items.length === 0) {
+        tbody.innerHTML = '';
+        cardList.innerHTML = '';
+        noRej.classList.remove('hidden');
+        return;
       }
+      noRej.classList.add('hidden');
 
-      function renderRejected(data) {
-        const tbody = document.getElementById('rejectedBody');
-        const noRej = document.getElementById('noRejected');
-        const cardList = document.getElementById('rejectedCardList');
-        const items = (data.rejectedAtEntry || []);
-
-        if (items.length === 0) {
-          tbody.innerHTML = '';
-          cardList.innerHTML = '';
-          noRej.classList.remove('hidden');
-          return;
-        }
-        noRej.classList.add('hidden');
-
-        tbody.innerHTML = items.map((t, i) => {
-          const addr = t.address || '';
-          const tagsHtml = buildAllTags(t);
-          return `<tr>
+      tbody.innerHTML = items.map((t, i) => {
+        const addr = t.address || '';
+        const tagsHtml = buildAllTags(t);
+        return `<tr>
           <td>${i + 1}</td>
           <td><div class="name-cell"><span class="name-symbol-primary" onclick="copySymbol('${esc(t.symbol || '--')}')" title="点击复制">${esc(t.symbol || '--')}</span><span class="name-secondary">${esc(t.name || '--')}</span></div></td>
           <td>${addrHtml(addr)}</td>
@@ -2931,19 +2932,19 @@
           <td class="tags-cell">${tagsHtml}</td>
           <td style="text-align:right"><span class="age-text">${fmtAge(t.age_hours)}</span></td>
         </tr>`;
-        }).join('');
+      }).join('');
 
-        cardList.innerHTML = items.map(t => buildElimCard(t, false)).join('');
-      }
+      cardList.innerHTML = items.map(t => buildElimCard(t, false)).join('');
+    }
 
-      /* 淘汰/拒绝代币卡片 */
-      function buildElimCard(t, showScanTime) {
-        const addr = t.address || '';
-        const shortA = addr.length > 16 ? addr.slice(0, 8) + '...' + addr.slice(-6) : addr;
-        const tagsHtml = buildAllTags(t);
-        const scanTimeHtml = showScanTime && t._scanTime ? `<div class="search-scan-time" style="margin-bottom:4px">📍 ${esc(t._scanTime)}</div>` : '';
-        const reasonHtml = t.reason ? `<div style="margin-top:8px"><span class="elim-reason">${esc(t.reason)}</span></div>` : '';
-        return `<div class="token-card">
+    /* 淘汰/拒绝代币卡片 */
+    function buildElimCard(t, showScanTime) {
+      const addr = t.address || '';
+      const shortA = addr.length > 16 ? addr.slice(0, 8) + '...' + addr.slice(-6) : addr;
+      const tagsHtml = buildAllTags(t);
+      const scanTimeHtml = showScanTime && t._scanTime ? `<div class="search-scan-time" style="margin-bottom:4px">📍 ${esc(t._scanTime)}</div>` : '';
+      const reasonHtml = t.reason ? `<div style="margin-top:8px"><span class="elim-reason">${esc(t.reason)}</span></div>` : '';
+      return `<div class="token-card">
         ${scanTimeHtml}
         <div class="card-top">
           <span><span class="card-name" onclick="copySymbol('${esc(t.symbol || '--')}')" title="点击复制">${esc(t.symbol || '--')}</span><span class="card-symbol">${esc(t.name || '--')}</span></span>
@@ -2968,409 +2969,409 @@
           <span>峰值 ${t.peak_holders || 0}</span>
         </div>
       </div>`;
-      }
+    }
 
-      function switchTab(tab) {
-        currentTab = tab;
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-        document.getElementById('tokenTable').classList.toggle('hidden', tab !== 'filtered');
-        document.getElementById('queueTable').classList.toggle('hidden', tab !== 'queue');
-        document.getElementById('breakthroughTable').classList.toggle('hidden', tab !== 'breakthrough');
-        document.getElementById('eliminatedTable').classList.toggle('hidden', tab !== 'eliminated');
-        document.getElementById('rejectedTable').classList.toggle('hidden', tab !== 'rejected');
-      }
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+      document.getElementById('tokenTable').classList.toggle('hidden', tab !== 'filtered');
+      document.getElementById('queueTable').classList.toggle('hidden', tab !== 'queue');
+      document.getElementById('breakthroughTable').classList.toggle('hidden', tab !== 'breakthrough');
+      document.getElementById('eliminatedTable').classList.toggle('hidden', tab !== 'eliminated');
+      document.getElementById('rejectedTable').classList.toggle('hidden', tab !== 'rejected');
+    }
 
-      function esc(s) {
-        const d = document.createElement('div');
-        d.textContent = s;
-        return d.innerHTML;
-      }
+    function esc(s) {
+      const d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
 
-      function copyAddr(addr) {
-        navigator.clipboard.writeText(addr).then(() => showToast('已复制')).catch(() => {
-          const ta = document.createElement('textarea');
-          ta.value = addr;
-          document.body.appendChild(ta);
-          ta.select();
-          document.execCommand('copy');
-          document.body.removeChild(ta);
-          showToast('已复制');
-        });
-      }
+    function copyAddr(addr) {
+      navigator.clipboard.writeText(addr).then(() => showToast('已复制')).catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = addr;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast('已复制');
+      });
+    }
 
-      function copySymbol(symbol) {
-        navigator.clipboard.writeText(symbol).then(() => showToast('已复制 ' + symbol)).catch(() => {
-          const ta = document.createElement('textarea');
-          ta.value = symbol;
-          document.body.appendChild(ta);
-          ta.select();
-          document.execCommand('copy');
-          document.body.removeChild(ta);
-          showToast('已复制 ' + symbol);
-        });
-      }
+    function copySymbol(symbol) {
+      navigator.clipboard.writeText(symbol).then(() => showToast('已复制 ' + symbol)).catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = symbol;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast('已复制 ' + symbol);
+      });
+    }
 
-      function showToast(msg) {
-        const t = document.getElementById('toast');
-        t.textContent = msg;
-        t.classList.remove('hidden');
-        setTimeout(() => t.classList.add('hidden'), 1500);
-      }
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.remove('hidden');
+      setTimeout(() => t.classList.add('hidden'), 1500);
+    }
 
-      async function toggleHistory() {
-        const panel = document.getElementById('historyPanel');
-        historyVisible = !historyVisible;
-        if (historyVisible) {
-          panel.classList.remove('hidden');
-          await renderHistoryList('historyList');
-        } else {
-          panel.classList.add('hidden');
-        }
+    async function toggleHistory() {
+      const panel = document.getElementById('historyPanel');
+      historyVisible = !historyVisible;
+      if (historyVisible) {
+        panel.classList.remove('hidden');
+        await renderHistoryList('historyList');
+      } else {
+        panel.classList.add('hidden');
       }
+    }
 
-      async function renderHistoryList(containerId, bustCache) {
-        const rows = await cachedFetch('/api/history', bustCache);
-        const list = document.getElementById(containerId);
-        if (!list) return;
-        if (rows.length === 0) {
-          list.innerHTML = '<p style="color:var(--text-muted);font-size:11px;">暂无历史记录</p>';
-          return;
-        }
-        list.innerHTML = rows.map(r => {
-          const hasPassed = r.filtered_tokens > 0;
-          const dotHtml = hasPassed ? '<span class="hist-dot"></span>' : '';
-          return `<div class="hist-row${activeHistoryId === r.id ? ' active' : ''}" onclick="loadScan(${r.id})" data-id="${r.id}">
+    async function renderHistoryList(containerId, bustCache) {
+      const rows = await cachedFetch('/api/history', bustCache);
+      const list = document.getElementById(containerId);
+      if (!list) return;
+      if (rows.length === 0) {
+        list.innerHTML = '<p style="color:var(--text-muted);font-size:11px;">暂无历史记录</p>';
+        return;
+      }
+      list.innerHTML = rows.map(r => {
+        const hasPassed = r.filtered_tokens > 0;
+        const dotHtml = hasPassed ? '<span class="hist-dot"></span>' : '';
+        return `<div class="hist-row${activeHistoryId === r.id ? ' active' : ''}" onclick="loadScan(${r.id})" data-id="${r.id}">
         <span class="ht">${r.scan_time}</span>
         <span>队列:${r.queue_size != null ? r.queue_size : r.total_tokens} | 突破:${r.breakthrough_count || 0} | ${dotHtml}精筛:<span class="hv">${r.filtered_tokens}</span></span>
       </div>`;
-        }).join('');
+      }).join('');
+    }
+
+    async function initDesktopHistory() {
+      if (isDesktop()) {
+        await renderHistoryList('historyListDesktop');
       }
+    }
 
-      async function initDesktopHistory() {
-        if (isDesktop()) {
-          await renderHistoryList('historyListDesktop');
-        }
-      }
+    function updateHistoryHighlight(id) {
+      activeHistoryId = id;
+      document.querySelectorAll('.hist-row').forEach(row => {
+        row.classList.toggle('active', row.dataset.id == id);
+      });
+    }
 
-      function updateHistoryHighlight(id) {
-        activeHistoryId = id;
-        document.querySelectorAll('.hist-row').forEach(row => {
-          row.classList.toggle('active', row.dataset.id == id);
-        });
-      }
+    async function loadScan(id) {
+      try {
+        const data = await cachedFetch('/api/scan/' + id);
+        renderData(data);
+        updateHistoryHighlight(id);
+        showToast('已加载 #' + id);
+      } catch (e) { showToast('加载失败'); }
+    }
 
-      async function loadScan(id) {
-        try {
-          const data = await cachedFetch('/api/scan/' + id);
-          renderData(data);
-          updateHistoryHighlight(id);
-          showToast('已加载 #' + id);
-        } catch (e) { showToast('加载失败'); }
-      }
+    async function goLatest() {
+      try {
+        const data = await cachedFetch('/api/latest', true);
+        renderData(data);
+        updateHistoryHighlight(null);
+        if (isDesktop()) await renderHistoryList('historyListDesktop', true);
+        if (historyVisible) await renderHistoryList('historyList', true);
+        if (!isDesktop()) await renderMobileHistoryList(true);
+        showToast('已回到最新');
+      } catch (e) { showToast('加载失败'); }
+    }
 
-      async function goLatest() {
-        try {
-          const data = await cachedFetch('/api/latest', true);
-          renderData(data);
-          updateHistoryHighlight(null);
-          if (isDesktop()) await renderHistoryList('historyListDesktop', true);
-          if (historyVisible) await renderHistoryList('historyList', true);
-          if (!isDesktop()) await renderMobileHistoryList(true);
-          showToast('已回到最新');
-        } catch (e) { showToast('加载失败'); }
-      }
+    let searchMode = false;
 
-      let searchMode = false;
+    function isAddressQuery(q) {
+      return q.startsWith('0x') && q.length >= 10;
+    }
 
-      function isAddressQuery(q) {
-        return q.startsWith('0x') && q.length >= 10;
-      }
+    /* ===== 桌面端搜索 ===== */
+    async function doSearch() {
+      const q = document.getElementById('searchInput').value.trim().toLowerCase();
+      if (!q) { clearSearch(); return; }
 
-      /* ===== 桌面端搜索 ===== */
-      async function doSearch() {
-        const q = document.getElementById('searchInput').value.trim().toLowerCase();
-        if (!q) { clearSearch(); return; }
+      showToast('搜索中...');
+      searchMode = true;
+      const addrSearch = isAddressQuery(q);
 
-        showToast('搜索中...');
-        searchMode = true;
-        const addrSearch = isAddressQuery(q);
+      try {
+        const allResults = await performSearch(q, addrSearch);
+        const filtered = allResults.filter(t => t._source === 'filtered');
+        const queue = allResults.filter(t => t._source === 'queue');
+        const breakthroughResults = allResults.filter(t => t._source === 'breakthrough');
+        const eliminated = allResults.filter(t => t._source === 'eliminated');
+        const rejected = allResults.filter(t => t._source === 'rejected');
 
-        try {
-          const allResults = await performSearch(q, addrSearch);
-          const filtered = allResults.filter(t => t._source === 'filtered');
-          const queue = allResults.filter(t => t._source === 'queue');
-          const breakthroughResults = allResults.filter(t => t._source === 'breakthrough');
-          const eliminated = allResults.filter(t => t._source === 'eliminated');
-          const rejected = allResults.filter(t => t._source === 'rejected');
-
-          if (addrSearch) {
-            [allResults, filtered, queue, breakthroughResults, eliminated, rejected].forEach(arr =>
-              arr.sort((a, b) => (b._scanTime || '').localeCompare(a._scanTime || '')));
-          } else {
-            allResults.sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
-          }
-
-          const uniqueAddrs = new Set(allResults.map(t => t.address)).size;
-          const info = document.getElementById('searchInfo');
-          info.classList.remove('hidden');
-          const parts = [];
-          if (filtered.length) parts.push(`精筛${filtered.length}`);
-          if (queue.length) parts.push(`队列${queue.length}`);
-          if (breakthroughResults.length) parts.push(`已突破${breakthroughResults.length}`);
-          if (eliminated.length) parts.push(`淘汰${eliminated.length}`);
-          if (rejected.length) parts.push(`入场淘汰${rejected.length}`);
-          const countDesc = addrSearch
-            ? `<span class="highlight">${uniqueAddrs}</span>个代币, <span class="highlight">${allResults.length}</span>条记录`
-            : `<span class="highlight">${allResults.length}</span>个代币`;
-          info.innerHTML = `"<span class="highlight">${esc(q)}</span>" ${countDesc} (${parts.join(' · ')})<span class="clear-search" onclick="clearSearch()">清除</span>`;
-
-          renderData({
-            scanTime: '搜索结果',
-            totalTokens: '--',
-            filteredTokens: filtered.length,
-            tokens: filtered,
-            queue: queue,
-            breakthroughTokens: breakthroughResults,
-            eliminatedThisRound: eliminated,
-            rejectedAtEntry: rejected,
-          });
-          showToast(allResults.length + ' 条结果');
-        } catch (e) {
-          console.error(e);
-          showToast('搜索失败');
-        }
-      }
-
-      /* ===== 通用搜索逻辑 ===== */
-      async function performSearch(q, addrSearch) {
-        let allResults;
-        try {
-          const index = await cachedFetch('/api/search-index');
-          const matched = index.filter(t => {
-            const n = (t.n || '').toLowerCase();
-            const s = (t.s || '').toLowerCase();
-            const a = (t.a || '').toLowerCase();
-            return n.includes(q) || s.includes(q) || a.includes(q);
-          });
-
-          let toMap;
-          if (addrSearch) {
-            toMap = matched;
-          } else {
-            const latest = {};
-            for (const t of matched) {
-              const key = t.a;
-              if (!latest[key] || (t.st || '') > (latest[key].st || '')) {
-                latest[key] = t;
-              }
-            }
-            toMap = Object.values(latest);
-          }
-
-          allResults = toMap.map(t => ({
-            address: t.a, name: t.n, symbol: t.s, holders: t.h,
-            created_at: t.c, price: t.p, max_price: t.mp || t.pp, ath: t.ath || t.mp || t.pp,
-            price_ratio: t.pr, age_hours: t.ah, social_count: t.sc,
-            social_links: t.sl, copycat_count: t.cc || 0,
-            is_copycat: t.ic || false, total_supply: t.ts, day1_vol: t.dv,
-            progress: t.pg, liquidity: t.lq || 0, raised_amount: t.ra || 0,
-            market_cap: t.mc || 0, wallet_signals: t.ws || [], _scanTime: t.st,
-            _source: t.src || 'filtered',
-            reason: t.rsn || '',
-            peak_price: t.pp || t.mp || 0,
-            peak_holders: t.ph || 0,
-          }));
-        } catch (_) {
-          const history = await cachedFetch('/api/history');
-          const seen = new Set();
-          allResults = [];
-          for (const row of history) {
-            const scanData = await cachedFetch('/api/scan/' + row.id);
-            const sources = [
-              { list: scanData.tokens || [], src: 'filtered' },
-              { list: scanData.queue || [], src: 'queue' },
-              { list: scanData.breakthroughTokens || [], src: 'breakthrough' },
-              { list: scanData.eliminatedThisRound || [], src: 'eliminated' },
-              { list: scanData.rejectedAtEntry || [], src: 'rejected' },
-            ];
-            for (const { list, src } of sources) {
-              for (const t of list) {
-                const key = t.address || '';
-                if (!addrSearch && seen.has(key)) continue;
-                const name = (t.name || '').toLowerCase();
-                const symbol = (t.symbol || '').toLowerCase();
-                const addr = key.toLowerCase();
-                if (name.includes(q) || symbol.includes(q) || addr.includes(q)) {
-                  if (!addrSearch) seen.add(key);
-                  allResults.push({ ...t, _scanTime: scanData.scanTime, _source: src });
-                }
-              }
-            }
-          }
-        }
-        return allResults;
-      }
-
-      function clearSearch() {
-        searchMode = false;
-        document.getElementById('searchInput').value = '';
-        document.getElementById('searchInfo').classList.add('hidden');
-        goLatest();
-      }
-
-      /* ===== 手机端搜索页面 ===== */
-      let mobileSearchData = null;
-      let currentSearchTab = 's-filtered';
-
-      async function doMobileSearch() {
-        const input = document.getElementById('mobileSearchInput');
-        const q = input.value.trim().toLowerCase();
-        if (!q) { clearMobileSearch(); return; }
-
-        showToast('搜索中...');
-        const addrSearch = isAddressQuery(q);
-
-        try {
-          const allResults = await performSearch(q, addrSearch);
-
-          const filtered = allResults.filter(t => t._source === 'filtered');
-          const queue = allResults.filter(t => t._source === 'queue');
-          const breakthroughResults = allResults.filter(t => t._source === 'breakthrough');
-          const eliminated = allResults.filter(t => t._source === 'eliminated');
-          const rejected = allResults.filter(t => t._source === 'rejected');
-
-          if (addrSearch) {
-            [filtered, queue, breakthroughResults, eliminated, rejected].forEach(arr =>
-              arr.sort((a, b) => (b._scanTime || '').localeCompare(a._scanTime || '')));
-          } else {
-            allResults.sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
-          }
-
-          mobileSearchData = { filtered, queue, breakthrough: breakthroughResults, eliminated, rejected };
-
-          // 更新搜索信息
-          const info = document.getElementById('mobileSearchInfo');
-          document.getElementById('searchCardWrapper').style.display = '';
-          const parts = [];
-          if (filtered.length) parts.push(`精筛${filtered.length}`);
-          if (queue.length) parts.push(`队列${queue.length}`);
-          if (breakthroughResults.length) parts.push(`已突破${breakthroughResults.length}`);
-          if (eliminated.length) parts.push(`淘汰${eliminated.length}`);
-          if (rejected.length) parts.push(`入场淘汰${rejected.length}`);
-          const uniqueAddrs = new Set(allResults.map(t => t.address)).size;
-          const countDesc = addrSearch
-            ? `<span class="highlight">${uniqueAddrs}</span>个代币, <span class="highlight">${allResults.length}</span>条记录`
-            : `<span class="highlight">${allResults.length}</span>个代币`;
-          info.innerHTML = `"<span class="highlight">${esc(q)}</span>" ${countDesc} (精筛${filtered.length} · 队列${queue.length} · 突破${breakthroughResults.length} · 淘汰${eliminated.length} · 入场${rejected.length})<span class="clear-search" onclick="clearMobileSearch()">清除</span>`;
-
-          // tab 栏已在 wrapper 内，无需单独显示
-
-          // 更新 tab 标题中的数字
-          document.querySelectorAll('.search-tab-btn').forEach(btn => {
-            const stab = btn.dataset.stab;
-            if (stab === 's-filtered') btn.textContent = '精筛 ' + filtered.length;
-            else if (stab === 's-queue') btn.textContent = '存活 ' + queue.length;
-            else if (stab === 's-breakthrough') btn.textContent = '突破 ' + breakthroughResults.length;
-            else if (stab === 's-eliminated') btn.textContent = '淘汰 ' + eliminated.length;
-            else if (stab === 's-rejected') btn.textContent = '拒绝 ' + rejected.length;
-          });
-
-          // 隐藏空状态
-          document.getElementById('searchEmptyState').style.display = 'none';
-
-          // 渲染当前 tab
-          renderSearchTab(currentSearchTab);
-          showToast(allResults.length + ' 条结果');
-        } catch (e) {
-          console.error(e);
-          showToast('搜索失败');
-        }
-      }
-
-      function switchSearchTab(tab) {
-        currentSearchTab = tab;
-        document.querySelectorAll('.search-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.stab === tab));
-        renderSearchTab(tab);
-      }
-
-      function renderSearchTab(tab) {
-        if (!mobileSearchData) return;
-        const containers = {
-          's-filtered': 'searchFilteredCards',
-          's-queue': 'searchQueueCards',
-          's-breakthrough': 'searchBreakthroughCards',
-          's-eliminated': 'searchEliminatedCards',
-          's-rejected': 'searchRejectedCards',
-        };
-
-        // 隐藏所有
-        Object.values(containers).forEach(id => {
-          const el = document.getElementById(id);
-          if (el) el.style.display = 'none';
-        });
-
-        const containerId = containers[tab];
-        const el = document.getElementById(containerId);
-        if (!el) return;
-        el.style.display = 'block';
-
-        const dataMap = {
-          's-filtered': mobileSearchData.filtered,
-          's-queue': mobileSearchData.queue,
-          's-breakthrough': mobileSearchData.breakthrough,
-          's-eliminated': mobileSearchData.eliminated,
-          's-rejected': mobileSearchData.rejected,
-        };
-
-        const items = dataMap[tab] || [];
-        if (items.length === 0) {
-          el.innerHTML = `<div class="no-data"><span class="no-data-icon">📭</span><div class="no-data-text">无结果</div></div>`;
-          return;
-        }
-
-        if (tab === 's-filtered') {
-          el.innerHTML = items.map((t, i) => buildTokenCard(t, i, true)).join('');
-        } else if (tab === 's-queue') {
-          el.innerHTML = items.map((t, i) => buildQueueCard(t, i, true)).join('');
-        } else if (tab === 's-breakthrough') {
-          el.innerHTML = items.map((t, i) => buildBreakthroughCard(t, i, true)).join('');
+        if (addrSearch) {
+          [allResults, filtered, queue, breakthroughResults, eliminated, rejected].forEach(arr =>
+            arr.sort((a, b) => (b._scanTime || '').localeCompare(a._scanTime || '')));
         } else {
-          // 淘汰和入场淘汰
-          el.innerHTML = items.map(t => buildElimCard(t, true)).join('');
+          allResults.sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
+        }
+
+        const uniqueAddrs = new Set(allResults.map(t => t.address)).size;
+        const info = document.getElementById('searchInfo');
+        info.classList.remove('hidden');
+        const parts = [];
+        if (filtered.length) parts.push(`精筛${filtered.length}`);
+        if (queue.length) parts.push(`队列${queue.length}`);
+        if (breakthroughResults.length) parts.push(`已突破${breakthroughResults.length}`);
+        if (eliminated.length) parts.push(`淘汰${eliminated.length}`);
+        if (rejected.length) parts.push(`入场淘汰${rejected.length}`);
+        const countDesc = addrSearch
+          ? `<span class="highlight">${uniqueAddrs}</span>个代币, <span class="highlight">${allResults.length}</span>条记录`
+          : `<span class="highlight">${allResults.length}</span>个代币`;
+        info.innerHTML = `"<span class="highlight">${esc(q)}</span>" ${countDesc} (${parts.join(' · ')})<span class="clear-search" onclick="clearSearch()">清除</span>`;
+
+        renderData({
+          scanTime: '搜索结果',
+          totalTokens: '--',
+          filteredTokens: filtered.length,
+          tokens: filtered,
+          queue: queue,
+          breakthroughTokens: breakthroughResults,
+          eliminatedThisRound: eliminated,
+          rejectedAtEntry: rejected,
+        });
+        showToast(allResults.length + ' 条结果');
+      } catch (e) {
+        console.error(e);
+        showToast('搜索失败');
+      }
+    }
+
+    /* ===== 通用搜索逻辑 ===== */
+    async function performSearch(q, addrSearch) {
+      let allResults;
+      try {
+        const index = await cachedFetch('/api/search-index');
+        const matched = index.filter(t => {
+          const n = (t.n || '').toLowerCase();
+          const s = (t.s || '').toLowerCase();
+          const a = (t.a || '').toLowerCase();
+          return n.includes(q) || s.includes(q) || a.includes(q);
+        });
+
+        let toMap;
+        if (addrSearch) {
+          toMap = matched;
+        } else {
+          const latest = {};
+          for (const t of matched) {
+            const key = t.a;
+            if (!latest[key] || (t.st || '') > (latest[key].st || '')) {
+              latest[key] = t;
+            }
+          }
+          toMap = Object.values(latest);
+        }
+
+        allResults = toMap.map(t => ({
+          address: t.a, name: t.n, symbol: t.s, holders: t.h,
+          created_at: t.c, price: t.p, max_price: t.mp || t.pp, ath: t.ath || t.mp || t.pp,
+          price_ratio: t.pr, age_hours: t.ah, social_count: t.sc,
+          social_links: t.sl, copycat_count: t.cc || 0,
+          is_copycat: t.ic || false, total_supply: t.ts, day1_vol: t.dv,
+          progress: t.pg, liquidity: t.lq || 0, raised_amount: t.ra || 0,
+          market_cap: t.mc || 0, wallet_signals: t.ws || [], _scanTime: t.st,
+          _source: t.src || 'filtered',
+          reason: t.rsn || '',
+          peak_price: t.pp || t.mp || 0,
+          peak_holders: t.ph || 0,
+        }));
+      } catch (_) {
+        const history = await cachedFetch('/api/history');
+        const seen = new Set();
+        allResults = [];
+        for (const row of history) {
+          const scanData = await cachedFetch('/api/scan/' + row.id);
+          const sources = [
+            { list: scanData.tokens || [], src: 'filtered' },
+            { list: scanData.queue || [], src: 'queue' },
+            { list: scanData.breakthroughTokens || [], src: 'breakthrough' },
+            { list: scanData.eliminatedThisRound || [], src: 'eliminated' },
+            { list: scanData.rejectedAtEntry || [], src: 'rejected' },
+          ];
+          for (const { list, src } of sources) {
+            for (const t of list) {
+              const key = t.address || '';
+              if (!addrSearch && seen.has(key)) continue;
+              const name = (t.name || '').toLowerCase();
+              const symbol = (t.symbol || '').toLowerCase();
+              const addr = key.toLowerCase();
+              if (name.includes(q) || symbol.includes(q) || addr.includes(q)) {
+                if (!addrSearch) seen.add(key);
+                allResults.push({ ...t, _scanTime: scanData.scanTime, _source: src });
+              }
+            }
+          }
         }
       }
+      return allResults;
+    }
 
-      function clearMobileSearch() {
-        mobileSearchData = null;
-        currentSearchTab = 's-filtered';
-        document.getElementById('mobileSearchInput').value = '';
-        document.getElementById('searchCardWrapper').style.display = 'none';
-        document.getElementById('searchEmptyState').style.display = '';
-        ['searchFilteredCards', 'searchQueueCards', 'searchBreakthroughCards', 'searchEliminatedCards', 'searchRejectedCards'].forEach(id => {
-          const el = document.getElementById(id);
-          if (el) { el.innerHTML = ''; el.style.display = 'none'; }
-        });
-        // 重置 tab 标题
+    function clearSearch() {
+      searchMode = false;
+      document.getElementById('searchInput').value = '';
+      document.getElementById('searchInfo').classList.add('hidden');
+      goLatest();
+    }
+
+    /* ===== 手机端搜索页面 ===== */
+    let mobileSearchData = null;
+    let currentSearchTab = 's-filtered';
+
+    async function doMobileSearch() {
+      const input = document.getElementById('mobileSearchInput');
+      const q = input.value.trim().toLowerCase();
+      if (!q) { clearMobileSearch(); return; }
+
+      showToast('搜索中...');
+      const addrSearch = isAddressQuery(q);
+
+      try {
+        const allResults = await performSearch(q, addrSearch);
+
+        const filtered = allResults.filter(t => t._source === 'filtered');
+        const queue = allResults.filter(t => t._source === 'queue');
+        const breakthroughResults = allResults.filter(t => t._source === 'breakthrough');
+        const eliminated = allResults.filter(t => t._source === 'eliminated');
+        const rejected = allResults.filter(t => t._source === 'rejected');
+
+        if (addrSearch) {
+          [filtered, queue, breakthroughResults, eliminated, rejected].forEach(arr =>
+            arr.sort((a, b) => (b._scanTime || '').localeCompare(a._scanTime || '')));
+        } else {
+          allResults.sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
+        }
+
+        mobileSearchData = { filtered, queue, breakthrough: breakthroughResults, eliminated, rejected };
+
+        // 更新搜索信息
+        const info = document.getElementById('mobileSearchInfo');
+        document.getElementById('searchCardWrapper').style.display = '';
+        const parts = [];
+        if (filtered.length) parts.push(`精筛${filtered.length}`);
+        if (queue.length) parts.push(`队列${queue.length}`);
+        if (breakthroughResults.length) parts.push(`已突破${breakthroughResults.length}`);
+        if (eliminated.length) parts.push(`淘汰${eliminated.length}`);
+        if (rejected.length) parts.push(`入场淘汰${rejected.length}`);
+        const uniqueAddrs = new Set(allResults.map(t => t.address)).size;
+        const countDesc = addrSearch
+          ? `<span class="highlight">${uniqueAddrs}</span>个代币, <span class="highlight">${allResults.length}</span>条记录`
+          : `<span class="highlight">${allResults.length}</span>个代币`;
+        info.innerHTML = `"<span class="highlight">${esc(q)}</span>" ${countDesc} (精筛${filtered.length} · 队列${queue.length} · 突破${breakthroughResults.length} · 淘汰${eliminated.length} · 入场${rejected.length})<span class="clear-search" onclick="clearMobileSearch()">清除</span>`;
+
+        // tab 栏已在 wrapper 内，无需单独显示
+
+        // 更新 tab 标题中的数字
         document.querySelectorAll('.search-tab-btn').forEach(btn => {
           const stab = btn.dataset.stab;
-          if (stab === 's-filtered') btn.textContent = '精筛结果';
-          else if (stab === 's-queue') btn.textContent = '队列存活';
-          else if (stab === 's-breakthrough') btn.textContent = '已突破';
-          else if (stab === 's-eliminated') btn.textContent = '本轮淘汰';
-          else if (stab === 's-rejected') btn.textContent = '入场淘汰';
+          if (stab === 's-filtered') btn.textContent = '精筛 ' + filtered.length;
+          else if (stab === 's-queue') btn.textContent = '存活 ' + queue.length;
+          else if (stab === 's-breakthrough') btn.textContent = '突破 ' + breakthroughResults.length;
+          else if (stab === 's-eliminated') btn.textContent = '淘汰 ' + eliminated.length;
+          else if (stab === 's-rejected') btn.textContent = '拒绝 ' + rejected.length;
         });
-        document.querySelectorAll('.search-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.stab === 's-filtered'));
+
+        // 隐藏空状态
+        document.getElementById('searchEmptyState').style.display = 'none';
+
+        // 渲染当前 tab
+        renderSearchTab(currentSearchTab);
+        showToast(allResults.length + ' 条结果');
+      } catch (e) {
+        console.error(e);
+        showToast('搜索失败');
+      }
+    }
+
+    function switchSearchTab(tab) {
+      currentSearchTab = tab;
+      document.querySelectorAll('.search-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.stab === tab));
+      renderSearchTab(tab);
+    }
+
+    function renderSearchTab(tab) {
+      if (!mobileSearchData) return;
+      const containers = {
+        's-filtered': 'searchFilteredCards',
+        's-queue': 'searchQueueCards',
+        's-breakthrough': 'searchBreakthroughCards',
+        's-eliminated': 'searchEliminatedCards',
+        's-rejected': 'searchRejectedCards',
+      };
+
+      // 隐藏所有
+      Object.values(containers).forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+      });
+
+      const containerId = containers[tab];
+      const el = document.getElementById(containerId);
+      if (!el) return;
+      el.style.display = 'block';
+
+      const dataMap = {
+        's-filtered': mobileSearchData.filtered,
+        's-queue': mobileSearchData.queue,
+        's-breakthrough': mobileSearchData.breakthrough,
+        's-eliminated': mobileSearchData.eliminated,
+        's-rejected': mobileSearchData.rejected,
+      };
+
+      const items = dataMap[tab] || [];
+      if (items.length === 0) {
+        el.innerHTML = `<div class="no-data"><span class="no-data-icon">📭</span><div class="no-data-text">无结果</div></div>`;
+        return;
       }
 
-      loadLatest();
-      initDesktopHistory();
+      if (tab === 's-filtered') {
+        el.innerHTML = items.map((t, i) => buildTokenCard(t, i, true)).join('');
+      } else if (tab === 's-queue') {
+        el.innerHTML = items.map((t, i) => buildQueueCard(t, i, true)).join('');
+      } else if (tab === 's-breakthrough') {
+        el.innerHTML = items.map((t, i) => buildBreakthroughCard(t, i, true)).join('');
+      } else {
+        // 淘汰和入场淘汰
+        el.innerHTML = items.map(t => buildElimCard(t, true)).join('');
+      }
+    }
 
-      // 自动刷新：每60秒轮询最新数据（仅在非搜索、非历史浏览时刷新）
-      setInterval(async () => {
-        if (!autoRefreshEnabled || searchMode || activeHistoryId != null) return;
-        try { await loadLatest(); } catch (_) { }
-      }, 60 * 1000);
-    </script>
+    function clearMobileSearch() {
+      mobileSearchData = null;
+      currentSearchTab = 's-filtered';
+      document.getElementById('mobileSearchInput').value = '';
+      document.getElementById('searchCardWrapper').style.display = 'none';
+      document.getElementById('searchEmptyState').style.display = '';
+      ['searchFilteredCards', 'searchQueueCards', 'searchBreakthroughCards', 'searchEliminatedCards', 'searchRejectedCards'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.innerHTML = ''; el.style.display = 'none'; }
+      });
+      // 重置 tab 标题
+      document.querySelectorAll('.search-tab-btn').forEach(btn => {
+        const stab = btn.dataset.stab;
+        if (stab === 's-filtered') btn.textContent = '精筛结果';
+        else if (stab === 's-queue') btn.textContent = '队列存活';
+        else if (stab === 's-breakthrough') btn.textContent = '已突破';
+        else if (stab === 's-eliminated') btn.textContent = '本轮淘汰';
+        else if (stab === 's-rejected') btn.textContent = '入场淘汰';
+      });
+      document.querySelectorAll('.search-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.stab === 's-filtered'));
+    }
+
+    loadLatest();
+    initDesktopHistory();
+
+    // 自动刷新：每60秒轮询最新数据（仅在非搜索、非历史浏览时刷新）
+    setInterval(async () => {
+      if (!autoRefreshEnabled || searchMode || activeHistoryId != null) return;
+      try { await loadLatest(); } catch (_) { }
+    }, 60 * 1000);
+  </script>
 </body>
 
 </html>
