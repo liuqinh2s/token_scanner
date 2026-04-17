@@ -2486,6 +2486,22 @@ def main():
 
     # 加载队列
     queue_state = load_queue()
+
+    # 迁移: 旧版 breakthrough 冻结快照 → 回归 tokens 列表 (一次性)
+    old_bt = queue_state.pop("breakthrough", [])
+    if old_bt:
+        token_addrs = set(t["address"] for t in queue_state.get("tokens", []))
+        migrated = 0
+        for t in old_bt:
+            if t["address"] not in token_addrs:
+                t["isBreakthrough"] = True
+                t["_bt_persisted"] = True
+                queue_state["tokens"].append(t)
+                migrated += 1
+        if migrated:
+            log.info("迁移旧突破代币: %d 个回归队列", migrated)
+            save_queue(queue_state)
+
     existing_addrs = set(
         [t["address"] for t in queue_state.get("tokens", [])]
         + [t["address"] for t in queue_state.get("eliminated", [])]
