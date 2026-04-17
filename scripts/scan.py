@@ -2670,6 +2670,27 @@ def main():
         "createdAt": e.get("createdAt", 0),
     } for e in eliminated])
 
+    # 突破代币持币数刷新: 冻结快照前用 BSCScan 爬取真实持币数
+    # 原因: 代币刚毕业时 detail API 返回 holders=0, 导致快照持币数为 0
+    if breakthrough_tokens:
+        bt_addrs = [t["address"] for t in breakthrough_tokens]
+        log.info("突破代币持币数刷新: BSCScan 查询 %d 个代币...", len(bt_addrs))
+        bt_holders = graduated_holder_counts(bt_addrs)
+        for t in breakthrough_tokens:
+            rh = bt_holders.get(t["address"])
+            if rh is not None and rh > 0:
+                old_h = t.get("holders", 0)
+                t["holders"] = rh
+                t["peakHolders"] = max(t.get("peakHolders", 0), rh)
+                if rh != old_h:
+                    log.info("  突破持币数刷新 %s: %d→%d (BSCScan)",
+                             t.get("name") or t["address"][:16], old_h, rh)
+            elif t.get("holders", 0) == 0 and t.get("peakHolders", 0) > 0:
+                # BSCScan 也没查到, 用 peakHolders 兜底 (总比 0 好)
+                t["holders"] = t["peakHolders"]
+                log.info("  突破持币数兜底 %s: 0→%d (用 peakHolders)",
+                         t.get("name") or t["address"][:16], t["peakHolders"])
+
     # 价格突破的代币记入 breakthrough 持久化列表 (冻结快照, 不再跟踪)
     if "breakthrough" not in queue_state:
         queue_state["breakthrough"] = []
