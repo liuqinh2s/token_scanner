@@ -1897,7 +1897,7 @@
           队列淘汰(价格跌90%/持币30→10/持币跌70%(峰≥50)/无社交/流动性1k→100(仅毕业)/进度&lt;1%且币龄&gt;2h/进度&lt;5%且币龄&gt;4h/进度跌50%且币龄&gt;6h/15min峰值持币&lt;3/1h峰值持币&lt;5/币龄&gt;48h)
           🚀价格突破(峰值≥0.0001 → 移出队列, 冻结快照, 不再跟踪)
           → 动量精筛(币龄≥1h且≤36h/价格≤0.00005/持币≥15/价格动量/持币增长/买卖比≥1.2/进度20%~97%/回撤保护/冷却6轮)
-          → 精筛后防线(Top10持仓≤85%/开发者清仓撤池排除/假K线: 排除全阳线实体柱控盘币)<br>
+          → 精筛后防线(Top10持仓≤85%/开发者清仓撤池排除/假K线: 排除全阳线实体柱控盘币+脉冲死线假阳线)<br>
           数据源: DexScreener 价格 · GeckoTerminal 已毕业持币数 · four.meme Detail API · BSCScan Top Holder+开发者行为<br>
           🔥仿盘标记(≥3个同名, 仅标记不排除) · 目标价区间: 0.000001 ~ 0.0001
         </p>
@@ -1910,7 +1910,8 @@
       </div>
 
       <div class="stats-bar" id="statsBar">
-        <div class="stat"><span class="label">扫描时间</span><span class="val" id="scanTime">--</span><button class="stat-latest-btn" id="btnLatestInline" onclick="goLatest()">回到最新</button></div>
+        <div class="stat"><span class="label">扫描时间</span><span class="val" id="scanTime">--</span><button
+            class="stat-latest-btn" id="btnLatestInline" onclick="goLatest()">回到最新</button></div>
         <div class="stat"><span class="label">队列存活</span><span class="val" id="queueSize">--</span></div>
         <div class="stat"><span class="label">已突破</span><span class="val" id="breakthroughCount">--</span></div>
         <div class="stat stat-highlight"><span class="label">精筛通过</span><span class="val" id="filteredTokens">--</span>
@@ -2059,7 +2060,8 @@
     <button class="mobile-tab" data-page="settings" onclick="switchPage('settings')">
       <span class="mobile-tab-icon"><svg viewBox="0 0 24 24">
           <circle cx="12" cy="12" r="3" />
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          <path
+            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
         </svg></span>
       <span class="mobile-tab-label">设置</span>
     </button>
@@ -2085,9 +2087,11 @@
       </div>
       <div id="mobileSearchInfo" class="search-page-info" style="display:none"></div>
       <div class="search-tab-bar" id="searchTabBar" style="display:none">
-        <button class="search-tab-btn active" data-stab="s-filtered" onclick="switchSearchTab('s-filtered')">精筛结果</button>
+        <button class="search-tab-btn active" data-stab="s-filtered"
+          onclick="switchSearchTab('s-filtered')">精筛结果</button>
         <button class="search-tab-btn" data-stab="s-queue" onclick="switchSearchTab('s-queue')">队列存活</button>
-        <button class="search-tab-btn" data-stab="s-breakthrough" onclick="switchSearchTab('s-breakthrough')">已突破</button>
+        <button class="search-tab-btn" data-stab="s-breakthrough"
+          onclick="switchSearchTab('s-breakthrough')">已突破</button>
         <button class="search-tab-btn" data-stab="s-eliminated" onclick="switchSearchTab('s-eliminated')">本轮淘汰</button>
         <button class="search-tab-btn" data-stab="s-rejected" onclick="switchSearchTab('s-rejected')">入场淘汰</button>
       </div>
@@ -2125,7 +2129,8 @@
           <span class="settings-row-label">自动刷新</span>
         </div>
         <div class="settings-row-right">
-          <div class="ios-toggle" id="autoRefreshIosToggle" onclick="event.stopPropagation();toggleMobileAutoRefresh()"></div>
+          <div class="ios-toggle" id="autoRefreshIosToggle" onclick="event.stopPropagation();toggleMobileAutoRefresh()">
+          </div>
         </div>
       </div>
       <div class="settings-row" onclick="openAboutFromSettings()">
@@ -2143,7 +2148,9 @@
   <!-- 关于页面（从设置进入） -->
   <div class="about-page hidden" id="aboutPage">
     <div class="about-page-header">
-      <button class="about-back-btn" onclick="backToSettings()"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <button class="about-back-btn" onclick="backToSettings()"><svg viewBox="0 0 24 24">
+          <polyline points="15 18 9 12 15 6" />
+        </svg></button>
       <h2>关于</h2>
     </div>
     <div class="about-content">
@@ -2185,7 +2192,7 @@
             <span class="flow-num">5</span>
             <div>
               <div class="flow-title">精筛后防线 (~数秒)</div>
-              <div class="flow-desc">Top10 持仓集中度 + 开发者行为分析 + 假K线检测 → 排除庄家控盘、跑路币和全阳线控盘币</div>
+              <div class="flow-desc">Top10 持仓集中度 + 开发者行为分析 + 假K线检测 → 排除庄家控盘、跑路币和全阳线控盘币、脉冲死线假阳线</div>
             </div>
           </div>
           <div class="flow-step">
@@ -2243,7 +2250,7 @@
         <ul class="about-list">
           <li>Top10 持仓占比 ≤ 85%（排除庄家控盘）</li>
           <li>开发者行为: 清仓/撤池子 → 排除（跑路信号）</li>
-          <li>假K线检测: 排除全是阳线实体柱、无影线、无阴线的控盘币（15min K线无影线 ≥ 80% 或全阳线 ≥ 90%）</li>
+          <li>假K线检测: 排除全是阳线实体柱、无影线、无阴线的控盘币，以及头部脉冲后全是死线的假阳线（15min K线无影线 ≥ 80% 或全阳线 ≥ 90%，1min K线脉冲死线 ≥ 70%）</li>
         </ul>
       </div>
 
