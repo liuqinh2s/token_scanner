@@ -32,14 +32,14 @@
       "priceHistory": [
         6.253e-06,
         6.253e-06,
-        6.253e-06,
+        6.412e-06,
         6.412e-06,
         6.412e-06
       ],
       "holdersHistory": [
         34,
         34,
-        34,
+        33,
         33,
         33
       ],
@@ -56,11 +56,12 @@
       "progressHistory": [
         0.319679972,
         0.319679972,
-        0.319679972,
+        0.329325313,
         0.329325313,
         0.329325313
       ],
       "liquidityHistory": [
+        0.0,
         0.0,
         0.0,
         0.0,
@@ -82,7 +83,7 @@
         "website": "https://www.web3festival.org/hongkong2026/#/speaker/zh?tit=%E6%BC%94%E8%AC%9B%E5%98%89%E8%B3%93"
       },
       "descr": "未來金融正在被“重新編程”",
-      "price": 1.08e-05,
+      "price": 1.196e-05,
       "addedPrice": 1.3552266722e-08,
       "peakPrice": 1.382e-05,
       "holders": 64,
@@ -90,45 +91,46 @@
       "peakHolders": 73,
       "liquidity": 0.0,
       "peakLiquidity": 0.0,
-      "raisedAmount": 4.459245382680142,
-      "progress": 0.5634971105,
+      "raisedAmount": 4.949344392581132,
+      "progress": 0.5978484787,
       "peakProgress": 0.6554990399,
       "addedProgress": 0.468799681,
       "day1Vol": 0.0,
       "consecDrops": 0,
-      "lastPrice": 1.08e-05,
+      "lastPrice": 1.196e-05,
       "priceHistory": [
-        1.092e-05,
         1.083e-05,
         1.08e-05,
         1.08e-05,
-        1.08e-05
+        1.08e-05,
+        1.196e-05
       ],
       "holdersHistory": [
         67,
-        67,
+        64,
         64,
         64,
         64
       ],
-      "volume24h": 4046.63,
-      "volumeH1": 84.01,
-      "buysH1": 1,
-      "sellsH1": 2,
-      "buysH24": 44,
-      "sellsH24": 33,
+      "volume24h": 4350.43,
+      "volumeH1": 359.73,
+      "buysH1": 2,
+      "sellsH1": 1,
+      "buysH24": 45,
+      "sellsH24": 32,
       "copycat": {
         "count": 14,
         "isCopycat": true
       },
       "progressHistory": [
         0.5699810548,
-        0.5699810548,
         0.5634971105,
         0.5634971105,
-        0.5634971105
+        0.5634971105,
+        0.5978484787
       ],
       "liquidityHistory": [
+        0.0,
         0.0,
         0.0,
         0.0,
@@ -199,6 +201,7 @@
         0.0,
         0.0,
         0.0,
+        0.0,
         0.0
       ]
     },
@@ -233,7 +236,7 @@
       "consecDrops": 0,
       "lastPrice": 5.505e-06,
       "priceHistory": [
-        5.6e-06,
+        5.505e-06,
         5.505e-06,
         5.505e-06,
         5.505e-06,
@@ -241,15 +244,15 @@
       ],
       "holdersHistory": [
         43,
-        43,
+        42,
         42,
         42,
         42
       ],
       "volume24h": 445.66,
-      "volumeH1": 42.53,
+      "volumeH1": 0.0,
       "buysH1": 0,
-      "sellsH1": 1,
+      "sellsH1": 0,
       "buysH24": 10,
       "sellsH24": 24,
       "copycat": {
@@ -258,12 +261,13 @@
       },
       "progressHistory": [
         0.2615751097,
-        0.2615751097,
+        0.2520041633,
         0.2520041633,
         0.2520041633,
         0.2520041633
       ],
       "liquidityHistory": [
+        0.0,
         0.0,
         0.0,
         0.0,
@@ -335,6 +339,7 @@
         0.0,
         0.0,
         0.0,
+        0.0,
         0.0
       ]
     },
@@ -399,6 +404,7 @@
         0.087217658
       ],
       "liquidityHistory": [
+        0.0,
         0.0,
         0.0,
         0.0,
@@ -470,6 +476,7 @@
         0.0,
         0.0,
         0.0,
+        0.0,
         0.0
       ]
     },
@@ -535,6 +542,7 @@
         "isCopycat": true
       },
       "liquidityHistory": [
+        0.0,
         0.0,
         0.0,
         0.0,
@@ -606,6 +614,7 @@
         0.0,
         0.0,
         0.0,
+        0.0,
         0.0
       ]
     },
@@ -670,6 +679,7 @@
         "isCopycat": false
       },
       "liquidityHistory": [
+        0.0,
         0.0,
         0.0,
         0.0,
@@ -740,6 +750,7 @@
         0.0,
         0.0,
         0.0,
+        0.0,
         0.0
       ]
     },
@@ -773,29 +784,29 @@
       "consecDrops": 0,
       "lastPrice": 1.6284096941425e-05,
       "priceHistory": [
-        1.4534997780232e-05,
         1.6962948064905e-05,
         1.6962948064905e-05,
+        1.6284096941425e-05,
         1.6284096941425e-05,
         1.6284096941425e-05
       ],
       "holdersHistory": [
-        71,
         72,
         72,
+        74,
         74,
         74
       ],
       "volume24h": 0.0,
       "volumeH1": 0.0,
-      "buysH1": 2,
-      "sellsH1": 1,
-      "buysH24": 1000,
-      "sellsH24": 1019,
+      "buysH1": 4,
+      "sellsH1": 4,
+      "buysH24": 1004,
+      "sellsH24": 1022,
       "progressHistory": [
-        0.572354742,
         0.6295960598,
         0.6295960598,
+        0.6148887254,
         0.6148887254,
         0.6148887254
       ],
@@ -822,6 +833,7 @@
         "spike_ratio": 0
       },
       "liquidityHistory": [
+        0.0,
         0.0,
         0.0,
         0.0,
@@ -893,6 +905,7 @@
         0.0,
         0.0,
         0.0,
+        0.0,
         0.0
       ]
     },
@@ -960,6 +973,7 @@
         0.0,
         0.0,
         0.0,
+        0.0,
         0.0
       ]
     },
@@ -994,8 +1008,8 @@
       "consecDrops": 0,
       "lastPrice": 6.269e-06,
       "priceHistory": [
-        6.949e-06,
         6.303e-06,
+        6.269e-06,
         6.269e-06,
         6.269e-06,
         6.269e-06
@@ -1008,14 +1022,14 @@
         23
       ],
       "volume24h": 21039.76,
-      "volumeH1": 317.05,
-      "buysH1": 3,
-      "sellsH1": 3,
+      "volumeH1": 15.55,
+      "buysH1": 0,
+      "sellsH1": 1,
       "buysH24": 186,
       "sellsH24": 155,
       "progressHistory": [
         0.3717041282,
-        0.3717041282,
+        0.3199151734,
         0.3199151734,
         0.3199151734,
         0.3199151734
@@ -1025,6 +1039,7 @@
         "isCopycat": true
       },
       "liquidityHistory": [
+        0.0,
         0.0,
         0.0,
         0.0,
@@ -1096,6 +1111,7 @@
         0.0,
         0.0,
         0.0,
+        0.0,
         0.0
       ]
     },
@@ -1113,53 +1129,54 @@
         "twitter": "https://x.com/i/status/2045040995272950155"
       },
       "descr": "除了事业和信仰就是家人最重要",
-      "price": 4.993e-06,
+      "price": 5.032e-06,
       "addedPrice": 1.0817746895e-08,
       "peakPrice": 6.869e-06,
-      "holders": 18,
+      "holders": 17,
       "addedHolders": 29,
       "peakHolders": 35,
       "liquidity": 0.0,
       "peakLiquidity": 0.0,
-      "raisedAmount": 1.0461811450837963,
-      "progress": 0.1947784143,
+      "raisedAmount": 1.0440386646589863,
+      "progress": 0.1944372997,
       "peakProgress": 0.3645914518,
       "addedProgress": 0.3645914518,
       "day1Vol": 0.0,
       "consecDrops": 0,
-      "lastPrice": 4.993e-06,
+      "lastPrice": 5.032e-06,
       "priceHistory": [
         4.702e-06,
         4.702e-06,
-        4.702e-06,
         4.993e-06,
-        4.993e-06
+        4.993e-06,
+        5.032e-06
       ],
       "holdersHistory": [
         15,
         15,
-        15,
         18,
-        18
+        18,
+        17
       ],
-      "volume24h": 16878.31,
-      "volumeH1": 174.86,
+      "volume24h": 16879.68,
+      "volumeH1": 176.23,
       "buysH1": 2,
-      "sellsH1": 1,
+      "sellsH1": 2,
       "buysH24": 259,
-      "sellsH24": 151,
+      "sellsH24": 152,
       "progressHistory": [
         0.1626366189,
         0.1626366189,
-        0.1626366189,
         0.1947784143,
-        0.1947784143
+        0.1947784143,
+        0.1944372997
       ],
       "copycat": {
         "count": 14,
         "isCopycat": true
       },
       "liquidityHistory": [
+        0.0,
         0.0,
         0.0,
         0.0,
@@ -1183,50 +1200,51 @@
       "price": 8.55e-06,
       "addedPrice": 1.871932625e-08,
       "peakPrice": 1.252e-05,
-      "holders": 101,
+      "holders": 100,
       "addedHolders": 98,
       "peakHolders": 104,
       "liquidity": 0.0,
       "peakLiquidity": 0.0,
-      "raisedAmount": 3.279428218982894,
-      "progress": 0.4661804129,
+      "raisedAmount": 3.270077780786089,
+      "progress": 0.4653119318,
       "peakProgress": 0.6197428819,
       "addedProgress": 0.5990935215,
       "day1Vol": 0.0,
-      "consecDrops": 1,
+      "consecDrops": 0,
       "lastPrice": 8.55e-06,
       "priceHistory": [
-        8.477e-06,
         8.485e-06,
         8.485e-06,
         8.564e-06,
+        8.55e-06,
         8.55e-06
       ],
       "holdersHistory": [
         102,
-        102,
         101,
         101,
-        101
+        101,
+        100
       ],
       "volume24h": 18662.29,
-      "volumeH1": 22.09,
-      "buysH1": 3,
+      "volumeH1": 21.06,
+      "buysH1": 2,
       "sellsH1": 2,
       "buysH24": 256,
       "sellsH24": 100,
       "progressHistory": [
         0.4638106604,
-        0.4638106604,
         0.463961949,
         0.4661804129,
-        0.4661804129
+        0.4661804129,
+        0.4653119318
       ],
       "copycat": {
         "count": 118,
         "isCopycat": true
       },
       "liquidityHistory": [
+        0.0,
         0.0,
         0.0,
         0.0,
@@ -1265,14 +1283,14 @@
       "lastPrice": 4.031e-06,
       "priceHistory": [
         4.03e-06,
-        4.03e-06,
+        4.031e-06,
         4.031e-06,
         4.031e-06,
         4.031e-06
       ],
       "holdersHistory": [
         10,
-        10,
+        9,
         9,
         9,
         9
@@ -1285,7 +1303,7 @@
       "sellsH24": 106,
       "progressHistory": [
         0.0684862296,
-        0.0684862296,
+        0.0672911009,
         0.0672911009,
         0.0672911009,
         0.0672911009
@@ -1295,6 +1313,7 @@
         "isCopycat": false
       },
       "liquidityHistory": [
+        0.0,
         0.0,
         0.0,
         0.0,
@@ -1315,53 +1334,54 @@
         "twitter": "https://x.com/elonmusk/status/2044986783700860974"
       },
       "descr": "ASTEROID",
-      "price": 1.918e-05,
+      "price": 2.026e-05,
       "addedPrice": 3.0473095126e-08,
       "peakPrice": 2.158e-05,
-      "holders": 229,
+      "holders": 228,
       "addedHolders": 242,
       "peakHolders": 249,
       "liquidity": 0.0,
       "peakLiquidity": 0.0,
-      "raisedAmount": 7.837572455343977,
-      "progress": 0.7514430555,
+      "raisedAmount": 8.313317465572043,
+      "progress": 0.7708643779,
       "peakProgress": 0.7913267175,
       "addedProgress": 0.7598353317,
       "day1Vol": 0.0,
       "consecDrops": 0,
-      "lastPrice": 1.918e-05,
+      "lastPrice": 2.026e-05,
       "priceHistory": [
-        2.036e-05,
         2.112e-05,
         2.158e-05,
         1.882e-05,
-        1.918e-05
+        1.918e-05,
+        2.026e-05
       ],
       "holdersHistory": [
         232,
-        232,
         234,
         229,
-        229
+        229,
+        228
       ],
-      "volume24h": 251089.21,
-      "volumeH1": 2949.09,
-      "buysH1": 20,
-      "sellsH1": 19,
-      "buysH24": 2214,
-      "sellsH24": 1722,
+      "volume24h": 252383.24,
+      "volumeH1": 4024.3,
+      "buysH1": 21,
+      "sellsH1": 26,
+      "buysH24": 2219,
+      "sellsH24": 1730,
       "progressHistory": [
-        0.7753316469,
         0.7753316469,
         0.7913267175,
         0.7514430555,
-        0.7514430555
+        0.7514430555,
+        0.7708643779
       ],
       "copycat": {
         "count": 128,
         "isCopycat": true
       },
       "liquidityHistory": [
+        0.0,
         0.0,
         0.0,
         0.0,
@@ -1385,44 +1405,44 @@
       "price": 1.668e-05,
       "addedPrice": 1.7767327801e-08,
       "peakPrice": 1.911e-05,
-      "holders": 93,
+      "holders": 90,
       "addedHolders": 44,
       "peakHolders": 93,
       "liquidity": 0.0,
       "peakLiquidity": 0.0,
-      "raisedAmount": 6.9809531649852605,
-      "progress": 0.7129289075,
+      "raisedAmount": 6.9893335916185775,
+      "progress": 0.7133299947,
       "peakProgress": 0.7584825409,
       "addedProgress": 0.5794379142,
       "day1Vol": 0.0,
       "consecDrops": 0,
       "lastPrice": 1.668e-05,
       "priceHistory": [
-        1.445e-05,
         1.08e-05,
         1.724e-05,
         1.656e-05,
+        1.668e-05,
         1.668e-05
       ],
       "holdersHistory": [
-        73,
         74,
         74,
         74,
-        93
+        93,
+        90
       ],
-      "volume24h": 96039.29,
-      "volumeH1": 16424.11,
-      "buysH1": 105,
-      "sellsH1": 95,
-      "buysH24": 619,
-      "sellsH24": 477,
+      "volume24h": 97171.66,
+      "volumeH1": 15234.44,
+      "buysH1": 102,
+      "sellsH1": 91,
+      "buysH24": 628,
+      "sellsH24": 488,
       "progressHistory": [
         0.6693101204,
         0.6693101204,
         0.6693101204,
-        0.6693101204,
-        0.7129289075
+        0.7129289075,
+        0.7133299947
       ],
       "copycat": {
         "count": 34,
@@ -1447,6 +1467,7 @@
         "spike_ratio": 0
       },
       "liquidityHistory": [
+        0.0,
         0.0,
         0.0,
         0.0,
@@ -1518,6 +1539,7 @@
         0.0,
         0.0,
         0.0,
+        0.0,
         0.0
       ]
     },
@@ -1535,53 +1557,54 @@
         "website": "https://www.douyin.com/video/7629669637105421608"
       },
       "descr": "全新生物AI模型",
-      "price": 5.807e-06,
+      "price": 5.802e-06,
       "addedPrice": 1.1592990941e-08,
       "peakPrice": 7.237e-06,
-      "holders": 22,
+      "holders": 20,
       "addedHolders": 44,
       "peakHolders": 44,
       "liquidity": 0.0,
       "peakLiquidity": 0.0,
-      "raisedAmount": 1.61204457862761,
-      "progress": 0.2782916014,
+      "raisedAmount": 1.5835657083129056,
+      "progress": 0.2743800531,
       "peakProgress": 0.3978532435,
       "addedProgress": 0.3978532435,
       "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 5.807e-06,
+      "consecDrops": 1,
+      "lastPrice": 5.802e-06,
       "priceHistory": [
-        5.874e-06,
         5.874e-06,
         5.862e-06,
         5.807e-06,
-        5.807e-06
+        5.807e-06,
+        5.802e-06
       ],
       "holdersHistory": [
         29,
         29,
         29,
-        29,
-        22
+        22,
+        20
       ],
-      "volume24h": 20536.92,
-      "volumeH1": 41.65,
-      "buysH1": 0,
+      "volume24h": 20653.9,
+      "volumeH1": 155.94,
+      "buysH1": 1,
       "sellsH1": 3,
-      "buysH24": 177,
-      "sellsH24": 149,
+      "buysH24": 178,
+      "sellsH24": 150,
       "progressHistory": [
         0.3403258671,
         0.3403258671,
         0.3403258671,
-        0.3403258671,
-        0.2782916014
+        0.2782916014,
+        0.2743800531
       ],
       "copycat": {
         "count": 4,
         "isCopycat": true
       },
       "liquidityHistory": [
+        0.0,
         0.0,
         0.0,
         0.0,
@@ -1620,15 +1643,15 @@
       "priceHistory": [
         4.163e-06,
         4.163e-06,
-        4.163e-06,
+        4.185e-06,
         4.185e-06,
         4.185e-06
       ],
       "holdersHistory": [
-        8,
         7,
         7,
         7,
+        6,
         6
       ],
       "volume24h": 65079.15,
@@ -1638,7 +1661,7 @@
       "buysH24": 366,
       "sellsH24": 418,
       "progressHistory": [
-        0.1059074548,
+        0.0895077445,
         0.0895077445,
         0.0895077445,
         0.0895077445,
@@ -1649,6 +1672,7 @@
         "isCopycat": true
       },
       "liquidityHistory": [
+        0.0,
         0.0,
         0.0,
         0.0,
@@ -1720,6 +1744,7 @@
         0.0,
         0.0,
         0.0,
+        0.0,
         0.0
       ]
     },
@@ -1737,9 +1762,9 @@
         "twitter": "https://x.com/Pontifex/status/2045106778635894870"
       },
       "descr": "bread is for everyon",
-      "price": 4.248e-06,
+      "price": 4.283e-06,
       "addedPrice": 5.806660137e-09,
-      "peakPrice": 4.278e-06,
+      "peakPrice": 4.283e-06,
       "holders": 5,
       "addedHolders": 4,
       "peakHolders": 5,
@@ -1750,33 +1775,33 @@
       "peakProgress": 0.1045524124,
       "addedProgress": 0.0077516876,
       "day1Vol": 0.0,
-      "consecDrops": 1,
-      "lastPrice": 4.248e-06,
+      "consecDrops": 0,
+      "lastPrice": 4.283e-06,
       "priceHistory": [
-        3.671e-06,
         3.669e-06,
         4.278e-06,
         4.278e-06,
-        4.248e-06
+        4.248e-06,
+        4.283e-06
       ],
       "holdersHistory": [
-        5,
         4,
         4,
         3,
+        5,
         5
       ],
-      "volume24h": 7012.68,
-      "volumeH1": 333.19,
+      "volume24h": 7013.34,
+      "volumeH1": 333.24,
       "buysH1": 2,
       "sellsH1": 2,
       "buysH24": 85,
-      "sellsH24": 82,
+      "sellsH24": 83,
       "progressHistory": [
-        0.0068243291,
         0.0066173085,
         0.0066173085,
         0.1045524124,
+        0.0981274729,
         0.0981274729
       ],
       "copycat": {
@@ -1784,6 +1809,7 @@
         "isCopycat": true
       },
       "liquidityHistory": [
+        0.0,
         0.0,
         0.0,
         0.0,
@@ -1805,7 +1831,7 @@
         "website": "https://x.com/rebeccaperrotto/status/1833663785422262424"
       },
       "descr": "Deployed using j7tracker.io",
-      "price": 4.395e-06,
+      "price": 4.199e-06,
       "addedPrice": 6.96272568e-09,
       "peakPrice": 4.403e-06,
       "holders": 10,
@@ -1818,14 +1844,14 @@
       "peakProgress": 0.1235833747,
       "addedProgress": 0.1235833747,
       "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 4.395e-06,
+      "consecDrops": 1,
+      "lastPrice": 4.199e-06,
       "priceHistory": [
         4.395e-06,
         4.395e-06,
         4.395e-06,
         4.395e-06,
-        4.395e-06
+        4.199e-06
       ],
       "holdersHistory": [
         10,
@@ -1834,12 +1860,12 @@
         10,
         10
       ],
-      "volume24h": 49995.82,
-      "volumeH1": 0.0,
+      "volume24h": 50114.56,
+      "volumeH1": 118.73,
       "buysH1": 0,
-      "sellsH1": 0,
+      "sellsH1": 1,
       "buysH24": 211,
-      "sellsH24": 173,
+      "sellsH24": 174,
       "progressHistory": [
         0.121894845,
         0.121894845,
@@ -1855,74 +1881,9 @@
         0.0,
         0.0,
         0.0,
+        0.0,
         0.0
       ]
-    },
-    {
-      "address": "0xd765083aa9ac089c20716f3d14ce3d38d9eb4444",
-      "creator": "0x7a5170f118478e782e3413861ea364c636641a05",
-      "block": 93061566,
-      "name": "首个AI 情感陪伴电子宠物",
-      "symbol": "智能憨憨",
-      "createdAt": 1776428868000,
-      "addedAt": 1776429040544,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "website": "https://weibo.com/detail/5288788046909846"
-      },
-      "descr": "首个AI 情感陪伴电子宠物",
-      "price": 3.635e-06,
-      "addedPrice": 5.741739018e-09,
-      "peakPrice": 3.635e-06,
-      "holders": 3,
-      "addedHolders": 4,
-      "peakHolders": 4,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 9.822658834955e-05,
-      "progress": 2.13913e-05,
-      "peakProgress": 0.0002271757,
-      "addedProgress": 0.0002271757,
-      "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 3.635e-06,
-      "priceHistory": [
-        5.741739018e-09,
-        3.635e-06,
-        3.635e-06,
-        3.635e-06,
-        3.635e-06
-      ],
-      "holdersHistory": [
-        4,
-        4,
-        4,
-        3,
-        3
-      ],
-      "liquidityHistory": [
-        0.0,
-        0.0,
-        0.0,
-        0.0
-      ],
-      "volume24h": 377.11,
-      "volumeH1": 377.11,
-      "buysH1": 4,
-      "sellsH1": 3,
-      "buysH24": 4,
-      "sellsH24": 3,
-      "progressHistory": [
-        0.0002271757,
-        0.0002271757,
-        2.13913e-05,
-        2.13913e-05
-      ],
-      "copycat": {
-        "count": 3,
-        "isCopycat": true
-      }
     },
     {
       "address": "0xa0c0ed3484da8f245f2f900cdae2ac37b80f4444",
@@ -1955,15 +1916,15 @@
       "consecDrops": 0,
       "lastPrice": 3.646e-06,
       "priceHistory": [
-        8.221057859e-09,
         3.818e-06,
+        3.646e-06,
         3.646e-06,
         3.646e-06,
         3.646e-06
       ],
       "holdersHistory": [
         12,
-        12,
+        4,
         4,
         4,
         4
@@ -1972,88 +1933,24 @@
         0.0,
         0.0,
         0.0,
+        0.0,
         0.0
       ],
       "volume24h": 4153.64,
-      "volumeH1": 4153.64,
-      "buysH1": 28,
-      "sellsH1": 25,
+      "volumeH1": 2038.04,
+      "buysH1": 14,
+      "sellsH1": 14,
       "buysH24": 28,
       "sellsH24": 25,
       "progressHistory": [
         0.220737681,
         0.0014979022,
         0.0014979022,
+        0.0014979022,
         0.0014979022
       ],
       "copycat": {
         "count": 4,
-        "isCopycat": true
-      }
-    },
-    {
-      "address": "0xcfa518108c66dec8ce4b063209ce02ce86584444",
-      "creator": "0xae8dc49f58fa055ce44994f544855ecca7aea799",
-      "block": 93061873,
-      "name": "自由海盗",
-      "symbol": "自由海盗",
-      "createdAt": 1776429006000,
-      "addedAt": 1776429040544,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "twitter": "https://x.com/i/status/2045117577094140055"
-      },
-      "descr": "自由海盗",
-      "price": 3.635e-06,
-      "addedPrice": 5.739795918367347e-09,
-      "peakPrice": 3.635e-06,
-      "holders": 1,
-      "addedHolders": 0,
-      "peakHolders": 3,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 9.1112152193424e-05,
-      "progress": 1.9842e-05,
-      "peakProgress": 1.9842e-05,
-      "addedProgress": 0.0,
-      "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 3.635e-06,
-      "priceHistory": [
-        5.739795918367347e-09,
-        3.635e-06,
-        3.635e-06,
-        3.635e-06,
-        3.635e-06
-      ],
-      "holdersHistory": [
-        0,
-        3,
-        1,
-        1,
-        1
-      ],
-      "liquidityHistory": [
-        0.0,
-        0.0,
-        0.0,
-        0.0
-      ],
-      "volume24h": 689.8,
-      "volumeH1": 689.8,
-      "buysH1": 3,
-      "sellsH1": 2,
-      "buysH24": 3,
-      "sellsH24": 2,
-      "progressHistory": [
-        0.0,
-        1.9842e-05,
-        1.9842e-05,
-        1.9842e-05
-      ],
-      "copycat": {
-        "count": 7,
         "isCopycat": true
       }
     },
@@ -2072,9 +1969,9 @@
         "website": "https://x.com/HeyItsJeremy10/status/2045119213119922310"
       },
       "descr": "Dish",
-      "price": 3.76e-06,
+      "price": 4.646e-06,
       "addedPrice": 6.778562925e-09,
-      "peakPrice": 4.25e-06,
+      "peakPrice": 4.646e-06,
       "holders": 9,
       "addedHolders": 17,
       "peakHolders": 17,
@@ -2086,32 +1983,36 @@
       "addedProgress": 0.1071367868,
       "day1Vol": 0.0,
       "consecDrops": 0,
-      "lastPrice": 3.76e-06,
+      "lastPrice": 4.646e-06,
       "priceHistory": [
         6.778562925e-09,
         4.25e-06,
         3.76e-06,
-        3.76e-06
+        3.76e-06,
+        4.646e-06
       ],
       "holdersHistory": [
         17,
         17,
+        9,
         9,
         9
       ],
       "liquidityHistory": [
         0.0,
         0.0,
+        0.0,
         0.0
       ],
-      "volume24h": 30586.63,
-      "volumeH1": 30586.63,
-      "buysH1": 167,
-      "sellsH1": 182,
-      "buysH24": 167,
-      "sellsH24": 182,
+      "volume24h": 31102.59,
+      "volumeH1": 31102.59,
+      "buysH1": 173,
+      "sellsH1": 186,
+      "buysH24": 173,
+      "sellsH24": 186,
       "progressHistory": [
         0.1071367868,
+        0.0199120434,
         0.0199120434,
         0.0199120434
       ],
@@ -2154,15 +2055,18 @@
         5.739968124e-09,
         3.638e-06,
         3.638e-06,
+        3.638e-06,
         3.638e-06
       ],
       "holdersHistory": [
         3,
         3,
         3,
+        3,
         3
       ],
       "liquidityHistory": [
+        0.0,
         0.0,
         0.0,
         0.0
@@ -2174,6 +2078,7 @@
       "buysH24": 4,
       "sellsH24": 2,
       "progressHistory": [
+        2.01381e-05,
         2.01381e-05,
         2.01381e-05,
         2.01381e-05
@@ -2216,15 +2121,18 @@
         1.0551734119e-08,
         5.389e-06,
         5.365e-06,
+        5.365e-06,
         5.365e-06
       ],
       "holdersHistory": [
         16,
         16,
         9,
+        9,
         9
       ],
       "liquidityHistory": [
+        0.0,
         0.0,
         0.0,
         0.0
@@ -2237,6 +2145,7 @@
       "sellsH24": 35,
       "progressHistory": [
         0.3523419046,
+        0.2352643954,
         0.2352643954,
         0.2352643954
       ],
@@ -2259,44 +2168,48 @@
         "twitter": "https://x.com/i/status/2045123169292366324"
       },
       "descr": "Gigaify",
-      "price": 3.873e-06,
+      "price": 3.68e-06,
       "addedPrice": 6.094898384e-09,
       "peakPrice": 3.873e-06,
-      "holders": 3,
+      "holders": 2,
       "addedHolders": 3,
       "peakHolders": 3,
       "liquidity": 0.0,
       "peakLiquidity": 0.0,
-      "raisedAmount": 0.187823741918035,
-      "progress": 0.0396943817,
+      "raisedAmount": 8.7890188307714e-05,
+      "progress": 1.91403e-05,
       "peakProgress": 0.0396943817,
       "addedProgress": 0.0396943817,
       "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 3.873e-06,
+      "consecDrops": 1,
+      "lastPrice": 3.68e-06,
       "priceHistory": [
         6.094898384e-09,
         3.873e-06,
-        3.873e-06
+        3.873e-06,
+        3.68e-06
       ],
       "holdersHistory": [
         3,
         3,
-        3
+        3,
+        2
       ],
       "liquidityHistory": [
         0.0,
+        0.0,
         0.0
       ],
-      "volume24h": 319.99,
-      "volumeH1": 319.99,
+      "volume24h": 440.36,
+      "volumeH1": 440.36,
       "buysH1": 3,
-      "sellsH1": 1,
+      "sellsH1": 2,
       "buysH24": 3,
-      "sellsH24": 1,
+      "sellsH24": 2,
       "progressHistory": [
         0.0396943817,
-        0.0396943817
+        0.0396943817,
+        1.91403e-05
       ],
       "copycat": {
         "count": 2,
@@ -2335,14 +2248,17 @@
       "priceHistory": [
         5.742418129e-09,
         3.649e-06,
+        3.649e-06,
         3.649e-06
       ],
       "holdersHistory": [
         4,
         4,
+        4,
         4
       ],
       "liquidityHistory": [
+        0.0,
         0.0,
         0.0
       ],
@@ -2353,6 +2269,7 @@
       "buysH24": 6,
       "sellsH24": 3,
       "progressHistory": [
+        0.0003065461,
         0.0003065461,
         0.0003065461
       ],
@@ -2393,14 +2310,17 @@
       "priceHistory": [
         5.739996894e-09,
         3.649e-06,
+        3.649e-06,
         3.649e-06
       ],
       "holdersHistory": [
         0,
         3,
+        3,
         3
       ],
       "liquidityHistory": [
+        0.0,
         0.0,
         0.0
       ],
@@ -2412,69 +2332,12 @@
       "sellsH24": 0,
       "progressHistory": [
         2.35024e-05,
+        2.35024e-05,
         2.35024e-05
       ],
       "copycat": {
         "count": 17,
         "isCopycat": true
-      }
-    },
-    {
-      "address": "0xd60e87772f7b9eedf85fb4af87a1a9c66c1b4444",
-      "creator": "0x4baf9c8c289a59f26b9136726a49777956cc4328",
-      "block": 93065907,
-      "name": "Archer",
-      "symbol": "Archer",
-      "createdAt": 1776430826000,
-      "addedAt": 1776430838530,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "website": "https://www.clickorlando.com/news/local/2026/04/17/family-reunited-with-dog-after-alleged-ai-scam-falsely-claimed-pet-was-injured/"
-      },
-      "descr": "Launched on discord.gg/uxento",
-      "price": 4.192e-06,
-      "addedPrice": 5.739795918367347e-09,
-      "peakPrice": 4.192e-06,
-      "holders": 1,
-      "addedHolders": 0,
-      "peakHolders": 2,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.44199497980973806,
-      "progress": 0.0898167007,
-      "peakProgress": 0.0898167007,
-      "addedProgress": 0.0,
-      "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 4.192e-06,
-      "priceHistory": [
-        5.739795918367347e-09,
-        4.192e-06,
-        4.192e-06
-      ],
-      "holdersHistory": [
-        0,
-        2,
-        1
-      ],
-      "liquidityHistory": [
-        0.0,
-        0.0
-      ],
-      "volume24h": 348.55,
-      "volumeH1": 348.55,
-      "buysH1": 2,
-      "sellsH1": 2,
-      "buysH24": 2,
-      "sellsH24": 2,
-      "progressHistory": [
-        0.0,
-        0.0898167007
-      ],
-      "copycat": {
-        "count": 1,
-        "isCopycat": false
       }
     },
     {
@@ -2509,14 +2372,17 @@
       "priceHistory": [
         6.885434258e-09,
         4.376e-06,
+        4.401e-06,
         4.401e-06
       ],
       "holdersHistory": [
         11,
         11,
+        11,
         11
       ],
       "liquidityHistory": [
+        0.0,
         0.0,
         0.0
       ],
@@ -2528,281 +2394,11 @@
       "sellsH24": 31,
       "progressHistory": [
         0.1167612745,
+        0.1167612745,
         0.1167612745
       ],
       "copycat": {
         "count": 14,
-        "isCopycat": true
-      }
-    },
-    {
-      "address": "0xaa0f9f890f854a3bd6ea5ad8c9f68d0889ad4444",
-      "creator": "0xb6ea88b6e37443d18b77428f79ef28e5a55d400f",
-      "block": 93066055,
-      "name": "TheSpaceShibaInu",
-      "symbol": "TheSpaceShibaInu",
-      "createdAt": 1776430890000,
-      "addedAt": 1776431722928,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "website": "https://four.meme/token/0xac55484fb0aa9354c276b0285fc75d0b42ba4444?code=32CB4HMEPW5B"
-      },
-      "descr": "TheSpaceShibaInu",
-      "price": 5.739795918367347e-09,
-      "addedPrice": 5.739795918367347e-09,
-      "peakPrice": 5.739795918367347e-09,
-      "holders": 1,
-      "addedHolders": 0,
-      "peakHolders": 1,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.0,
-      "progress": 0.0,
-      "peakProgress": 0.0,
-      "addedProgress": 0.0,
-      "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 5.739795918367347e-09,
-      "priceHistory": [
-        5.739795918367347e-09,
-        5.739795918367347e-09
-      ],
-      "holdersHistory": [
-        0,
-        1
-      ],
-      "liquidityHistory": [
-        0.0
-      ],
-      "volume24h": 0.0,
-      "volumeH1": 0.0,
-      "buysH1": 0,
-      "sellsH1": 0,
-      "buysH24": 0,
-      "sellsH24": 0,
-      "progressHistory": [
-        0.0
-      ],
-      "copycat": {
-        "count": 23,
-        "isCopycat": true
-      }
-    },
-    {
-      "address": "0x4904e30e79db8a6ec712b4db551af876dcd64444",
-      "creator": "0xb6ea88b6e37443d18b77428f79ef28e5a55d400f",
-      "block": 93066069,
-      "name": "TheSpaceShibaInu",
-      "symbol": "TheSpaceShibaInu",
-      "createdAt": 1776430899000,
-      "addedAt": 1776431722928,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "website": "https://four.meme/token/0xac55484fb0aa9354c276b0285fc75d0b42ba4444?code=32CB4HMEPW5B"
-      },
-      "descr": "TheSpaceShibaInu",
-      "price": 5.739795918367347e-09,
-      "addedPrice": 5.739795918367347e-09,
-      "peakPrice": 5.739795918367347e-09,
-      "holders": 1,
-      "addedHolders": 0,
-      "peakHolders": 1,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.0,
-      "progress": 0.0,
-      "peakProgress": 0.0,
-      "addedProgress": 0.0,
-      "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 5.739795918367347e-09,
-      "priceHistory": [
-        5.739795918367347e-09,
-        5.739795918367347e-09
-      ],
-      "holdersHistory": [
-        0,
-        1
-      ],
-      "liquidityHistory": [
-        0.0
-      ],
-      "volume24h": 0.0,
-      "volumeH1": 0.0,
-      "buysH1": 0,
-      "sellsH1": 0,
-      "buysH24": 0,
-      "sellsH24": 0,
-      "progressHistory": [
-        0.0
-      ],
-      "copycat": {
-        "count": 23,
-        "isCopycat": true
-      }
-    },
-    {
-      "address": "0xc1fafee2e0a3a48bc14e2cc7ec2d8314175bffff",
-      "creator": "0x328a35353eda0e237643c86d6927cf02da4dd508",
-      "block": 93066176,
-      "name": "首个数字公有制协议",
-      "symbol": "CP协议",
-      "createdAt": 1776430943000,
-      "addedAt": 1776431722928,
-      "totalSupply": 1000000000,
-      "socialCount": 2,
-      "socialLinks": {
-        "twitter": "https://x.com/janesguidry/status/2045124828005568876?s=20",
-        "website": "https://www.flapdev.com/"
-      },
-      "descr": "一个幽灵，在区块链上游荡，全世界数字无产者，联合起来！",
-      "price": 3.659e-06,
-      "addedPrice": 5.739795917e-09,
-      "peakPrice": 3.659e-06,
-      "holders": 1,
-      "addedHolders": 1,
-      "peakHolders": 1,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.0,
-      "progress": 0.0,
-      "peakProgress": 0.0,
-      "addedProgress": 0.0,
-      "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 3.659e-06,
-      "priceHistory": [
-        5.739795917e-09,
-        3.659e-06
-      ],
-      "holdersHistory": [
-        1,
-        1
-      ],
-      "liquidityHistory": [
-        0.0
-      ],
-      "volume24h": 1008.78,
-      "volumeH1": 1008.78,
-      "buysH1": 6,
-      "sellsH1": 6,
-      "buysH24": 6,
-      "sellsH24": 6,
-      "progressHistory": [
-        0.0
-      ],
-      "copycat": {
-        "count": 0,
-        "isCopycat": false
-      }
-    },
-    {
-      "address": "0xf3ecbc52d2b6a65481a3e52500f8e31b65224444",
-      "creator": "0xb6ea88b6e37443d18b77428f79ef28e5a55d400f",
-      "block": 93066195,
-      "name": "ASTROID",
-      "symbol": "ASTROID",
-      "createdAt": 1776430952000,
-      "addedAt": 1776431722928,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "website": "https://four.meme/token/0xaf09c118a44c3263d59e8aa56f06a39d2c194444?code=32CB4HMEPW5B"
-      },
-      "descr": "ASTROID",
-      "price": 5.739795918367347e-09,
-      "addedPrice": 5.739795918367347e-09,
-      "peakPrice": 5.739795918367347e-09,
-      "holders": 1,
-      "addedHolders": 0,
-      "peakHolders": 1,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.0,
-      "progress": 0.0,
-      "peakProgress": 0.0,
-      "addedProgress": 0.0,
-      "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 5.739795918367347e-09,
-      "priceHistory": [
-        5.739795918367347e-09,
-        5.739795918367347e-09
-      ],
-      "holdersHistory": [
-        0,
-        1
-      ],
-      "liquidityHistory": [
-        0.0
-      ],
-      "volume24h": 0.0,
-      "volumeH1": 0.0,
-      "buysH1": 0,
-      "sellsH1": 0,
-      "buysH24": 0,
-      "sellsH24": 0,
-      "progressHistory": [
-        0.0
-      ],
-      "copycat": {
-        "count": 34,
-        "isCopycat": true
-      }
-    },
-    {
-      "address": "0xd2c275934b3181929abbadc44ee3c11a50034444",
-      "creator": "0xb6ea88b6e37443d18b77428f79ef28e5a55d400f",
-      "block": 93066206,
-      "name": "ASTROID",
-      "symbol": "ASTROID",
-      "createdAt": 1776430958000,
-      "addedAt": 1776431722928,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "website": "https://four.meme/token/0xaf09c118a44c3263d59e8aa56f06a39d2c194444?code=32CB4HMEPW5B"
-      },
-      "descr": "ASTROID",
-      "price": 5.739795918367347e-09,
-      "addedPrice": 5.739795918367347e-09,
-      "peakPrice": 5.739795918367347e-09,
-      "holders": 1,
-      "addedHolders": 0,
-      "peakHolders": 1,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.0,
-      "progress": 0.0,
-      "peakProgress": 0.0,
-      "addedProgress": 0.0,
-      "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 5.739795918367347e-09,
-      "priceHistory": [
-        5.739795918367347e-09,
-        5.739795918367347e-09
-      ],
-      "holdersHistory": [
-        0,
-        1
-      ],
-      "liquidityHistory": [
-        0.0
-      ],
-      "volume24h": 0.0,
-      "volumeH1": 0.0,
-      "buysH1": 0,
-      "sellsH1": 0,
-      "buysH24": 0,
-      "sellsH24": 0,
-      "progressHistory": [
-        0.0
-      ],
-      "copycat": {
-        "count": 34,
         "isCopycat": true
       }
     },
@@ -2838,13 +2434,16 @@
       "lastPrice": 3.664e-06,
       "priceHistory": [
         5.74446833e-09,
+        3.664e-06,
         3.664e-06
       ],
       "holdersHistory": [
         5,
+        5,
         5
       ],
       "liquidityHistory": [
+        0.0,
         0.0
       ],
       "volume24h": 3055.25,
@@ -2854,120 +2453,12 @@
       "buysH24": 22,
       "sellsH24": 19,
       "progressHistory": [
+        0.0005460758,
         0.0005460758
       ],
       "copycat": {
         "count": 0,
         "isCopycat": false
-      }
-    },
-    {
-      "address": "0xe81a53b49c75e3ab0a2fe19a392e9b2ce0d34444",
-      "creator": "0xf11d202676d417906549a7a9a91a654057cea70e",
-      "block": 93066573,
-      "name": "Little Peng",
-      "symbol": "LITTPE",
-      "createdAt": 1776431117000,
-      "addedAt": 1776431722928,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "twitter": "https://x.com/littlepengbsc"
-      },
-      "descr": "$LITTPE isn’t just a token—it’s a movement for everyone who’s slipped on the ice, bought the top, or watched their bags melt away.",
-      "price": 3.651e-06,
-      "addedPrice": 5.739996894e-09,
-      "peakPrice": 3.651e-06,
-      "holders": 2,
-      "addedHolders": 2,
-      "peakHolders": 2,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.0001079207920792,
-      "progress": 2.35024e-05,
-      "peakProgress": 2.35024e-05,
-      "addedProgress": 2.35024e-05,
-      "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 3.651e-06,
-      "priceHistory": [
-        5.739996894e-09,
-        3.651e-06
-      ],
-      "holdersHistory": [
-        2,
-        2
-      ],
-      "liquidityHistory": [
-        0.0
-      ],
-      "volume24h": 226.8,
-      "volumeH1": 226.8,
-      "buysH1": 3,
-      "sellsH1": 1,
-      "buysH24": 3,
-      "sellsH24": 1,
-      "progressHistory": [
-        2.35024e-05
-      ],
-      "copycat": {
-        "count": 3,
-        "isCopycat": true
-      }
-    },
-    {
-      "address": "0xb5092da12bb39e10c8c3c4d27fbb254fec094444",
-      "creator": "0xf844fe0b727569adfc29e2814577a892e35c234b",
-      "block": 93067013,
-      "name": "STRAIT OF AMERICA",
-      "symbol": "AMERICA",
-      "createdAt": 1776431324000,
-      "addedAt": 1776431722928,
-      "totalSupply": 1000000000,
-      "socialCount": 2,
-      "socialLinks": {
-        "twitter": "https://x.com/zerohedge/status/2045127221971484815",
-        "website": "https://bnbagent.fun/go"
-      },
-      "descr": "STRAIT OF AMERICA",
-      "price": 3.826e-06,
-      "addedPrice": 3.8266472661e-06,
-      "peakPrice": 3.8266472661e-06,
-      "holders": 2,
-      "addedHolders": 0,
-      "peakHolders": 2,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.06264104568337654,
-      "progress": 2.04625e-05,
-      "peakProgress": 2.04625e-05,
-      "addedProgress": 2.04625e-05,
-      "day1Vol": 0.0,
-      "consecDrops": 1,
-      "lastPrice": 3.826e-06,
-      "priceHistory": [
-        3.8266472661e-06,
-        3.826e-06
-      ],
-      "holdersHistory": [
-        0,
-        2
-      ],
-      "liquidityHistory": [
-        0.0
-      ],
-      "volume24h": 0.06,
-      "volumeH1": 0.06,
-      "buysH1": 1,
-      "sellsH1": 0,
-      "buysH24": 1,
-      "sellsH24": 0,
-      "progressHistory": [
-        2.04625e-05
-      ],
-      "copycat": {
-        "count": 14,
-        "isCopycat": true
       }
     },
     {
@@ -3001,13 +2492,16 @@
       "lastPrice": 3.67e-06,
       "priceHistory": [
         5.73999059e-09,
+        3.67e-06,
         3.67e-06
       ],
       "holdersHistory": [
         3,
+        3,
         3
       ],
       "liquidityHistory": [
+        0.0,
         0.0
       ],
       "volume24h": 129.23,
@@ -3017,6 +2511,7 @@
       "buysH24": 5,
       "sellsH24": 3,
       "progressHistory": [
+        2.27652e-05,
         2.27652e-05
       ],
       "copycat": {
@@ -3039,40 +2534,44 @@
         "website": "https://x.com/HeyItsJeremy10/status/2045127529674027062"
       },
       "descr": "宇津井くりあ",
-      "price": 4.218e-06,
+      "price": 4.226e-06,
       "addedPrice": 6.593308542e-09,
-      "peakPrice": 4.218e-06,
-      "holders": 20,
+      "peakPrice": 4.226e-06,
+      "holders": 7,
       "addedHolders": 20,
       "peakHolders": 20,
       "liquidity": 0.0,
       "peakLiquidity": 0.0,
-      "raisedAmount": 0.4424463744077584,
-      "progress": 0.0899022847,
-      "peakProgress": 0.0899022847,
+      "raisedAmount": 0.4439485194867403,
+      "progress": 0.0901870059,
+      "peakProgress": 0.0901870059,
       "addedProgress": 0.0899022847,
       "day1Vol": 0.0,
       "consecDrops": 0,
-      "lastPrice": 4.218e-06,
+      "lastPrice": 4.226e-06,
       "priceHistory": [
         6.593308542e-09,
-        4.218e-06
+        4.218e-06,
+        4.226e-06
       ],
       "holdersHistory": [
         20,
-        20
+        20,
+        7
       ],
       "liquidityHistory": [
+        0.0,
         0.0
       ],
-      "volume24h": 18587.19,
-      "volumeH1": 18587.19,
-      "buysH1": 125,
-      "sellsH1": 169,
-      "buysH24": 125,
-      "sellsH24": 169,
+      "volume24h": 19438.91,
+      "volumeH1": 19438.91,
+      "buysH1": 131,
+      "sellsH1": 184,
+      "buysH24": 131,
+      "sellsH24": 184,
       "progressHistory": [
-        0.0899022847
+        0.0899022847,
+        0.0901870059
       ],
       "copycat": {
         "count": 4,
@@ -3111,13 +2610,16 @@
       "lastPrice": 3.669e-06,
       "priceHistory": [
         5.739950025e-09,
+        3.669e-06,
         3.669e-06
       ],
       "holdersHistory": [
         3,
+        3,
         3
       ],
       "liquidityHistory": [
+        0.0,
         0.0
       ],
       "volume24h": 4475.19,
@@ -3127,6 +2629,7 @@
       "buysH24": 13,
       "sellsH24": 13,
       "progressHistory": [
+        1.80216e-05,
         1.80216e-05
       ],
       "copycat": {
@@ -3166,13 +2669,16 @@
       "lastPrice": 3.669e-06,
       "priceHistory": [
         5.739958322e-09,
+        3.669e-06,
         3.669e-06
       ],
       "holdersHistory": [
         3,
+        3,
         3
       ],
       "liquidityHistory": [
+        0.0,
         0.0
       ],
       "volume24h": 911.37,
@@ -3182,66 +2688,12 @@
       "buysH24": 4,
       "sellsH24": 3,
       "progressHistory": [
+        1.89918e-05,
         1.89918e-05
       ],
       "copycat": {
         "count": 0,
         "isCopycat": false
-      }
-    },
-    {
-      "address": "0xab2769a6db664e50c71518d4874c7417aeeb4444",
-      "creator": "0xf8a171376339833f8b3544cca226ac3c1954c567",
-      "block": 93067431,
-      "name": "宇推くりあぬい",
-      "symbol": "Kuria",
-      "createdAt": 1776431513000,
-      "addedAt": 1776431722928,
-      "totalSupply": 1000000000,
-      "socialCount": 2,
-      "socialLinks": {
-        "twitter": "https://x.com/HeyItsJeremy10/status/2045127529674027062",
-        "website": "https://x.com/HeyItsJeremy10/status/2045127529674027062"
-      },
-      "descr": "宇推くりあぬい",
-      "price": 3.668e-06,
-      "addedPrice": 5.739795917e-09,
-      "peakPrice": 3.668e-06,
-      "holders": 1,
-      "addedHolders": 1,
-      "peakHolders": 1,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.0,
-      "progress": 0.0,
-      "peakProgress": 0.0,
-      "addedProgress": 0.0,
-      "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 3.668e-06,
-      "priceHistory": [
-        5.739795917e-09,
-        3.668e-06
-      ],
-      "holdersHistory": [
-        1,
-        1
-      ],
-      "liquidityHistory": [
-        0.0
-      ],
-      "volume24h": 886.19,
-      "volumeH1": 886.19,
-      "buysH1": 1,
-      "sellsH1": 1,
-      "buysH24": 1,
-      "sellsH24": 1,
-      "progressHistory": [
-        0.0
-      ],
-      "copycat": {
-        "count": 4,
-        "isCopycat": true
       }
     },
     {
@@ -3259,7 +2711,7 @@
         "website": "https://x.com/HeyItsJeremy10/status/2045127529674027062"
       },
       "descr": "宇推くりあぬい",
-      "price": 4.462e-06,
+      "price": 3.669e-06,
       "addedPrice": 6.98130818e-09,
       "peakPrice": 4.462e-06,
       "holders": 3,
@@ -3272,26 +2724,30 @@
       "peakProgress": 0.1252066359,
       "addedProgress": 0.1252066359,
       "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 4.462e-06,
+      "consecDrops": 1,
+      "lastPrice": 3.669e-06,
       "priceHistory": [
         6.98130818e-09,
-        4.462e-06
+        4.462e-06,
+        3.669e-06
       ],
       "holdersHistory": [
+        3,
         3,
         3
       ],
       "liquidityHistory": [
+        0.0,
         0.0
       ],
-      "volume24h": 1776.71,
-      "volumeH1": 1776.71,
+      "volume24h": 2182.1,
+      "volumeH1": 2182.1,
       "buysH1": 8,
-      "sellsH1": 5,
+      "sellsH1": 8,
       "buysH24": 8,
-      "sellsH24": 5,
+      "sellsH24": 8,
       "progressHistory": [
+        0.1252066359,
         0.1252066359
       ],
       "copycat": {
@@ -3314,7 +2770,7 @@
         "website": "https://x.com/HeyItsJeremy10/status/2045127529674027062"
       },
       "descr": "宇推くりあぬい",
-      "price": 4.217e-06,
+      "price": 3.664e-06,
       "addedPrice": 7.417521463e-09,
       "peakPrice": 4.217e-06,
       "holders": 5,
@@ -3327,311 +2783,39 @@
       "peakProgress": 0.1615415186,
       "addedProgress": 0.1615415186,
       "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 4.217e-06,
+      "consecDrops": 1,
+      "lastPrice": 3.664e-06,
       "priceHistory": [
         7.417521463e-09,
-        4.217e-06
+        4.217e-06,
+        3.664e-06
       ],
       "holdersHistory": [
+        5,
         5,
         5
       ],
       "liquidityHistory": [
+        0.0,
         0.0
       ],
-      "volume24h": 5445.85,
-      "volumeH1": 5445.85,
+      "volume24h": 5728.48,
+      "volumeH1": 5728.48,
       "buysH1": 13,
-      "sellsH1": 10,
+      "sellsH1": 13,
       "buysH24": 13,
-      "sellsH24": 10,
+      "sellsH24": 13,
       "progressHistory": [
+        0.1615415186,
         0.1615415186
       ],
       "copycat": {
         "count": 4,
         "isCopycat": true
       }
-    },
-    {
-      "address": "0xb03197f34f4e5be2f0fc7b86ee960de1ec594444",
-      "creator": "0xfdd288765b6ff43b5ed75511bfa980fa96286e6c",
-      "block": 93067548,
-      "name": "AsterWIF",
-      "symbol": "AsterWIF",
-      "createdAt": 1776431566000,
-      "addedAt": 1776431722928,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "twitter": "https://x.com/i/status/2045128185780560130"
-      },
-      "descr": "AsterWIF",
-      "price": 4.783163265305e-06,
-      "addedPrice": 4.783163265305e-06,
-      "peakPrice": 4.783163265305e-06,
-      "holders": 1,
-      "addedHolders": 1,
-      "peakHolders": 1,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.0,
-      "progress": 0.0,
-      "peakProgress": 0.0,
-      "addedProgress": 0.0,
-      "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 4.783163265305e-06,
-      "priceHistory": [
-        4.783163265305e-06,
-        4.783163265305e-06
-      ],
-      "holdersHistory": [
-        1,
-        1
-      ],
-      "liquidityHistory": [
-        0.0
-      ],
-      "volume24h": 0.0,
-      "volumeH1": 0.0,
-      "buysH1": 2,
-      "sellsH1": 3,
-      "buysH24": 2,
-      "sellsH24": 3,
-      "progressHistory": [
-        0.0
-      ],
-      "copycat": {
-        "count": 6,
-        "isCopycat": true
-      }
-    },
-    {
-      "address": "0x41bee77bd6d5fe242e3f2d867ed78d772be24444",
-      "creator": "0xd1f636eb1157f41d591edb8fed7a960b5e9275dc",
-      "block": 93067581,
-      "name": "will answer shortly",
-      "symbol": "SHORTLY",
-      "createdAt": 1776431581000,
-      "addedAt": 1776431722928,
-      "totalSupply": 1000000000,
-      "socialCount": 3,
-      "socialLinks": {
-        "twitter": "https://x.com/SolanaFloor/status/2045104594661830859",
-        "telegram": "https://t.me/openclawDEVAI/1/23077",
-        "website": "https://www.openclawdev.ai"
-      },
-      "descr": "will answer shortly",
-      "price": 4.031e-06,
-      "addedPrice": 6.306264491e-09,
-      "peakPrice": 4.031e-06,
-      "holders": 2,
-      "addedHolders": 0,
-      "peakHolders": 2,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.297029702970297,
-      "progress": 0.0617128464,
-      "peakProgress": 0.0617128464,
-      "addedProgress": 0.0617128464,
-      "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 4.031e-06,
-      "priceHistory": [
-        6.306264491e-09,
-        4.031e-06
-      ],
-      "holdersHistory": [
-        0,
-        2
-      ],
-      "liquidityHistory": [
-        0.0
-      ],
-      "volume24h": 189.87,
-      "volumeH1": 189.87,
-      "buysH1": 1,
-      "sellsH1": 0,
-      "buysH24": 1,
-      "sellsH24": 0,
-      "progressHistory": [
-        0.0617128464
-      ],
-      "copycat": {
-        "count": 2,
-        "isCopycat": false
-      }
-    },
-    {
-      "address": "0xb9afbb91d8fc711d91cacd471ec6cc6eaa044444",
-      "creator": "0x6576adee18bff6c29624233925a11a2bd2e07fcc",
-      "block": 93067837,
-      "name": "合一4你",
-      "symbol": "合一4你",
-      "createdAt": 1776431690000,
-      "addedAt": 1776431722928,
-      "totalSupply": 1000000000,
-      "socialCount": 1,
-      "socialLinks": {
-        "website": "https://four.meme?code=GMDS2R7N92M2"
-      },
-      "descr": "你准备好了吗",
-      "price": 5.739795918367347e-09,
-      "addedPrice": 5.739795918367347e-09,
-      "peakPrice": 5.739795918367347e-09,
-      "holders": 1,
-      "addedHolders": 0,
-      "peakHolders": 1,
-      "liquidity": 0.0,
-      "peakLiquidity": 0.0,
-      "raisedAmount": 0.0,
-      "progress": 0.0,
-      "peakProgress": 0.0,
-      "addedProgress": 0.0,
-      "day1Vol": 0.0,
-      "consecDrops": 0,
-      "lastPrice": 5.739795918367347e-09,
-      "priceHistory": [
-        5.739795918367347e-09,
-        5.739795918367347e-09
-      ],
-      "holdersHistory": [
-        0,
-        1
-      ],
-      "liquidityHistory": [
-        0.0
-      ],
-      "volume24h": 0.0,
-      "volumeH1": 0.0,
-      "buysH1": 0,
-      "sellsH1": 0,
-      "buysH24": 0,
-      "sellsH24": 0,
-      "progressHistory": [
-        0.0
-      ],
-      "copycat": {
-        "count": 21,
-        "isCopycat": true
-      }
     }
   ],
   "eliminated": [
-    {
-      "address": "0x4bcfcbe524522d41dfae08b03c619ba01ae94444",
-      "name": "Big Fat Hug",
-      "symbol": "BFH",
-      "elimReason": "入场拒绝: 无社交媒体",
-      "eliminatedAt": 1776411026719,
-      "createdAt": 1776267854000
-    },
-    {
-      "address": "0x487022daa2e157be3b1242c0302fbce0eec34444",
-      "name": "Comicification",
-      "symbol": "COMIC",
-      "elimReason": "入场拒绝: 币龄过大 (币龄539.8h)",
-      "eliminatedAt": 1776411026719,
-      "createdAt": 1774467901000
-    },
-    {
-      "address": "0xa06ae9e2ebb465ba861d6c03be99957e3cb74444",
-      "name": "the secret to life",
-      "symbol": "secret",
-      "elimReason": "入场拒绝: 币龄过大 (币龄583.5h)",
-      "eliminatedAt": 1776411026719,
-      "createdAt": 1774310593000
-    },
-    {
-      "address": "0xcaa717373235cc830fb830542d524593a3954444",
-      "name": "VanCleef",
-      "symbol": "VanCleef",
-      "elimReason": "入场拒绝: 币龄过大 (币龄585.6h)",
-      "eliminatedAt": 1776411026719,
-      "createdAt": 1774302784000
-    },
-    {
-      "address": "0xa00a7faf7953969c3c115c881a97240a2d784444",
-      "name": "Binance X VanCleef",
-      "symbol": "VanCleef",
-      "elimReason": "入场拒绝: 币龄过大 (币龄568.5h)",
-      "eliminatedAt": 1776411026719,
-      "createdAt": 1774364357000
-    },
-    {
-      "address": "0xaaf233a5b268c965b13b849be450f06126464444",
-      "name": "美国城",
-      "symbol": "美国城",
-      "elimReason": "入场拒绝: 币龄过大 (币龄1972.7h)",
-      "eliminatedAt": 1776411026719,
-      "createdAt": 1769309359000
-    },
-    {
-      "address": "0x94347b30269197aceb5695fcd304dd818505ffff",
-      "name": "StableStock",
-      "symbol": "StableStock",
-      "elimReason": "入场拒绝: 币龄过大 (币龄272.5h)",
-      "eliminatedAt": 1776411026719,
-      "createdAt": 1775430121000
-    },
-    {
-      "address": "0xbe37b8368129b4b25aa0386ddfb08212f4d64444",
-      "name": "",
-      "symbol": "",
-      "elimReason": "入场拒绝: detail API 无数据",
-      "eliminatedAt": 1776411026719,
-      "createdAt": 1776410984000
-    },
-    {
-      "address": "0x3125f3188cef8f8ce1129c463f683b12a57f4444",
-      "name": "煎小厨",
-      "symbol": "煎小厨",
-      "elimReason": "币龄1.2h 最高持币仅4",
-      "eliminatedAt": 1776411919710,
-      "createdAt": 1776407465000
-    },
-    {
-      "address": "0x5b7a821945f152193e4e963e3c3ffb76394e4444",
-      "name": "PEPE BSC ARMY",
-      "symbol": "PEPE BSC ARMY",
-      "elimReason": "币龄0.4h 最高持币仅1",
-      "eliminatedAt": 1776411919710,
-      "createdAt": 1776410337000
-    },
-    {
-      "address": "0xba6b1d1017e46837c4ce7a0ddb110aedc4054444",
-      "name": "PEPE BSC ARMY",
-      "symbol": "PEPE BSC ARMY",
-      "elimReason": "币龄0.4h 最高持币仅1",
-      "eliminatedAt": 1776411919710,
-      "createdAt": 1776410334000
-    },
-    {
-      "address": "0x3e07940fc46923b1d9360f0a3ee5c7ab47b84444",
-      "name": "ASTROID",
-      "symbol": "ASTROID",
-      "elimReason": "币龄0.4h 最高持币仅1",
-      "eliminatedAt": 1776411919710,
-      "createdAt": 1776410343000
-    },
-    {
-      "address": "0x8f0e701cef9d3c4ec61fe17647e80224ac294444",
-      "name": "PEPE BSC ARMY",
-      "symbol": "PEPE BSC ARMY",
-      "elimReason": "币龄0.4h 最高持币仅1",
-      "eliminatedAt": 1776411919710,
-      "createdAt": 1776410349000
-    },
-    {
-      "address": "0x136f0a663e2d149d52afc7a40bf236a824d64444",
-      "name": "beachify",
-      "symbol": "BEACHIFY",
-      "elimReason": "币龄0.4h 最高持币仅1",
-      "eliminatedAt": 1776411919710,
-      "createdAt": 1776410387000
-    },
     {
       "address": "0x5922caaaee99ea82068721abecc2ee1d922a4444",
       "name": "贝壳币安",
@@ -11519,10 +10703,122 @@
       "elimReason": "入场拒绝: 币龄过大 (币龄286.5h)",
       "eliminatedAt": 1776431722928,
       "createdAt": 1775400184000
+    },
+    {
+      "address": "0xd765083aa9ac089c20716f3d14ce3d38d9eb4444",
+      "name": "首个AI 情感陪伴电子宠物",
+      "symbol": "智能憨憨",
+      "elimReason": "币龄1.0h 最高持币仅4",
+      "eliminatedAt": 1776432634209,
+      "createdAt": 1776428868000
+    },
+    {
+      "address": "0xcfa518108c66dec8ce4b063209ce02ce86584444",
+      "name": "自由海盗",
+      "symbol": "自由海盗",
+      "elimReason": "币龄1.0h 最高持币仅3",
+      "eliminatedAt": 1776432634209,
+      "createdAt": 1776429006000
+    },
+    {
+      "address": "0xd60e87772f7b9eedf85fb4af87a1a9c66c1b4444",
+      "name": "Archer",
+      "symbol": "Archer",
+      "elimReason": "币龄0.5h 最高持币仅2",
+      "eliminatedAt": 1776432634209,
+      "createdAt": 1776430826000
+    },
+    {
+      "address": "0xaa0f9f890f854a3bd6ea5ad8c9f68d0889ad4444",
+      "name": "TheSpaceShibaInu",
+      "symbol": "TheSpaceShibaInu",
+      "elimReason": "币龄0.5h 最高持币仅1",
+      "eliminatedAt": 1776432634209,
+      "createdAt": 1776430890000
+    },
+    {
+      "address": "0x4904e30e79db8a6ec712b4db551af876dcd64444",
+      "name": "TheSpaceShibaInu",
+      "symbol": "TheSpaceShibaInu",
+      "elimReason": "币龄0.5h 最高持币仅1",
+      "eliminatedAt": 1776432634209,
+      "createdAt": 1776430899000
+    },
+    {
+      "address": "0xc1fafee2e0a3a48bc14e2cc7ec2d8314175bffff",
+      "name": "首个数字公有制协议",
+      "symbol": "CP协议",
+      "elimReason": "币龄0.5h 最高持币仅1",
+      "eliminatedAt": 1776432634209,
+      "createdAt": 1776430943000
+    },
+    {
+      "address": "0xf3ecbc52d2b6a65481a3e52500f8e31b65224444",
+      "name": "ASTROID",
+      "symbol": "ASTROID",
+      "elimReason": "币龄0.5h 最高持币仅1",
+      "eliminatedAt": 1776432634209,
+      "createdAt": 1776430952000
+    },
+    {
+      "address": "0xd2c275934b3181929abbadc44ee3c11a50034444",
+      "name": "ASTROID",
+      "symbol": "ASTROID",
+      "elimReason": "币龄0.5h 最高持币仅1",
+      "eliminatedAt": 1776432634209,
+      "createdAt": 1776430958000
+    },
+    {
+      "address": "0xe81a53b49c75e3ab0a2fe19a392e9b2ce0d34444",
+      "name": "Little Peng",
+      "symbol": "LITTPE",
+      "elimReason": "币龄0.4h 最高持币仅2",
+      "eliminatedAt": 1776432634209,
+      "createdAt": 1776431117000
+    },
+    {
+      "address": "0xb5092da12bb39e10c8c3c4d27fbb254fec094444",
+      "name": "STRAIT OF AMERICA",
+      "symbol": "AMERICA",
+      "elimReason": "币龄0.4h 最高持币仅2",
+      "eliminatedAt": 1776432634209,
+      "createdAt": 1776431324000
+    },
+    {
+      "address": "0xab2769a6db664e50c71518d4874c7417aeeb4444",
+      "name": "宇推くりあぬい",
+      "symbol": "Kuria",
+      "elimReason": "币龄0.3h 最高持币仅1",
+      "eliminatedAt": 1776432634209,
+      "createdAt": 1776431513000
+    },
+    {
+      "address": "0xb03197f34f4e5be2f0fc7b86ee960de1ec594444",
+      "name": "AsterWIF",
+      "symbol": "AsterWIF",
+      "elimReason": "币龄0.3h 最高持币仅1",
+      "eliminatedAt": 1776432634209,
+      "createdAt": 1776431566000
+    },
+    {
+      "address": "0x41bee77bd6d5fe242e3f2d867ed78d772be24444",
+      "name": "will answer shortly",
+      "symbol": "SHORTLY",
+      "elimReason": "币龄0.3h 最高持币仅2",
+      "eliminatedAt": 1776432634209,
+      "createdAt": 1776431581000
+    },
+    {
+      "address": "0xb9afbb91d8fc711d91cacd471ec6cc6eaa044444",
+      "name": "合一4你",
+      "symbol": "合一4你",
+      "elimReason": "币龄0.3h 最高持币仅1",
+      "eliminatedAt": 1776432634209,
+      "createdAt": 1776431690000
     }
   ],
-  "lastBlock": 93067884,
-  "lastScanTime": 1776431722928,
+  "lastBlock": 92919262,
+  "lastScanTime": 1776432634209,
   "nameIndex": {
     "moritz": {
       "addrs": [
@@ -136704,7 +136000,7 @@
     "0x78693cf4b07973a69db4500ff9ceb327f8d3ffff": 286,
     "0xaf09c118a44c3263d59e8aa56f06a39d2c194444": 295
   },
-  "scanRound": 299,
+  "scanRound": 300,
   "breakthrough": [
     {
       "address": "0x2779718cb96c2d266e1bb9633e30cd3a3ebfffff",
