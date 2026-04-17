@@ -1904,7 +1904,7 @@
       <header>
         <div class="header-title">
           <h1>BSC Token Scanner</h1>
-          <span class="subtitle">链上发现 · 队列淘汰 · 动量精筛 · 极速 15min</span>
+          <span class="subtitle">链上发现 · 队列淘汰 · 增量精筛 · 极速 15min</span>
           <span class="filter-toggle" onclick="toggleFilterDesc()" id="filterToggle">▶ 规则</span>
         </div>
         <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle" title="切换主题">🌙</button>
@@ -1912,9 +1912,8 @@
           链上扫描 four.meme TokenCreated 事件 → 入场筛(社交≥1、总量10亿、币龄&lt;48h) →
           队列淘汰(价格跌90%/持币30→10/持币跌70%(峰≥50)/无社交/流动性1k→100(仅毕业)/进度&lt;1%且币龄&gt;2h/进度&lt;5%且币龄&gt;4h/进度跌50%且币龄&gt;6h/15min峰值持币&lt;3/1h峰值持币&lt;5/币龄&gt;48h)
           🚀价格突破(峰值≥0.0001 → 标记已突破, 保留队列继续跟踪, 仅受币龄淘汰)
-          → 动量精筛: 🚀火箭通道(进度≥70%+持币≥100+募资≥8BNB+币龄≤30min+价格≤5e-05) · 🎓毕业通道(已毕业+币龄≤2h+持币≥100+流动性≥$10k+价格≤3e-04+回撤≤30%) · 常规通道(币龄≥1h且≤36h/价格≤0.00005/持币≥15/价格动量/持币增长/买卖比≥1.2/进度40%~97%/回撤保护/冷却6轮)
-          → 精筛后防线(Top10持仓≤85%/开发者清仓撤池排除/假K线: 排除全阳线实体柱控盘币+脉冲死线假阳线)<br>
-          数据源: DexScreener 价格 · GeckoTerminal 已毕业持币数 · four.meme Detail API · BSCScan Top Holder+开发者行为<br>
+          → 增量精筛(近1~3轮: 持币+45/未毕业进度+20%或已毕业流动性+5%/价格+20%, 三条全满足)<br>
+          数据源: DexScreener 价格 · GeckoTerminal 已毕业持币数 · four.meme Detail API<br>
           🔥仿盘标记(≥3个同名, 仅标记不排除) · 目标价区间: 0.000001 ~ 0.0001
         </p>
       </header>
@@ -2171,7 +2170,7 @@
     </div>
     <div class="about-content">
       <h2>BSC Token Scanner</h2>
-      <p class="about-subtitle">链上发现 · 队列淘汰 · 动量精筛 · 极速 15min</p>
+      <p class="about-subtitle">链上发现 · 队列淘汰 · 增量精筛 · 极速 15min</p>
 
       <div class="about-section">
         <h3>🔍 扫描流程</h3>
@@ -2200,19 +2199,12 @@
           <div class="flow-step">
             <span class="flow-num">4</span>
             <div>
-              <div class="flow-title">动量精筛 (瞬时)</div>
-              <div class="flow-desc">从存活币中找起飞信号：价格动量 + 持币增长 + 买卖比 + 进度 + 回撤保护</div>
+              <div class="flow-title">增量精筛 (瞬时)</div>
+              <div class="flow-desc">从存活币中找起飞信号：近 1~3 轮持币+45 / 进度+20%(未毕业)或流动性+5%(已毕业) / 价格+20%</div>
             </div>
           </div>
           <div class="flow-step">
             <span class="flow-num">5</span>
-            <div>
-              <div class="flow-title">精筛后防线 (~数秒)</div>
-              <div class="flow-desc">Top10 持仓集中度 + 开发者行为分析 + 假K线检测 → 排除庄家控盘、跑路币和全阳线控盘币、脉冲死线假阳线</div>
-            </div>
-          </div>
-          <div class="flow-step">
-            <span class="flow-num">6</span>
             <div>
               <div class="flow-title">仿盘检测 (零 API)</div>
               <div class="flow-desc">本地统计同名代币数量，≥3 个同名标记为仿盘（仅标记，不排除）</div>
@@ -2240,43 +2232,16 @@
       </div>
 
       <div class="about-section">
-        <h3>✅ 精筛条件（三通道）</h3>
+        <h3>✅ 精筛条件（增量筛选）</h3>
         <p style="font-size:11px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;">
-          🚀 <b>火箭通道</b>（快速起飞币，跳过慢条件）: 进度≥70% + 持币≥100 + 募资≥8BNB + 币龄≤30min + 价格≤5e-05
-        </p>
-        <p style="font-size:11px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;">
-          🎓 <b>毕业通道</b>（刚毕业强势币，跳过慢条件）: 已毕业 + 币龄≤2h + 持币≥100 + 流动性≥$10k + 价格≤1e-04 + 回撤≤30%
-        </p>
-        <p style="font-size:11px;color:var(--text-secondary);margin-bottom:6px;line-height:1.5;">
-          📋 <b>常规通道</b>（全部满足）:
+          核心思路：近期有真实增长才推。判断窗口：近 1~3 轮（先查 3 轮差 → 2 轮差 → 1 轮差，任一窗口满足即可）。
         </p>
         <ul class="about-list">
-          <li>币龄 ≥ 1 小时（太短的币归零风险大，让它先证明自己不是骗局）</li>
-          <li>币龄 ≤ 36 小时（太老的币失去市场关注，动量不可信）</li>
-          <li>当前价 ≤ 0.00005（离突破线太近利润空间不够，不追）</li>
-          <li>持币地址数 ≥ 15</li>
-          <li>价格动量: 当前价 ≥ 入队价 × 1.5 或 ≥ 历史最低价 × 2.5</li>
-          <li>持币增长: 当前持币 ≥ 入队持币 × 1.5 或近 3 轮持续递增</li>
-          <li>进度 ≥ 40% 且 &lt; 97%（低进度表现差；接近毕业/已毕业买入即亏）</li>
-          <li>进度从 10%+ 跌破 5% 排除（衰退信号）</li>
-          <li>已毕业代币流动性 ≥ $500</li>
-          <li>买卖比 ≥ 1.2（买压 &gt; 卖压，有人在吸筹）</li>
-          <li>价格加速度 ≥ 15%（最近 2 轮价格上涨速率）</li>
-          <li>进度加速度 ≥ 5%（最近 2 轮进度增长）</li>
-          <li>持币增速 ≥ 10%（最近 2 轮持币增长速率）</li>
-          <li>回撤保护: 当前价 ≥ 峰值 × 0.5</li>
-          <li>精筛冷却: 通过后 6 轮内不再重复推送</li>
-        </ul>
-      </div>
-
-      <div class="about-section">
-        <h3>🛡️ 精筛后防线（深度检查）</h3>
-        <p style="font-size:11px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;">仅对精筛通过的少量代币执行，不影响扫描速度
-        </p>
-        <ul class="about-list">
-          <li>Top10 持仓占比 ≤ 85%（排除庄家控盘）</li>
-          <li>开发者行为: 清仓/撤池子 → 排除（跑路信号）</li>
-          <li>假K线检测: 排除全是阳线实体柱、无影线、无阴线的控盘币，以及头部脉冲后全是死线的假阳线（15min K线无影线 ≥ 80% 或全阳线 ≥ 90%，1min K线脉冲死线 ≥ 70%）</li>
+          <li>持币增量: 近 1~3 轮持币数增长 ≥ 45（有真实买盘涌入）</li>
+          <li>动力增量（未毕业）: 近 1~3 轮进度增长 ≥ 20%（资金持续涌入 bonding curve）</li>
+          <li>动力增量（已毕业）: 近 1~3 轮流动性增长 ≥ 5%（毕业后流动性持续增加）</li>
+          <li>价格增量: 近 1~3 轮价格涨幅 ≥ 20%（价格正在加速上涨）</li>
+          <li>仿盘数: 仅标记, 不排除（仿盘多=热门信号）</li>
         </ul>
       </div>
 
@@ -2286,8 +2251,7 @@
           <li>BSC RPC — 链上 TokenCreated 事件发现</li>
           <li>four.meme Detail API — 代币详情 / 社交 / 进度 / 未毕业持币数</li>
           <li>DexScreener — 批量价格 / 流动性 / 交易量 / 买卖笔数</li>
-          <li>GeckoTerminal — 已毕业代币持币数 + 假K线检测</li>
-          <li>BSCScan (Etherscan V2) — Top Holder 集中度 + 开发者行为分析（仅精筛后防线）</li>
+          <li>GeckoTerminal — 已毕业代币持币数</li>
         </ul>
       </div>
 
@@ -2298,7 +2262,7 @@
         </p>
         <p style="font-size:11px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;">
           峰值价格突破 0.0001 的代币标记为「已突破」，保留在队列中继续跟踪更新，仅受币龄 &gt;48h 淘汰。
-          已突破代币可正常参与精筛（毕业通道），同时出现在队列存活和已突破 tab 中。
+          已突破代币可正常参与精筛，同时出现在队列存活和已突破 tab 中。
         </p>
         <p style="font-size:11px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;">
           剥离已突破的币后，队列更精简，扫描更快，完全聚焦在还没涨的目标币上。已突破的币单独展示，便于回顾和统计分析。

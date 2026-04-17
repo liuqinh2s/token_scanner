@@ -13,7 +13,7 @@ v6 架构: 极速扫描 (1 分钟一轮)
   1. 链上发现 (~1s): BSC RPC eth_getLogs → four.meme V1 合约 TokenCreated 事件 → 新代币地址
   2. 入场筛 (~数秒): four.meme Detail API → 淘汰无社交 / 总量≠10亿 / 币龄>5min
   3. 淘汰检查 (~数秒): DexScreener 批量查价 + GeckoTerminal 持币数 + Detail API → 永久淘汰弃盘币
-  4. 精筛 (瞬时): 动量筛选, 从存活币中找起飞信号
+  4. 精筛 (瞬时): 增量筛选, 从存活币中找起飞信号
   5. 仿盘检测: 本地统计同名代币数量 (零 API 调用), 有大量仿盘(≥3)则标记
 
 砍掉的慢环节 (v5 → v6):
@@ -38,30 +38,12 @@ v6 架构: 极速扫描 (1 分钟一轮)
   - 币龄 > 48h
   - 价格突破: 峰值价格 ≥ 0.0001 → 标记为已突破, 保留在队列中继续跟踪, 仅受币龄>48h淘汰
 
-精筛条件 (动量筛选):
-  - 🚀 火箭通道 (快速起飞币, 跳过慢条件): 进度≥70% + 持币≥100 + 募资≥8BNB + 币龄≤30min + 价格≤5e-05
-  - 🎓 毕业通道 (刚毕业强势币, 跳过慢条件): 已毕业 + 币龄≤2h + 持币≥100 + 流动性≥$10k + 价格≤3e-04 + 回撤≤30%
-  - 币龄 ≥ 1 小时 (太短归零风险大)
-  - 币龄 ≤ 36 小时 (太老失去市场关注)
-  - 当前价 ≤ 0.00005 (离突破线太近利润空间不够)
-  - 持币地址数 ≥ 15
-  - 价格动量: 当前价 ≥ 入队价 × 1.5 或 当前价 ≥ 历史最低价 × 2.5
-  - 持币增长: 当前持币 ≥ 入队持币 × 1.5 或 近 3 轮持续递增
-  - 进度 ≥ 40% 且 < 97% (已毕业/接近毕业代币买入即亏)
-  - 进度从 10%+ 跌破 5% 排除 (衰退信号)
-  - 已毕业代币流动性 ≥ $500
-  - 买卖比 ≥ 1.2 (买入笔数/卖出笔数, 买压>卖压)
-  - 价格加速度 ≥ 15% (最近 2 轮价格上涨速率)
-  - 进度加速度 ≥ 5% (最近 2 轮进度增长, 资金持续涌入信号)
-  - 持币增速 ≥ 10% (最近 2 轮持币增长速率)
-  - 回撤保护: 当前价 ≥ 峰值 × 0.5 (从峰值跌超 50% 不推)
-  - 精筛冷却: 同一代币通过精筛后, 6 轮内不再重复推送
+精筛条件 (增量筛选, 核心思路: 近期有真实增长才推):
+  三条增量条件全部满足 (近 1~3 轮, 先查 3 轮差 → 2 轮差 → 1 轮差, 任一满足即可):
+  - 持币增量: 近 1~3 轮持币数增长 ≥ 45
+  - 动力增量: 未毕业币进度增长 ≥ 20%; 已毕业币流动性增长 ≥ 5%
+  - 价格增量: 近 1~3 轮价格涨幅 ≥ 20%
   - 仿盘数: 仅标记, 不排除 (仿盘多=热门信号, 交给用户判断)
-
-精筛后防线 (深度检查, 仅对精筛通过的少量代币):
-  - Top10 持仓占比 ≤ 85% (防庄家控盘)
-  - 开发者行为: 清仓/撤池子 → 排除 (跑路信号)
-  - 假K线检测: 15min K线无影线实体柱 ≥ 80% 或全阳线 ≥ 90% 或 1min K线脉冲死线(头部大涨后续全死线) → 排除 (控盘刷量, 会瞬间归零)
 """
 
 import json
@@ -167,57 +149,16 @@ BINANCE_HEADERS = {
     "User-Agent": "binance-web3/1.1 (Skill)",
 }
 
-# 精筛阈值
+# 精筛阈值 (增量筛选: 近 1~3 轮增量达标即通过)
 MAX_AGE_HOURS = 48
 SCAN_INTERVAL_MIN = 15                 # GitHub Actions cron 间隔 (分钟)
 TOTAL_SUPPLY = 1_000_000_000           # 10亿
-QUALITY_MIN_AGE_MIN = 60               # 精筛: 币龄 ≥ 1 小时 (太短的币归零风险大, 让它先证明自己不是骗局)
-QUALITY_MAX_AGE_HOURS = 36             # 精筛: 币龄 ≤ 36 小时 (太老的币失去市场关注, 动量不可信)
-QUALITY_MAX_PRICE = 0.00005            # 精筛: 当前价 ≤ 0.00005 (离突破线太近利润空间不够, 不追)
-QUALITY_MIN_HOLDERS = 15               # 精筛: 持币地址数 ≥ 15
-QUALITY_PRICE_MOMENTUM_VS_ADDED = 1.5  # 精筛: 当前价 ≥ 入队价 × 1.5
-QUALITY_PRICE_MOMENTUM_VS_LOW = 2.5    # 精筛: 当前价 ≥ 历史最低价 × 2.5
-QUALITY_HOLDERS_GROWTH_VS_ADDED = 1.5  # 精筛: 当前持币 ≥ 入队持币 × 1.5
-QUALITY_HOLDERS_CONSEC_ROUNDS = 3      # 精筛: 持币数连续递增轮数 ≥ 3
-QUALITY_MIN_PROGRESS = 0.40            # 精筛: 进度 ≥ 40% (历史数据: 40%+代币avg 2.2x, 20-40%代币avg 1.4x)
-QUALITY_MAX_PROGRESS = 0.97            # 精筛: 进度 < 97% (已毕业/接近毕业代币买入即亏, 排除)
-QUALITY_PROGRESS_DROP_PEAK = 0.10     # 精筛: 进度曾达到 10% 以上
-QUALITY_PROGRESS_DROP_FLOOR = 0.05    # 精筛: 进度从 10%+ 跌破 5% 则排除
-QUALITY_MIN_LIQUIDITY_GRAD = 500      # 精筛: 已毕业代币流动性 ≥ $500
-QUALITY_MAX_DRAWDOWN = 0.50           # 精筛: 当前价 ≥ 峰值 × 0.5 (回撤保护)
-QUALITY_COOLDOWN_ROUNDS = 6           # 精筛: 同一代币冷却轮数 (通过后 N 轮内不再推送)
-QUALITY_MIN_BUY_SELL_RATIO = 1.2      # 精筛: 买卖比 ≥ 1.2 (买入笔数/卖出笔数, 买压>卖压)
-QUALITY_MIN_VOLUME_USD = 100          # 精筛: 24h 交易量 ≥ $100 (有真实交易活动)
-QUALITY_MIN_PRICE_ACCEL = 0.15        # 精筛: 价格加速度 ≥ 15% (最近 2 轮价格变化率, 历史数据: ≥20%止盈率75%)
-QUALITY_MIN_PROGRESS_ACCEL = 0.05     # 精筛: 进度加速度 ≥ 5% (最近 2 轮进度变化, 历史数据: ≥5%+价格涨≥10%止盈率91%)
-QUALITY_MIN_HOLDERS_GROWTH_RATE = 0.10  # 精筛: 持币增速 ≥ 10% (最近 2 轮持币变化率)
-QUALITY_MAX_TOP10_CONCENTRATION = 0.85  # 精筛: Top10 持仓占比 ≤ 85% (防庄家控盘)
-QUALITY_FAKE_CANDLE_RATIO = 0.80       # 精筛: 实体柱占比 ≥ 80% 判定为假K线 (无影线=价格被控制)
-QUALITY_FAKE_CANDLE_MIN_COUNT = 4      # 精筛: 至少 4 根 K线才做假K线检测 (数据不足不判断)
-QUALITY_FAKE_CANDLE_WICK_THRESHOLD = 0.005  # 精筛: 影线/实体 < 0.5% 视为无影线 (允许极微小波动)
-QUALITY_FAKE_CANDLE_BULLISH_RATIO = 0.90   # 精筛: 阳线占比 ≥ 90% 判定为假K线 (只涨不跌=控盘)
-QUALITY_FAKE_CANDLE_DEAD_MIN_COUNT = 6     # 精筛: 死线检测最少 K线数 (1min K线, 至少 6 根)
-QUALITY_FAKE_CANDLE_DEAD_RATIO = 0.70      # 精筛: 后续死线占比 ≥ 70% 判定为假阳线 (头部大涨后全是死线)
-QUALITY_FAKE_CANDLE_DEAD_THRESHOLD = 0.005 # 精筛: 振幅 < 0.5% 视为死线 (几乎不动)
-QUALITY_FAKE_CANDLE_SPIKE_MULTIPLE = 10    # 精筛: 头部K线振幅 ≥ 后续平均振幅 × 10 才算脉冲
+QUALITY_MIN_HOLDERS_DELTA = 45         # 精筛: 近 1~3 轮持币数增长 ≥ 45
+QUALITY_MIN_PROGRESS_DELTA = 0.20      # 精筛: 近 1~3 轮进度增长 ≥ 20% (未毕业币)
+QUALITY_MIN_LIQUIDITY_GROWTH = 0.05    # 精筛: 近 1~3 轮流动性增长 ≥ 5% (已毕业币)
+QUALITY_MIN_PRICE_GROWTH = 0.20        # 精筛: 近 1~3 轮价格涨幅 ≥ 20%
 COPYCAT_MARK_MIN = 3                   # 仿盘数 ≥3 标记 (仅标记, 不排除)
 MIN_SOCIAL_COUNT = 1                   # 最少关联社交媒体数
-
-# 火箭通道阈值 (快速起飞币专用, 跳过币龄/价格上限/动量等慢条件)
-# 历史回测: 17 命中, 3 突破, 0 暴亏, 最差 x1.0 (不赚不亏)
-ROCKET_MIN_PROGRESS = 0.70             # 火箭: 进度 ≥ 70% (资金涌入快, 接近毕业)
-ROCKET_MIN_HOLDERS = 100               # 火箭: 持币 ≥ 100 (真实买盘, 非刷量)
-ROCKET_MIN_RAISED = 8.0                # 火箭: 募资 ≥ 8 BNB (资金量充足)
-ROCKET_MAX_AGE_HOURS = 0.5             # 火箭: 币龄 ≤ 30 分钟 (刚起飞, 不是老币)
-ROCKET_MAX_PRICE = 0.00005             # 火箭: 买入价 ≤ 5e-05 (保留利润空间)
-
-# 毕业通道阈值 (刚毕业且势头强劲的代币, 跳过进度/价格上限/动量等慢条件)
-# 历史回测: 7 命中, 1 突破, 0 亏损, 2 个×1.5+
-GRAD_MIN_HOLDERS = 100                 # 毕业: 持币 ≥ 100 (真实买盘)
-GRAD_MAX_AGE_HOURS = 2.0              # 毕业: 币龄 ≤ 2 小时 (刚毕业不久)
-GRAD_MIN_LIQUIDITY = 10000            # 毕业: 流动性 ≥ $10,000 (毕业后有足够深度)
-GRAD_MAX_PRICE = 0.0003               # 毕业: 价格 ≤ 0.0003 (快速毕业币价格可能超过突破线)
-GRAD_MIN_DRAWDOWN_RATIO = 0.70        # 毕业: 当前价 ≥ 峰值 × 0.7 (毕业后没大跌)
 
 # 淘汰阈值
 ELIM_PRICE_DROP_PCT = 0.90             # 价格从峰值跌 90%
@@ -2128,6 +2069,10 @@ def elimination_check(queue: list[dict], now_ms: int,
         hist.append(current_holders)
         t["holdersHistory"] = hist[-5:]
         t["liquidity"] = current_liq
+        # 记录流动性历史 (只保留最近 5 轮, 精筛用)
+        liq_hist = t.get("liquidityHistory", [])
+        liq_hist.append(current_liq)
+        t["liquidityHistory"] = liq_hist[-5:]
         t["progress"] = current_progress
         if detail:
             t["socialCount"] = detail["socialCount"]
@@ -2277,234 +2222,117 @@ def elimination_check(queue: list[dict], now_ms: int,
 
 
 # ===================================================================
-#  Step 5: 精筛 — 动量筛选
+#  Step 5: 精筛 — 增量筛选
 # ===================================================================
 def quality_filter(candidates: list[dict], now_ms: int,
                    cooldown_map: dict[str, int] | None = None,
                    current_round: int = 0) -> list[dict]:
     """
-    精筛: 动量筛选 — 从队列存活币中找"正在起飞"的信号
-    三通道:
-      🚀 火箭通道 (快速起飞币, 跳过币龄/动量等慢条件):
-        - 进度 ≥ 70% (资金涌入快, 接近毕业)
-        - 持币 ≥ 100 (真实买盘, 非刷量)
-        - 募资 ≥ 8 BNB (资金量充足)
-        - 币龄 ≤ 30 分钟 (刚起飞, 不是老币)
-        - 价格 ≤ 5e-05 (保留利润空间)
-      🎓 毕业通道 (刚毕业且势头强劲, 跳过进度/价格上限/动量等慢条件):
-        - 已毕业 (进度 = 100%)
-        - 币龄 ≤ 2 小时 (刚毕业不久)
-        - 持币 ≥ 100 (真实买盘)
-        - 流动性 ≥ $10,000 (毕业后有足够深度)
-        - 价格 ≤ 0.0003 (快速毕业币价格可能超过突破线)
-        - 回撤保护: 当前价 ≥ 峰值 × 0.7 (毕业后没大跌)
-      常规通道 (全部满足):
-      - 币龄 ≥ 15 分钟 (数据稳定后再判断, 历史数据显示 0-1h 币龄代币亏损率高)
-      - 持币地址数 ≥ 15
-      - 价格动量: 当前价 ≥ 入队价 × 1.5 或 当前价 ≥ 历史最低价 × 2.5
-      - 持币增长: 当前持币 ≥ 入队持币 × 1.5 或 近 3 轮持续递增
-      - 进度 ≥ 40% 且 < 97% (进度低表现差; 已毕业/接近毕业代币买入即亏)
-      - 进度从 10%+ 跌破 5% 排除 (衰退信号)
-      - 已毕业代币流动性 ≥ $500
-      - 买卖比 ≥ 1.2 (买压 > 卖压, 有人在吸筹)
-      - 价格加速度 ≥ 15% (最近 2 轮价格上涨速率)
-      - 进度加速度 ≥ 5% (最近 2 轮进度增长, 资金持续涌入)
-      - 持币增速 ≥ 10% (最近 2 轮持币增长速率)
-      - 回撤保护: 当前价 ≥ 峰值 × 0.5 (从峰值跌超 50% 不推)
-      - 精筛冷却: 同一代币通过精筛后, 6 轮内不再重复推送
-      - 仿盘数: 仅标记, 不排除 (仿盘多=热门信号, 交给用户判断)
-      - [精筛后防线] Top10 持仓占比 ≤ 85% (防庄家控盘)
-      - [精筛后防线] 开发者行为检查 (清仓/撤池子 → 排除)
-      - [精筛后防线] 假K线检测 (无影线实体柱 ≥ 80% → 排除, 控盘刷量)
+    精筛: 增量筛选 — 从队列存活币中找"正在起飞"的信号
+    核心思路: 近期有真实增长才推, 三条增量条件全部满足
+    判断窗口: 近 1~3 轮 (先查 3 轮差 → 2 轮差 → 1 轮差, 任一满足即可)
 
-    参数:
-      cooldown_map: {address: last_pass_round} 记录每个代币上次通过精筛的轮次
-      current_round: 当前扫描轮次编号
+    三条增量条件:
+      1. 持币增量: 近 1~3 轮持币数增长 ≥ 45
+      2. 动力增量:
+         - 未毕业币: 进度增长 ≥ 20%
+         - 已毕业币: 流动性增长 ≥ 5%
+      3. 价格增量: 近 1~3 轮价格涨幅 ≥ 20%
     """
     results = []
-    min_age_ms = QUALITY_MIN_AGE_MIN * 60 * 1000
-    if cooldown_map is None:
-        cooldown_map = {}
 
     for t in candidates:
-        age_ms = now_ms - t.get("createdAt", 0)
         current_price = t.get("price", 0)
         holders = t.get("holders", 0)
         name = t.get("name") or t.get("address", "")[:16]
-        addr = t.get("address", "")
-
-        # 冷却期检查: 同一代币通过精筛后 N 轮内不再推送
-        last_pass = cooldown_map.get(addr, -999)
-        if current_round - last_pass < QUALITY_COOLDOWN_ROUNDS:
-            continue
-
-        age_hours = age_ms / 3600000
         progress = t.get("progress", 0)
-        raised = t.get("raisedAmount", 0)
-
-        # ============================================================
-        # 火箭通道: 高进度 + 高持币 + 高募资 + 低币龄 → 跳过慢条件直接通过
-        # 捕捉快速起飞币 (如老登: 21min 内从 2e-05 涨到 9.46e-05)
-        # 历史回测: 17 命中, 3 突破, 0 暴亏
-        # ============================================================
-        is_rocket = (progress >= ROCKET_MIN_PROGRESS
-                     and holders >= ROCKET_MIN_HOLDERS
-                     and raised >= ROCKET_MIN_RAISED
-                     and age_hours <= ROCKET_MAX_AGE_HOURS
-                     and 0 < current_price <= ROCKET_MAX_PRICE)
-
-        if is_rocket:
-            t["isRocket"] = True
-            results.append(t)
-            cooldown_map[addr] = current_round
-            log.info("精筛: 🚀 火箭通道 %s — 价格 %.3e, 持币 %d, 进度 %.1f%%, 募资 %.1fBNB, 币龄 %.0fmin",
-                     name, current_price, holders, progress * 100, raised, age_ms / 60000)
-            continue
-
-        # ============================================================
-        # 毕业通道: 刚毕业 + 高持币 + 高流动性 + 价格未突破 → 跳过慢条件
-        # 捕捉快速毕业后继续涨的代币 (如 FREEDOM: 15min 毕业, 毕业后 ×1.5)
-        # 历史回测: 7 命中, 1 突破, 0 亏损, 2 个×1.5+
-        # ============================================================
         liq = t.get("liquidity", 0)
-        peak_price = t.get("peakPrice", 0)
-        is_graduated = (progress >= 1.0
-                        and age_hours <= GRAD_MAX_AGE_HOURS
-                        and holders >= GRAD_MIN_HOLDERS
-                        and liq >= GRAD_MIN_LIQUIDITY
-                        and 0 < current_price <= GRAD_MAX_PRICE
-                        and (peak_price <= 0 or current_price >= peak_price * GRAD_MIN_DRAWDOWN_RATIO))
 
-        if is_graduated:
-            t["isGraduated"] = True
-            results.append(t)
-            cooldown_map[addr] = current_round
-            log.info("精筛: 🎓 毕业通道 %s — 价格 %.3e, 持币 %d, 流动性 $%.0f, 币龄 %.0fmin",
-                     name, current_price, holders, liq, age_ms / 60000)
-            continue
-
-        # ============================================================
-        # 常规精筛: 动量筛选 (需要多轮数据积累)
-        # ============================================================
-
-        # 条件 1: 币龄 ≥ 1 小时 (太短的币归零风险大)
-        if age_ms < min_age_ms:
-            continue
-
-        # 条件 1b: 币龄 ≤ 36 小时 (太老的币失去市场关注, 动量不可信)
-        if age_hours > QUALITY_MAX_AGE_HOURS:
-            continue
-
-        # 条件 2: 持币地址数 ≥ 15
-        if holders < QUALITY_MIN_HOLDERS:
-            continue
-
-        # 条件 2b: 当前价 ≤ 0.00005 (离突破线太近利润空间不够, 不追)
-        if current_price > QUALITY_MAX_PRICE:
-            continue
-
-        # 条件 3: 价格动量 (二选一)
-        if current_price <= 0:
-            continue
-        added_price = t.get("addedPrice", 0)
-        price_hist = t.get("priceHistory", [])
-        min_price = min(price_hist) if price_hist else 0
-        price_ok = False
-        if added_price > 0 and current_price >= added_price * QUALITY_PRICE_MOMENTUM_VS_ADDED:
-            price_ok = True
-        if min_price > 0 and current_price >= min_price * QUALITY_PRICE_MOMENTUM_VS_LOW:
-            price_ok = True
-        if not price_ok:
-            continue
-
-        # 条件 3b: 回撤保护 — 当前价不能低于峰值的 50%
-        peak_price = t.get("peakPrice", 0)
-        if peak_price > 0 and current_price < peak_price * QUALITY_MAX_DRAWDOWN:
-            continue
-
-        # 条件 4: 持币增长 (二选一)
-        added_holders = t.get("addedHolders", 0)
         h_hist = t.get("holdersHistory", [])
-        holders_ok = False
-        if added_holders > 0 and holders >= added_holders * QUALITY_HOLDERS_GROWTH_VS_ADDED:
-            holders_ok = True
-        if len(h_hist) >= QUALITY_HOLDERS_CONSEC_ROUNDS:
-            consec = True
-            for i in range(-QUALITY_HOLDERS_CONSEC_ROUNDS + 1, 0):
-                if h_hist[i] <= h_hist[i - 1]:
-                    consec = False
-                    break
-            if consec:
-                holders_ok = True
-        if not holders_ok:
-            continue
-
-        # 条件 5: 进度 ≥ 40% 且 < 97% (已毕业/接近毕业代币买入即亏)
-        if progress < QUALITY_MIN_PROGRESS:
-            continue
-        if progress >= QUALITY_MAX_PROGRESS:
-            continue
-
-        # 条件 5b: 进度从 10%+ 跌破 5% 排除 (曾经有热度但在衰退)
-        peak_progress = t.get("peakProgress", 0)
-        if peak_progress >= QUALITY_PROGRESS_DROP_PEAK and progress < QUALITY_PROGRESS_DROP_FLOOR:
-            continue
-
-        # 条件 5c: 已毕业代币流动性 ≥ $500 (流动性枯竭的僵尸币排除)
-        liq = t.get("liquidity", 0)
-        if progress >= 1 and liq > 0 and liq < QUALITY_MIN_LIQUIDITY_GRAD:
-            continue
-
-        # 条件 6: 买卖比 ≥ 1.2 (买压 > 卖压, 有人在吸筹)
-        # 优先用 h1 数据 (更灵敏), 回退 h24
-        buys = t.get("buysH1", 0) or t.get("buysH24", 0)
-        sells = t.get("sellsH1", 0) or t.get("sellsH24", 0)
-        if sells > 0:
-            buy_sell_ratio = buys / sells
-            if buy_sell_ratio < QUALITY_MIN_BUY_SELL_RATIO:
-                continue
-        # buys > 0 且 sells == 0 → 全是买入, 通过
-        # buys == 0 且 sells == 0 → bonding curve 阶段无 DEX 数据, 跳过此条件
-
-        # 条件 7: 价格加速度 (最近 2 轮价格变化率 ≥ 5%)
-        if len(price_hist) >= 2:
-            prev_price = price_hist[-2]
-            if prev_price > 0:
-                price_accel = (current_price - prev_price) / prev_price
-                if price_accel < QUALITY_MIN_PRICE_ACCEL:
-                    continue
-
-        # 条件 8: 持币增速 (最近 2 轮持币变化率 ≥ 10%)
-        if len(h_hist) >= 2:
-            prev_holders = h_hist[-2]
-            if prev_holders > 0:
-                holders_growth_rate = (holders - prev_holders) / prev_holders
-                if holders_growth_rate < QUALITY_MIN_HOLDERS_GROWTH_RATE:
-                    continue
-
-        # 条件 9: 进度加速度 (最近 2 轮进度变化 ≥ 5%)
+        price_hist = t.get("priceHistory", [])
         prog_hist = t.get("progressHistory", [])
-        if len(prog_hist) >= 2:
-            prev_prog = prog_hist[-2]
-            prog_accel = progress - prev_prog
-            if prog_accel < QUALITY_MIN_PROGRESS_ACCEL:
+        liq_hist = t.get("liquidityHistory", [])
+
+        # ============================================================
+        # 增量判断: 先 3 轮差 → 2 轮差 → 1 轮差, 任一窗口三条全满足即通过
+        # ============================================================
+        passed = False
+        for gap in (3, 2, 1):
+            # 条件 1: 持币增量 ≥ 45
+            if len(h_hist) > gap:
+                h_delta = holders - h_hist[-(gap + 1)]
+            elif len(h_hist) == gap:
+                h_delta = holders - h_hist[0]
+            else:
+                continue  # 历史数据不足, 跳过此窗口
+            if h_delta < QUALITY_MIN_HOLDERS_DELTA:
                 continue
 
-        # 条件 10: 仿盘标记 (不排除, 仅标记)
+            # 条件 2: 动力增量 (未毕业看进度, 已毕业看流动性)
+            is_graduated = progress >= 1.0
+            if is_graduated:
+                # 已毕业: 流动性增长 ≥ 5%
+                if len(liq_hist) > gap:
+                    prev_liq = liq_hist[-(gap + 1)]
+                elif len(liq_hist) == gap:
+                    prev_liq = liq_hist[0]
+                else:
+                    continue
+                if prev_liq <= 0 or liq <= 0:
+                    continue
+                liq_growth = (liq - prev_liq) / prev_liq
+                if liq_growth < QUALITY_MIN_LIQUIDITY_GROWTH:
+                    continue
+            else:
+                # 未毕业: 进度增长 ≥ 20%
+                if len(prog_hist) > gap:
+                    prev_prog = prog_hist[-(gap + 1)]
+                elif len(prog_hist) == gap:
+                    prev_prog = prog_hist[0]
+                else:
+                    continue
+                prog_delta = progress - prev_prog
+                if prog_delta < QUALITY_MIN_PROGRESS_DELTA:
+                    continue
+
+            # 条件 3: 价格涨幅 ≥ 20%
+            if len(price_hist) > gap:
+                prev_price = price_hist[-(gap + 1)]
+            elif len(price_hist) == gap:
+                prev_price = price_hist[0]
+            else:
+                continue
+            if prev_price <= 0 or current_price <= 0:
+                continue
+            price_growth = (current_price - prev_price) / prev_price
+            if price_growth < QUALITY_MIN_PRICE_GROWTH:
+                continue
+
+            # 三条全满足, 通过
+            passed = True
+            # 记录命中窗口供日志使用
+            t["_quality_gap"] = gap
+            t["_quality_h_delta"] = h_delta
+            t["_quality_price_growth"] = price_growth
+            if is_graduated:
+                t["_quality_liq_growth"] = liq_growth
+            else:
+                t["_quality_prog_delta"] = prog_delta
+            break
+
+        if not passed:
+            continue
 
         results.append(t)
-        # 记录本轮通过精筛
-        cooldown_map[addr] = current_round
-        added_price = t.get("addedPrice", 0)
-        added_holders = t.get("addedHolders", 0)
-        price_mult = current_price / added_price if added_price > 0 else 0
-        holders_mult = holders / added_holders if added_holders > 0 else 0
-        buys = t.get("buysH1", 0) or t.get("buysH24", 0)
-        sells = t.get("sellsH1", 0) or t.get("sellsH24", 0)
-        _bs_ratio = buys / sells if sells > 0 else float('inf') if buys > 0 else 0
-        log.info("精筛: ✓ %s — 价格 %.3e (×%.1f), 持币 %d (×%.1f), 进度 %.1f%%, 买卖比 %.1f, 币龄 %.1fmin",
-                 name, current_price, price_mult, holders, holders_mult,
-                 progress * 100, _bs_ratio, age_ms / 60000)
+        gap = t.get("_quality_gap", 0)
+        age_ms = now_ms - t.get("createdAt", 0)
+        log.info("精筛: ✓ %s — %d轮窗口, 持币+%d, 价格+%.0f%%, %s, 币龄 %.0fmin",
+                 name, gap,
+                 t.get("_quality_h_delta", 0),
+                 t.get("_quality_price_growth", 0) * 100,
+                 "流动性+{:.0f}%".format(t.get("_quality_liq_growth", 0) * 100) if progress >= 1.0
+                 else "进度+{:.1f}%".format(t.get("_quality_prog_delta", 0) * 100),
+                 age_ms / 60000)
 
     return results
 
@@ -2783,15 +2611,9 @@ def main():
         if cc:
             t["copycat"] = cc
 
-    # 精筛 (动量筛选, 从存活币中找起飞信号)
-    # 冷却期: 从 queue_state 恢复, 单次执行需持久化
-    cooldown_map = queue_state.get("qualityCooldown", {})
+    # 精筛 (增量筛选, 从存活币中找起飞信号)
     scan_round = queue_state.get("scanRound", 0) + 1
-    quality_results = quality_filter(survivors, now_ms,
-                                     cooldown_map=cooldown_map,
-                                     current_round=scan_round)
-    # 持久化冷却期状态
-    queue_state["qualityCooldown"] = cooldown_map
+    quality_results = quality_filter(survivors, now_ms)
     queue_state["scanRound"] = scan_round
 
     # 精筛代币持币数刷新: 用 BSCScan 网页爬取真实持币数 (four.meme detail 对未毕业币不准)
@@ -2815,10 +2637,6 @@ def main():
                 if rh != old_h:
                     log.info("  持币数刷新 %s: %d→%d (BSCScan)",
                              t.get("name") or t["address"][:16], old_h, rh)
-
-    # 精筛后防线: Top Holder 集中度 + 开发者行为检查
-    if quality_results:
-        quality_results = post_quality_defense(quality_results, bscscan_key)
 
     # 精筛再验证: 对精筛结果重新检查淘汰条件
     # - 不符合队列存活 → 移到本轮淘汰
