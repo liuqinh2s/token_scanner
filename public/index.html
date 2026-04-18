@@ -1009,27 +1009,42 @@
         display: none;
       }
 
-      /* 手机端首页顶部淘汰统计 hero */
+      /* 手机端首页顶部统计 hero */
       .mobile-hero-stat {
+        display: flex;
+        gap: 8px;
+        padding: 0;
+        margin: 4px 0;
+      }
+
+      .mobile-hero-item {
+        flex: 1;
         text-align: center;
         padding: 8px 12px;
-        margin: 4px 0;
         background: var(--bg-card);
         border: 1px solid var(--border-primary);
         border-radius: 12px;
         box-shadow: var(--shadow-sm);
       }
 
-      .mobile-hero-stat .hero-number {
+      .mobile-hero-item .hero-number {
         font-size: 28px;
         font-weight: 800;
-        color: var(--danger-text);
         display: block;
         line-height: 1.2;
+      }
+
+      .mobile-hero-item .hero-number-elim {
+        color: var(--danger-text);
         text-shadow: 0 0 20px rgba(248, 81, 73, 0.3);
       }
 
-      .mobile-hero-stat .hero-label {
+      .mobile-hero-item .hero-number-filtered {
+        color: var(--accent);
+        text-shadow: var(--glow-accent);
+      }
+
+      .mobile-hero-item .hero-label {
         font-size: 11px;
         color: var(--text-secondary);
         display: block;
@@ -2301,11 +2316,16 @@
         </p>
       </header>
 
-      <!-- 手机端淘汰统计 hero -->
+      <!-- 手机端统计 hero -->
       <div class="mobile-hero-stat" id="mobileHeroStat" style="display:none">
-        <span class="hero-number" id="heroElimCount">--</span>
-        <span class="hero-label">近 48 小时淘汰 <span id="heroFilteredInline"
-            style="color:var(--accent);font-weight:700"></span></span>
+        <div class="mobile-hero-item">
+          <span class="hero-number hero-number-elim" id="heroElimCount">--</span>
+          <span class="hero-label">近 48h 淘汰</span>
+        </div>
+        <div class="mobile-hero-item">
+          <span class="hero-number hero-number-filtered" id="heroFilteredCount">--</span>
+          <span class="hero-label">累计精筛</span>
+        </div>
       </div>
 
       <div class="stats-bar" id="statsBar">
@@ -3214,12 +3234,8 @@
         if (desktopEl) desktopEl.textContent = data.eliminatedTotal48h.toLocaleString();
       }
 
-      // 手机端 hero 显示精筛通过数
-      const filteredCount = data.filteredTokens || 0;
-      const heroFilteredInline = document.getElementById('heroFilteredInline');
-      if (heroFilteredInline) {
-        heroFilteredInline.textContent = filteredCount > 0 ? ' · 精筛通过 ' + filteredCount : '';
-      }
+      // 手机端 hero 显示精筛总数（累计精筛通过，含成功+失败）
+      updateHeroFilteredCount();
 
       // 更新手机端 tab 标题中的数字
       if (!isDesktop()) {
@@ -3975,8 +3991,20 @@
       try {
         qualityStatsData = await cachedFetch('/api/quality-stats', true);
         renderQualityPanel();
+        updateHeroFilteredCount();
       } catch (e) {
         console.error('加载精筛成功率失败:', e);
+      }
+    }
+
+    function updateHeroFilteredCount() {
+      const el = document.getElementById('heroFilteredCount');
+      if (!el) return;
+      if (qualityStatsData) {
+        const total = (qualityStatsData.successCount || 0) + (qualityStatsData.failCount || 0);
+        el.textContent = total;
+      } else if (currentData) {
+        el.textContent = currentData.filteredTokens || '0';
       }
     }
 
