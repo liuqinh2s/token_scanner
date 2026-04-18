@@ -43,8 +43,10 @@ v6 架构: 极速扫描 (1 分钟一轮)
   - 持币增量: 近 1~3 轮持币数增长 ≥ 45
   - 动力增量: 未毕业币进度增长 ≥ 20%; 已毕业币流动性增长 ≥ 5%
   - 价格增量: 近 1~3 轮价格涨幅 ≥ 20%
+  - 单调递增约束: 2~3 轮窗口要求每轮指标都递增, 不允许"先涨后跌但总体涨"
   - 仿盘数: 仅标记, 不排除 (仿盘多=热门信号, 交给用户判断)
 """
+from __future__ import annotations
 
 import json
 import time
@@ -1430,53 +1432,71 @@ def ds_get_pairs(token_address: str) -> list[dict] | None:
 
 
 def ds_batch_prices(addresses: list[str]) -> dict[str, dict]:
-    """DexScreener 批量查价格+流动性 (最多 10 个地址/请求, 避免 URL 过长被拒)"""
+    """DexScreener 批量查价格+流动性 (最多 10 个地址/请求, 带指数退避重试)"""
     _ensure_sessions()
     result = {}
     batch_size = 10
+    max_retries = 3
 
     for i in range(0, len(addresses), batch_size):
         batch = addresses[i:i + batch_size]
-        try:
-            url = f"{DS_BASE}/tokens/v1/bsc/{','.join(batch)}"
-            r = _gt_session.get(url, timeout=15, headers=DS_HEADERS)
-            if r.status_code == 429:
-                time.sleep(2)
-                continue
-            r.raise_for_status()
-            data = r.json()
-            pairs = data if isinstance(data, list) else (data.get("pairs") or data.get("data") or [])
-            for p in pairs:
-                if not p.get("baseToken"):
+        url = f"{DS_BASE}/tokens/v1/bsc/{','.join(batch)}"
+
+        # 指数退避重试
+        for attempt in range(max_retries):
+            try:
+                r = _gt_session.get(url, timeout=20, headers=DS_HEADERS)
+                if r.status_code == 429:
+                    wait = 3 * (attempt + 1)
+                    log.warning("DS 429 限流, 等待 %ds (%d/%d)", wait, attempt + 1, max_retries)
+                    time.sleep(wait)
                     continue
-                addr = p["baseToken"]["address"].lower()
-                if addr in result:
-                    continue
-                # 提取买卖笔数 (DexScreener txns 字段)
-                txns = p.get("txns") or {}
-                # 汇总多个时间段: 优先用 h1 (最近 1h), 回退 h24
-                txns_h1 = txns.get("h1") or {}
-                txns_h24 = txns.get("h24") or {}
-                buys_h1 = int(txns_h1.get("buys") or 0)
-                sells_h1 = int(txns_h1.get("sells") or 0)
-                buys_h24 = int(txns_h24.get("buys") or 0)
-                sells_h24 = int(txns_h24.get("sells") or 0)
-                result[addr] = {
-                    "price": float(p.get("priceUsd") or 0),
-                    "liquidity": float((p.get("liquidity") or {}).get("usd") or 0),
-                    "volume24h": float((p.get("volume") or {}).get("h24") or 0),
-                    "volumeH1": float((p.get("volume") or {}).get("h1") or 0),
-                    "buysH1": buys_h1,
-                    "sellsH1": sells_h1,
-                    "buysH24": buys_h24,
-                    "sellsH24": sells_h24,
-                    "name": p["baseToken"].get("name", ""),
-                    "symbol": p["baseToken"].get("symbol", ""),
-                }
-        except Exception as e:
-            log.warning("DS 批量查价失败: %s", e)
+                r.raise_for_status()
+                data = r.json()
+                pairs = data if isinstance(data, list) else (data.get("pairs") or data.get("data") or [])
+                for p in pairs:
+                    if not p.get("baseToken"):
+                        continue
+                    addr = p["baseToken"]["address"].lower()
+                    if addr in result:
+                        continue
+                    # 提取买卖笔数 (DexScreener txns 字段)
+                    txns = p.get("txns") or {}
+                    # 汇总多个时间段: 优先用 h1 (最近 1h), 回退 h24
+                    txns_h1 = txns.get("h1") or {}
+                    txns_h24 = txns.get("h24") or {}
+                    buys_h1 = int(txns_h1.get("buys") or 0)
+                    sells_h1 = int(txns_h1.get("sells") or 0)
+                    buys_h24 = int(txns_h24.get("buys") or 0)
+                    sells_h24 = int(txns_h24.get("sells") or 0)
+                    result[addr] = {
+                        "price": float(p.get("priceUsd") or 0),
+                        "liquidity": float((p.get("liquidity") or {}).get("usd") or 0),
+                        "volume24h": float((p.get("volume") or {}).get("h24") or 0),
+                        "volumeH1": float((p.get("volume") or {}).get("h1") or 0),
+                        "buysH1": buys_h1,
+                        "sellsH1": sells_h1,
+                        "buysH24": buys_h24,
+                        "sellsH24": sells_h24,
+                        "name": p["baseToken"].get("name", ""),
+                        "symbol": p["baseToken"].get("symbol", ""),
+                    }
+                break  # 成功则跳出重试循环
+            except (ConnectionError, ConnectionResetError) as e:
+                wait = 2 * (attempt + 1)
+                log.warning("DS 连接被重置, 等待 %ds 重试 (%d/%d): %s", wait, attempt + 1, max_retries, e)
+                time.sleep(wait)
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    wait = 2 * (attempt + 1)
+                    log.warning("DS 批量查价失败, 等待 %ds 重试 (%d/%d): %s", wait, attempt + 1, max_retries, e)
+                    time.sleep(wait)
+                else:
+                    log.warning("DS 批量查价最终失败: %s", e)
+
+        # 批次间隔加长, 避免触发限流
         if i + batch_size < len(addresses):
-            time.sleep(0.3)
+            time.sleep(0.5)
 
     return result
 
@@ -2238,8 +2258,24 @@ def quality_filter(candidates: list[dict], now_ms: int,
          - 未毕业币: 进度增长 ≥ 20%
          - 已毕业币: 流动性增长 ≥ 5%
       3. 价格增量: 近 1~3 轮价格涨幅 ≥ 20%
+
+    单调递增约束 (仅 2~3 轮窗口):
+      - 若通过 2 轮或 3 轮窗口达标, 则要求窗口内每轮指标都递增
+      - 不允许"先涨后跌但总体涨"的情况 (避免回落后的假信号)
+      - 1 轮窗口无此约束 (只有 1 个差值, 无法判断趋势)
     """
     results = []
+
+    def _is_monotonic_increasing(values: list, include_current: float | int = None) -> bool:
+        """检查序列是否单调递增 (每个值都 > 前一个值)"""
+        if include_current is not None:
+            values = values + [include_current]
+        if len(values) < 2:
+            return True
+        for i in range(1, len(values)):
+            if values[i] <= values[i - 1]:
+                return False
+        return True
 
     for t in candidates:
         current_price = t.get("price", 0)
@@ -2308,7 +2344,34 @@ def quality_filter(candidates: list[dict], now_ms: int,
             if price_growth < QUALITY_MIN_PRICE_GROWTH:
                 continue
 
-            # 三条全满足, 通过
+            # ============================================================
+            # 单调递增约束: 2~3 轮窗口要求每轮指标都递增, 不允许回落
+            # ============================================================
+            if gap >= 2:
+                # 提取窗口内的历史值序列 (从旧到新)
+                # 例如 gap=3: 取 h_hist[-4], h_hist[-3], h_hist[-2], h_hist[-1], 再加当前值
+                window_h = h_hist[-gap:] if len(h_hist) >= gap else h_hist[:]
+                window_price = price_hist[-gap:] if len(price_hist) >= gap else price_hist[:]
+
+                # 检查持币数单调递增
+                if not _is_monotonic_increasing(window_h, holders):
+                    continue
+
+                # 检查价格单调递增
+                if not _is_monotonic_increasing(window_price, current_price):
+                    continue
+
+                # 检查动力指标单调递增 (进度或流动性)
+                if is_graduated:
+                    window_liq = liq_hist[-gap:] if len(liq_hist) >= gap else liq_hist[:]
+                    if not _is_monotonic_increasing(window_liq, liq):
+                        continue
+                else:
+                    window_prog = prog_hist[-gap:] if len(prog_hist) >= gap else prog_hist[:]
+                    if not _is_monotonic_increasing(window_prog, progress):
+                        continue
+
+            # 三条全满足 + 单调递增约束通过
             passed = True
             # 记录命中窗口供日志使用
             t["_quality_gap"] = gap
@@ -2872,12 +2935,19 @@ def main():
             "breakthrough_at": t.get("breakthroughAt", 0),
         })
 
-    # 统计近48小时淘汰的唯一代币数 (从 queue_state 累计, 前端直接读取)
-    cutoff_48h = now_ms - 48 * 3600 * 1000
+    # 统计近48小时淘汰的唯一代币数 (从历史扫描数据文件汇总, 避免 queue.json 1000 条截断)
     elim_48h_addrs = set()
-    for e in queue_state.get("eliminated", []):
-        if e.get("eliminatedAt", 0) >= cutoff_48h and e.get("address"):
-            elim_48h_addrs.add(e["address"])
+    for hist_file in DATA_DIR.glob("*.json"):
+        if hist_file.name in ("queue.json", "smart_money.json"):
+            continue
+        try:
+            hist_data = json.loads(hist_file.read_text(encoding="utf-8"))
+            for e in hist_data.get("eliminatedThisRound", []):
+                addr = e.get("address", "")
+                if addr:
+                    elim_48h_addrs.add(addr)
+        except (json.JSONDecodeError, OSError):
+            pass
 
     output = {
         "scanTime": scan_time_str,
