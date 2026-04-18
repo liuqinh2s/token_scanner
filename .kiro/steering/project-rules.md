@@ -55,6 +55,13 @@ inclusion: always
 - `build.js` 处理 `data/` 时必须排除 `queue.json`
 - 前端有四个 Tab：精筛结果、队列存活、本轮淘汰、入场淘汰
 
+## 本地调试网络规则
+
+- 本地网络访问外部 API（BSC RPC、DexScreener、GeckoTerminal 等）需要挂代理
+- 代理配置在 `config.local.json` 的 `proxy` 字段：`{"enabled": true, "host": "127.0.0.1", "port": 7890}`
+- AI 在本地执行任何需要访问外部网络的脚本或测试时，必须设置 `HTTP_PROXY` 和 `HTTPS_PROXY` 环境变量：`export HTTPS_PROXY=http://127.0.0.1:7890`
+- 不要裸连外部 API，会超时
+
 ## 数据分析规则
 
 - `token_trading` 不在本地运行，本地没有运行数据

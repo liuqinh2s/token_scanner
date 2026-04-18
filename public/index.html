@@ -575,7 +575,9 @@
     }
 
     .source-badge {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
       font-size: 10px;
       padding: 1px 5px;
       border-radius: 3px;
@@ -583,6 +585,14 @@
       font-weight: 600;
       vertical-align: middle;
       line-height: 1.4;
+    }
+
+    .source-badge img {
+      width: 14px;
+      height: 14px;
+      border-radius: 2px;
+      vertical-align: middle;
+      object-fit: contain;
     }
 
     .source-badge.badge-4m {
@@ -802,8 +812,8 @@
 
     .hist-row {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
+      flex-direction: column;
+      gap: 2px;
       padding: 7px 10px;
       border-bottom: 1px solid var(--border-primary);
       font-size: 11px;
@@ -827,7 +837,14 @@
     }
 
     .hist-row .ht {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .hist-row .hist-stats {
       color: var(--text-secondary);
+      font-size: 10px;
+      align-self: flex-end;
     }
 
     .hist-row .hv {
@@ -1218,31 +1235,32 @@
       .card-addr-row {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 5px;
         margin: 8px 0;
         background: var(--bg-secondary);
         border-radius: 10px;
-        padding: 8px 12px;
+        padding: 7px 10px;
         border: 1px solid var(--border-primary);
       }
 
       .card-addr-text {
         font-family: 'SF Mono', 'Fira Code', monospace;
-        font-size: 12px;
+        font-size: 11px;
         color: var(--link-blue);
         flex: 1;
         min-width: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
         white-space: nowrap;
       }
 
       .card-addr-row .copy-btn,
       .card-addr-row a {
         flex-shrink: 0;
-        font-size: 11px;
-        padding: 3px 10px;
+        font-size: 10px;
+        padding: 3px 7px;
         border-radius: 6px;
+        line-height: 1.2;
+        display: inline-flex;
+        align-items: center;
       }
 
       .card-meta {
@@ -1523,16 +1541,12 @@
       }
 
       .history-page .hist-row .ht {
-        display: block;
         font-size: 13px;
-        color: var(--text-primary);
         font-weight: 500;
-        margin-bottom: 2px;
       }
 
       .history-page .hist-row .hist-stats {
         font-size: 11px;
-        color: var(--text-secondary);
       }
 
       /* ===== 搜索页面 ===== */
@@ -2281,7 +2295,7 @@
           链上扫描 four.meme / flap.sh TokenCreated 事件 → 入场筛(社交≥1、总量10亿、币龄&lt;48h) →
           队列淘汰(价格跌90%/持币30→10/持币跌70%(峰≥50)/无社交/流动性1k→100(仅毕业)/进度&lt;1%且币龄&gt;2h/进度&lt;5%且币龄&gt;4h/进度跌50%且币龄&gt;6h/15min峰值持币&lt;3/1h峰值持币&lt;5/币龄&gt;48h)
           🚀价格突破(峰值≥0.0001 → 标记已突破, 保留队列继续跟踪, 仅受币龄淘汰)
-          → 增量精筛(近1~3轮: 持币+45/未毕业进度+20%或已毕业流动性+5%/价格+20%, 三条全满足; 2~3轮窗口要求每轮递增)<br>
+          → 增量精筛(基础门槛: 持币+10/进度+8%或流动性+1%/价格+8%, 三条AND; 单维度优秀: 持币+45/进度+20%或流动性+5%/价格+20%, 任一OR; 近一轮必须上涨)<br>
           数据源: DexScreener 价格 · GeckoTerminal 已毕业持币数 · four.meme / flap.sh Detail API<br>
           🔥仿盘标记(≥3个同名, 仅标记不排除) · 目标价区间: 0.000001 ~ 0.0001
         </p>
@@ -2290,7 +2304,8 @@
       <!-- 手机端淘汰统计 hero -->
       <div class="mobile-hero-stat" id="mobileHeroStat" style="display:none">
         <span class="hero-number" id="heroElimCount">--</span>
-        <span class="hero-label">近 48 小时淘汰 <span id="heroFilteredInline" style="color:var(--accent);font-weight:700"></span></span>
+        <span class="hero-label">近 48 小时淘汰 <span id="heroFilteredInline"
+            style="color:var(--accent);font-weight:700"></span></span>
       </div>
 
       <div class="stats-bar" id="statsBar">
@@ -2485,7 +2500,8 @@
             </div>
           </div>
           <div class="quality-tab-bar">
-            <button class="quality-tab-btn active" data-qtab="success" onclick="switchQualityTab('success')">✅ 成功</button>
+            <button class="quality-tab-btn active" data-qtab="success" onclick="switchQualityTab('success')">✅
+              成功</button>
             <button class="quality-tab-btn" data-qtab="fail" onclick="switchQualityTab('fail')">❌ 失败</button>
           </div>
         </div>
@@ -2599,7 +2615,8 @@
         </div>
       </div>
       <div class="quality-tab-bar">
-        <button class="quality-tab-btn active" data-mqtab="success" onclick="switchMobileQualityTab('success')">✅ 成功</button>
+        <button class="quality-tab-btn active" data-mqtab="success" onclick="switchMobileQualityTab('success')">✅
+          成功</button>
         <button class="quality-tab-btn" data-mqtab="fail" onclick="switchMobileQualityTab('fail')">❌ 失败</button>
       </div>
     </div>
@@ -2684,7 +2701,8 @@
             <span class="flow-num">4</span>
             <div>
               <div class="flow-title">增量精筛 (瞬时)</div>
-              <div class="flow-desc">从存活币中找起飞信号：近 1~3 轮持币+45 / 进度+20%(未毕业)或流动性+5%(已毕业) / 价格+20%</div>
+              <div class="flow-desc">基础门槛(AND): 持币+10/进度+8%或流动性+1%/价格+8%; 单维度优秀(OR): 持币+45/进度+20%或流动性+5%/价格+20%; 近一轮必须上涨
+              </div>
             </div>
           </div>
           <div class="flow-step">
@@ -2718,14 +2736,27 @@
       <div class="about-section">
         <h3>✅ 精筛条件（增量筛选）</h3>
         <p style="font-size:11px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;">
-          核心思路：近期有真实增长才推。判断窗口：近 1~3 轮（先查 3 轮差 → 2 轮差 → 1 轮差，任一窗口满足即可）。
+          核心思路：基础门槛 + 单维度优秀 + 买涨不买跌。判断窗口：近 1~3 轮（先查 3 轮差 → 2 轮差 → 1 轮差，任一窗口满足即可）。
+        </p>
+        <p style="font-size:11px;color:var(--text-secondary);margin-bottom:6px;line-height:1.5;">
+          <strong>近一轮上涨约束（买涨不买跌）：</strong>最近 1 轮持币数、价格、动力指标都必须上涨，不买正在下跌的币。
+        </p>
+        <p style="font-size:11px;color:var(--text-secondary);margin-bottom:6px;line-height:1.5;">
+          <strong>基础门槛（三条全部满足，AND）：</strong>
         </p>
         <ul class="about-list">
-          <li>持币增量: 近 1~3 轮持币数增长 ≥ 45（有真实买盘涌入）</li>
-          <li>动力增量（未毕业）: 近 1~3 轮进度增长 ≥ 20%（资金持续涌入 bonding curve）</li>
-          <li>动力增量（已毕业）: 近 1~3 轮流动性增长 ≥ 5%（毕业后流动性持续增加）</li>
-          <li>价格增量: 近 1~3 轮价格涨幅 ≥ 20%（价格正在加速上涨）</li>
-          <li>单调递增约束: 2~3 轮窗口要求每轮指标都递增（不允许"先涨后跌但总体涨"的假信号）</li>
+          <li>持币增量: 近 1~3 轮持币数增长 ≥ 10</li>
+          <li>动力增量（未毕业）: 近 1~3 轮进度增长 ≥ 8%</li>
+          <li>动力增量（已毕业）: 近 1~3 轮流动性增长 ≥ 1%</li>
+          <li>价格增量: 近 1~3 轮价格涨幅 ≥ 8%</li>
+        </ul>
+        <p style="font-size:11px;color:var(--text-secondary);margin-bottom:6px;line-height:1.5;">
+          <strong>单维度优秀（至少一条满足，OR）：</strong>
+        </p>
+        <ul class="about-list">
+          <li>持币增量 ≥ 45（有大量真实买盘涌入）</li>
+          <li>未毕业进度增长 ≥ 20% / 已毕业流动性增长 ≥ 5%（资金加速涌入）</li>
+          <li>价格涨幅 ≥ 20%（价格正在加速上涨）</li>
           <li>仿盘数: 仅标记, 不排除（仿盘多=热门信号）</li>
         </ul>
       </div>
@@ -2733,9 +2764,9 @@
       <div class="about-section">
         <h3>📊 数据源</h3>
         <ul class="about-list">
-          <li>BSC RPC — 链上 TokenCreated 事件发现（four.meme + flap.sh）</li>
-          <li>four.meme / flap.sh Detail API — 代币详情 / 社交 / 进度 / 未毕业持币数</li>
-          <li>DexScreener — 批量价格 / 流动性 / 交易量 / 买卖笔数</li>
+          <li>BSC RPC — 链上 TokenCreated 事件发现（four.meme + flap.sh，均使用 bonding curve）</li>
+          <li>four.meme Detail API — 代币详情 / 社交 / 进度 / 未毕业持币数</li>
+          <li>DexScreener — 批量价格 / 流动性 / 交易量 / 买卖笔数（flap 代币主要数据源）</li>
           <li>GeckoTerminal — 已毕业代币持币数</li>
         </ul>
       </div>
@@ -3066,13 +3097,16 @@
       return p.toFixed(6);
     }
 
+    function fmtProgress(p) {
+      if (p === null || p === undefined || p === 0) return '--';
+      return (p * 100).toFixed(1) + '%';
+    }
+
     function fmtLiq(t) {
       const liq = t.liquidity || 0;
-      const ra = t.raised_amount || 0;
       const progress = t.progress || 0;
       if (progress >= 1 && liq > 0) return '$' + fmtNum(liq);
-      if (ra > 0) return '<span style="color:var(--text-muted)">募</span>' + ra.toFixed(2) + ' BNB';
-      return '<span style="color:var(--text-muted)">内盘</span>';
+      return '';
     }
 
     function fmtNum(n) {
@@ -3083,7 +3117,7 @@
 
     function shortAddr(addr) {
       if (!addr || addr.length <= 16) return addr;
-      return addr.slice(0, 6) + '…' + addr.slice(-4);
+      return addr.slice(0, 9) + '…' + addr.slice(-6);
     }
 
     function fmtAge(hours) {
@@ -3106,7 +3140,7 @@
     function platformLink(addr, source) {
       const src = detectSource(addr, source);
       if (src === 'flap') {
-        return `<a class="link-flap" href="https://bnb.flap.sh/token/${addr}" target="_blank" rel="noopener">Flap</a>`;
+        return `<a class="link-flap" href="https://flap.sh/bnb/${addr}" target="_blank" rel="noopener">Flap</a>`;
       }
       return `<a class="link-4m" href="https://four.meme/token/${addr}" target="_blank" rel="noopener">4M</a>`;
     }
@@ -3114,9 +3148,9 @@
     function sourceBadge(addr, source) {
       const src = detectSource(addr, source);
       if (src === 'flap') {
-        return '<span class="source-badge badge-flap">🦋Flap</span>';
+        return '<span class="source-badge badge-flap"><img src="https://flap.sh/_next/image?url=%2Flogo.png&w=64&q=75" alt="Flap">Flap</span>';
       }
-      return '<span class="source-badge badge-4m">4M</span>';
+      return '<span class="source-badge badge-4m"><img src="https://four.meme/_next/static/media/logo-square.0bbm~1kye3wos.svg" alt="4M">4M</span>';
     }
 
     function addrHtml(addr, source) {
@@ -3241,7 +3275,7 @@
         <div class="price-ratio">现/高 ${priceRatio}</div>
       </td>
       <td><div class="price-info">${fmtLiq(t)}</div></td>
-      <td><div class="progress-bar"><div class="progress-track"><div class="progress-fill" style="width:${Math.min(parseFloat(pctProgress), 100)}%"></div></div><span class="progress-text">${pctProgress}%</span></div></td>
+      <td><div class="progress-bar"><div class="progress-track"><div class="progress-fill" style="width:${Math.min(parseFloat(pctProgress), 100)}%"></div></div><span class="progress-text">${fmtProgress(t.progress)}</span></div></td>
       <td class="tags-cell">${tags}</td>
       <td style="text-align:right"><span class="age-text">${fmtAge(t.age_hours)}</span></td>
     </tr>`;
@@ -3277,7 +3311,7 @@
           <td style="text-align:right"><span class="holders-val">${t.holders || 0}</span><br><span class="holders-peak">峰${t.peak_holders || 0}</span></td>
           <td><div class="price-info"><span class="price-label">现</span> ${fmtPrice(t.price)}</div><div class="price-info"><span class="price-label">峰</span> ${fmtPrice(t.peak_price)}</div></td>
           <td><div class="price-info">${fmtLiq(t)}</div></td>
-          <td><div class="progress-bar"><div class="progress-track"><div class="progress-fill" style="width:${Math.min(parseFloat(pctProgress), 100)}%"></div></div><span class="progress-text">${pctProgress}%</span></div></td>
+          <td><div class="progress-bar"><div class="progress-track"><div class="progress-fill" style="width:${Math.min(parseFloat(pctProgress), 100)}%"></div></div><span class="progress-text">${fmtProgress(t.progress)}</span></div></td>
           <td class="tags-cell">${tagsHtml}</td>
           <td style="text-align:right"><span class="age-text">${fmtAge(t.age_hours)}</span></td>
         </tr>`;
@@ -3312,7 +3346,7 @@
           <td style="text-align:right"><span class="holders-val">${t.holders || 0}</span><br><span class="holders-peak">峰${t.peak_holders || 0}</span></td>
           <td><div class="price-info"><span class="price-label">现</span> ${fmtPrice(t.price)}</div><div class="price-info"><span class="price-label">峰</span> ${fmtPrice(t.peak_price)}</div></td>
           <td><div class="price-info">${fmtLiq(t)}</div></td>
-          <td><div class="progress-bar"><div class="progress-track"><div class="progress-fill" style="width:${Math.min(parseFloat(pctProgress), 100)}%"></div></div><span class="progress-text">${pctProgress}%</span></div></td>
+          <td><div class="progress-bar"><div class="progress-track"><div class="progress-fill" style="width:${Math.min(parseFloat(pctProgress), 100)}%"></div></div><span class="progress-text">${fmtProgress(t.progress)}</span></div></td>
           <td class="tags-cell">${tagsHtml}</td>
           <td style="text-align:right"><span class="age-text">${fmtAge(t.age_hours)}</span></td>
         </tr>`;
@@ -3339,13 +3373,14 @@
           <button class="copy-btn" onclick="copyAddr('${addr}')">Copy</button>
           <a class="link-bsc" href="https://bscscan.com/token/${addr}" target="_blank" rel="noopener">BSC</a>
           ${platformLink(addr, t.source)}
+          <a class="link-bn" href="https://web3.binance.com/zh-CN/token/bsc/${addr}" target="_blank" rel="noopener">币安</a>
         </div>
         <div class="card-price-row">
           <span>现:${fmtPrice(t.price)}</span>
           <span>高:${fmtPrice(t.max_price)}</span>
           <span>现/高:${priceRatio}</span>
           <span>${fmtLiq(t)}</span>
-          <span>进度:${((t.progress || 0) * 100).toFixed(1)}%</span>
+          <span>进度:${fmtProgress(t.progress)}</span>
         </div>
         <div class="card-social">${tags}</div>
         <div class="card-meta">
@@ -3372,12 +3407,13 @@
           <button class="copy-btn" onclick="copyAddr('${addr}')">Copy</button>
           <a class="link-bsc" href="https://bscscan.com/token/${addr}" target="_blank" rel="noopener">BSC</a>
           ${platformLink(addr, t.source)}
+          <a class="link-bn" href="https://web3.binance.com/zh-CN/token/bsc/${addr}" target="_blank" rel="noopener">币安</a>
         </div>
         <div class="card-price-row">
           <span>现:${fmtPrice(t.price)}</span>
           <span>峰:${fmtPrice(t.peak_price)}</span>
           <span>${fmtLiq(t)}</span>
-          <span>进度:${pctProgress}%</span>
+          <span>进度:${fmtProgress(t.progress)}</span>
         </div>
         ${tagsHtml ? '<div class="card-social">' + tagsHtml + '</div>' : ''}
         <div class="card-meta">
@@ -3404,12 +3440,13 @@
           <button class="copy-btn" onclick="copyAddr('${addr}')">Copy</button>
           <a class="link-bsc" href="https://bscscan.com/token/${addr}" target="_blank" rel="noopener">BSC</a>
           ${platformLink(addr, t.source)}
+          <a class="link-bn" href="https://web3.binance.com/zh-CN/token/bsc/${addr}" target="_blank" rel="noopener">币安</a>
         </div>
         <div class="card-price-row">
           <span>现:${fmtPrice(t.price)}</span>
           <span>峰:${fmtPrice(t.peak_price)}</span>
           <span>${fmtLiq(t)}</span>
-          <span>进度:${pctProgress}%</span>
+          <span>进度:${fmtProgress(t.progress)}</span>
         </div>
         ${tagsHtml ? '<div class="card-social">' + tagsHtml + '</div>' : ''}
         <div class="card-meta">
@@ -3519,12 +3556,13 @@
           <button class="copy-btn" onclick="copyAddr('${addr}')">Copy</button>
           <a class="link-bsc" href="https://bscscan.com/token/${addr}" target="_blank" rel="noopener">BSC</a>
           ${platformLink(addr, t.source)}
+          <a class="link-bn" href="https://web3.binance.com/zh-CN/token/bsc/${addr}" target="_blank" rel="noopener">币安</a>
         </div>
         <div class="card-price-row">
           <span>现:${fmtPrice(t.price)}</span>
           <span>峰:${fmtPrice(t.peak_price || t.max_price)}</span>
           <span>${fmtLiq(t)}</span>
-          <span>进度:${((t.progress || 0) * 100).toFixed(1)}%</span>
+          <span>进度:${fmtProgress(t.progress)}</span>
         </div>
         ${reasonHtml}
         ${tagsHtml ? '<div class="card-social">' + tagsHtml + '</div>' : ''}
@@ -3607,7 +3645,7 @@
         const dotHtml = hasPassed ? '<span class="hist-dot"></span>' : '';
         return `<div class="hist-row${activeHistoryId === r.id ? ' active' : ''}" onclick="loadScan(${r.id})" data-id="${r.id}">
         <span class="ht">${r.scan_time}</span>
-        <span>新币:${r.new_token_count != null ? r.new_token_count : '?'} | 队列:${r.queue_size != null ? r.queue_size : r.total_tokens} | 突破:${r.breakthrough_count || 0} | ${dotHtml}精筛:<span class="hv">${r.filtered_tokens}</span></span>
+        <span class="hist-stats">新币:${r.new_token_count != null ? r.new_token_count : '?'} | 队列:${r.queue_size != null ? r.queue_size : r.total_tokens} | 突破:${r.breakthrough_count || 0} | ${dotHtml}精筛:<span class="hv">${r.filtered_tokens}</span></span>
       </div>`;
       }).join('');
     }

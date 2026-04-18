@@ -1,6 +1,6 @@
 # BSC Token Scanner
 
-BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme) 和 [Flap](https://bnb.flap.sh) 合约的 `TokenCreated` 事件发现新代币，采用**队列淘汰制**持续跟踪，自动剔除弃盘币，对存活代币执行增量精筛 + 精筛后防线深度检查。
+BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme) 和 [Flap](https://flap.sh/bnb) 合约的 `TokenCreated` 事件发现新代币，采用**队列淘汰制**持续跟踪，自动剔除弃盘币，对存活代币执行增量精筛 + 精筛后防线深度检查。
 
 与姊妹项目 `token_trading` 共用同一套筛选策略，由外部 cron（GitHub Actions）每 15 分钟触发一次，单次执行，输出 JSON 到 `data/` 目录供前端展示。
 
@@ -30,16 +30,18 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 
 ## 代币来源
 
+两个平台都使用 bonding curve 机制，买走 80% 供应量后迁移到 PancakeSwap。
+
 | 平台 | 合约 | 代币后缀 | Detail API |
 |------|------|----------|------------|
 | four.meme | `0x5c952063...` (TokenManagerOriginal) | `4444` / `ffff` | ✅ four.meme Detail API |
-| flap | `0xe2cE6ab0...` (Portal) | `8888` / `7777` | ❌ 无 (用 DexScreener) |
+| flap | `0xe2cE6ab0...` (Portal) | `8888` / `7777` | ❌ 无 Detail API (进度通过链上 `getToken()` 读取) |
 
 ## 数据源
 
 | 数据源 | 用途 | 限流 |
 |--------|------|------|
-| BSC RPC (publicnode) | 链上 TokenCreated 事件发现 | 无硬限制 |
+| BSC RPC (publicnode) | 链上 TokenCreated 事件发现 + flap getToken() 进度查询 | 无硬限制 |
 | four.meme Detail API | 社交链接/持币数(bonding curve阶段)/进度/募资额 | ~5 req/s |
 | DexScreener API | 批量价格+流动性+交易量+买卖笔数 | ~300 req/min |
 | GeckoTerminal Token Info | 持币地址数 (已毕业代币, 链上索引) | ~30 req/min |
@@ -88,9 +90,9 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 | 3 | 持币数从峰值跌 70%+ (峰值≥50) | 僵尸币清理 |
 | 4 | 无社交媒体 | 无运营意愿 (仅 four.meme, flap 无社交 API) |
 | 5 | 流动性从 >$1k 跌破 $100 (仅已毕业) | 流动性枯竭 |
-| 6 | 进度 < 1% 且币龄 > 2h | bonding curve 上的死币 (仅 four.meme) |
-| 6b | 进度 < 5% 且币龄 > 4h | 进度停滞 (仅 four.meme) |
-| 7 | 进度从峰值跌 50%+ 且币龄 > 6h | 热度消退 (仅 four.meme) |
+| 6 | 进度 < 1% 且币龄 > 2h | bonding curve 上的死币 |
+| 6b | 进度 < 5% 且币龄 > 4h | 进度停滞 |
+| 7 | 进度从峰值跌 50%+ 且币龄 > 6h | 热度消退 |
 | 8 | 币龄 > 15min 且最高持币数 < 3 | 无人问津 |
 | 9 | 币龄 > 1h 且最高持币数 < 5 | 热度不足 |
 | 10 | 币龄 > 48h | 超出关注窗口 |
@@ -105,8 +107,8 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 | 条件 | 阈值 | 说明 |
 |------|------|------|
 | 持币增量 | 近 1~3 轮增长 ≥ 45 | 有真实买盘涌入 |
-| 动力增量（未毕业 four.meme） | 近 1~3 轮进度增长 ≥ 20% | 资金持续涌入 bonding curve |
-| 动力增量（已毕业 / flap） | 近 1~3 轮流动性增长 ≥ 5% | 毕业后流动性持续增加 |
+| 动力增量（未毕业） | 近 1~3 轮进度增长 ≥ 20% | 资金持续涌入 bonding curve (four.meme 用 Detail API, flap 用链上 getToken) |
+| 动力增量（已毕业） | 近 1~3 轮流动性增长 ≥ 5% | 毕业后流动性持续增加 |
 | 价格增量 | 近 1~3 轮价格涨幅 ≥ 20% | 价格正在加速上涨 |
 | 仿盘数 | 仅标记, 不排除 | 仿盘多=热门信号, 🔥 标签展示, 交给用户判断 |
 
@@ -216,10 +218,14 @@ npm run dev                     # 启动开发服务器（live-server）
 |------|--------|------|
 | `MAX_AGE_HOURS` | 48 | 关注窗口（小时） |
 | `SCAN_INTERVAL_MIN` | 15 | 扫描间隔（分钟） |
-| `QUALITY_MIN_HOLDERS_DELTA` | 45 | 精筛: 近 1~3 轮持币数增长下限 |
-| `QUALITY_MIN_PROGRESS_DELTA` | 0.20 | 精筛: 近 1~3 轮进度增长下限 (20%, 未毕业币) |
-| `QUALITY_MIN_LIQUIDITY_GROWTH` | 0.05 | 精筛: 近 1~3 轮流动性增长下限 (5%, 已毕业币) |
-| `QUALITY_MIN_PRICE_GROWTH` | 0.20 | 精筛: 近 1~3 轮价格涨幅下限 (20%) |
+| `QUALITY_BASE_HOLDERS_DELTA` | 10 | 精筛基础: 近 1~3 轮持币数增长下限 |
+| `QUALITY_BASE_PROGRESS_DELTA` | 0.08 | 精筛基础: 近 1~3 轮进度增长下限 (8%, 未毕业币) |
+| `QUALITY_BASE_LIQUIDITY_GROWTH` | 0.01 | 精筛基础: 近 1~3 轮流动性增长下限 (1%, 已毕业币) |
+| `QUALITY_BASE_PRICE_GROWTH` | 0.08 | 精筛基础: 近 1~3 轮价格涨幅下限 (8%) |
+| `QUALITY_EXCEL_HOLDERS_DELTA` | 45 | 精筛优秀: 持币数增长优秀线 |
+| `QUALITY_EXCEL_PROGRESS_DELTA` | 0.20 | 精筛优秀: 进度增长优秀线 (20%, 未毕业币) |
+| `QUALITY_EXCEL_LIQUIDITY_GROWTH` | 0.05 | 精筛优秀: 流动性增长优秀线 (5%, 已毕业币) |
+| `QUALITY_EXCEL_PRICE_GROWTH` | 0.20 | 精筛优秀: 价格涨幅优秀线 (20%) |
 | `ELIM_PRICE_DROP_PCT` | 0.90 | 价格跌幅淘汰阈值 |
 | `ELIM_HOLDERS_FLOOR` | 10 | 持币数淘汰下限 |
 | `ELIM_LIQ_FLOOR` | 100 | 流动性淘汰下限（USD） |

@@ -1,6 +1,6 @@
 """
 数据源: BSC RPC (链上事件) + four.meme API (详情) + DexScreener (价格) + GeckoTerminal (持币数)
-代币来源: four.meme + flap (BSC 链上两大代币发射平台)
+代币来源: four.meme + flap (BSC 链上两大代币发射平台, 均使用 bonding curve 机制)
 
 与 token_trading/scanner.py 的区别:
   - 配置从 config.local.json 加载 (proxy 格式: {host, port})
@@ -31,20 +31,24 @@ v6 架构: 极速扫描 (1 分钟一轮)
   - 持币数从峰值跌 70%+ (峰值≥50, 清理僵尸币)
   - 无社交媒体 (仅 four.meme, flap 无社交 API)
   - 流动性从 >$1k 跌破 $100 (仅已毕业代币)
-  - 进度 < 1% 且币龄 > 2h (仅 four.meme, flap 无进度概念)
-  - 进度 < 5% 且币龄 > 4h (仅 four.meme)
-  - 进度从峰值跌 50%+ 且币龄 > 6h (热度消退, 仅 four.meme)
+  - 进度 < 1% 且币龄 > 2h (four.meme + flap, 均通过链上数据获取进度, flap 用 Portal getTokenV5)
+  - 进度 < 5% 且币龄 > 4h
+  - 进度从峰值跌 50%+ 且币龄 > 6h (热度消退)
   - 币龄 > 15min 且最高持币数 < 3
   - 币龄 > 1h 且最高持币数 < 5
   - 币龄 > 48h
   - 价格突破: 峰值价格 ≥ 0.0001 → 标记为已突破, 保留在队列中继续跟踪, 仅受币龄>48h淘汰
 
-精筛条件 (增量筛选, 核心思路: 近期有真实增长才推):
-  三条增量条件全部满足 (近 1~3 轮, 先查 3 轮差 → 2 轮差 → 1 轮差, 任一满足即可):
-  - 持币增量: 近 1~3 轮持币数增长 ≥ 45
-  - 动力增量: 未毕业 four.meme 币进度增长 ≥ 20%; 已毕业币/flap 币流动性增长 ≥ 5%
-  - 价格增量: 近 1~3 轮价格涨幅 ≥ 20%
-  - 单调递增约束: 2~3 轮窗口要求每轮指标都递增, 不允许"先涨后跌但总体涨"
+精筛条件 (增量筛选, 核心思路: 基础门槛 + 单维度优秀 + 买涨不买跌):
+  近一轮上涨约束: 最近 1 轮持币数、价格、动力指标都必须上涨 (买涨不买跌)
+  基础门槛 (三条全部满足, AND, 近 1~3 轮窗口):
+  - 持币增量: 近 1~3 轮持币数增长 ≥ 10
+  - 动力增量: 未毕业币进度增长 ≥ 8%; 已毕业币流动性增长 ≥ 1%
+  - 价格增量: 近 1~3 轮价格涨幅 ≥ 8%
+  单维度优秀 (至少一条满足, OR):
+  - 持币增量 ≥ 45
+  - 未毕业币进度增长 ≥ 20%; 已毕业币流动性增长 ≥ 5%
+  - 价格涨幅 ≥ 20%
   - 仿盘数: 仅标记, 不排除 (仿盘多=热门信号, 交给用户判断)
 """
 from __future__ import annotations
@@ -131,12 +135,17 @@ TOKEN_CREATE_TOPIC_V3 = "0x0a5575b3648bae2210cee56bf33254cc1ddfbc7bf637c0af2ac18
 ERC20_TRANSFER_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
 
 # flap 合约地址 (BSC 链上代币发射平台, 来源: docs.flap.sh)
+# Flap 也使用 bonding curve 机制 (constant product equation), 买走 80% 供应量后迁移到 PancakeSwap
 # Portal:    0xe2cE6ab80874Fa9Fa2aAE65D277Dd6B8e65C9De0 (事件发射合约, TokenCreated 事件在此)
 # Launchpad: 0x1de460f363AF910f51726DEf188F9004276Bf4bc (主 launchpad 合约)
 # 代币后缀: 标准代币 8888, 税币 7777
+# 进度获取: 通过 RPC eth_call 调用 Portal 合约 getTokenV5(token) 读取 reserve/supply/price/status + bonding curve 参数
+#   进度 = reserve / target_reserve (target_reserve 由 bonding curve 公式 K/(h+1e9-targetSupply)-r 算出)
+#   毕业条件: status=4 (DEX)
 FLAP_PORTAL_CONTRACT = "0xe2ce6ab80874fa9fa2aae65d277dd6b8e65c9de0"
 # TokenCreated(uint256 ts, address creator, uint256 nonce, address token, string name, string symbol, string meta)
 FLAP_TOKEN_CREATE_TOPIC = "0x504e7f360b2e5fe33cbaaae4c593bc55305328341bf79009e43e0e3b7f699603"
+# 毕业目标 reserve: 由 Portal getTokenV5() 返回的 bonding curve 参数动态计算 (不再硬编码)
 
 # 所有 TokenCreate 事件监听配置 (新增事件只需在此追加)
 # 每项: (合约地址, 事件 topic, 来源标识)
@@ -166,10 +175,16 @@ BINANCE_HEADERS = {
 MAX_AGE_HOURS = 48
 SCAN_INTERVAL_MIN = 15                 # GitHub Actions cron 间隔 (分钟)
 TOTAL_SUPPLY = 1_000_000_000           # 10亿
-QUALITY_MIN_HOLDERS_DELTA = 45         # 精筛: 近 1~3 轮持币数增长 ≥ 45
-QUALITY_MIN_PROGRESS_DELTA = 0.20      # 精筛: 近 1~3 轮进度增长 ≥ 20% (未毕业币)
-QUALITY_MIN_LIQUIDITY_GROWTH = 0.05    # 精筛: 近 1~3 轮流动性增长 ≥ 5% (已毕业币)
-QUALITY_MIN_PRICE_GROWTH = 0.20        # 精筛: 近 1~3 轮价格涨幅 ≥ 20%
+# --- 精筛: 最低限度 (三条全部满足, AND) ---
+QUALITY_BASE_HOLDERS_DELTA = 10        # 精筛基础: 近 1~3 轮持币数增长 ≥ 10
+QUALITY_BASE_PROGRESS_DELTA = 0.08     # 精筛基础: 近 1~3 轮进度增长 ≥ 8% (未毕业币)
+QUALITY_BASE_LIQUIDITY_GROWTH = 0.01   # 精筛基础: 近 1~3 轮流动性增长 ≥ 1% (已毕业币)
+QUALITY_BASE_PRICE_GROWTH = 0.08       # 精筛基础: 近 1~3 轮价格涨幅 ≥ 8%
+# --- 精筛: 单维度优秀 (任一满足, OR) ---
+QUALITY_EXCEL_HOLDERS_DELTA = 45       # 精筛优秀: 近 1~3 轮持币数增长 ≥ 45
+QUALITY_EXCEL_PROGRESS_DELTA = 0.20    # 精筛优秀: 近 1~3 轮进度增长 ≥ 20% (未毕业币)
+QUALITY_EXCEL_LIQUIDITY_GROWTH = 0.05  # 精筛优秀: 近 1~3 轮流动性增长 ≥ 5% (已毕业币)
+QUALITY_EXCEL_PRICE_GROWTH = 0.20      # 精筛优秀: 近 1~3 轮价格涨幅 ≥ 20%
 COPYCAT_MARK_MIN = 3                   # 仿盘数 ≥3 标记 (仅标记, 不排除)
 MIN_SOCIAL_COUNT = 1                   # 最少关联社交媒体数
 
@@ -252,6 +267,7 @@ def _build_session(proxy_cfg: dict | None = None,
 
 
 _fm_session: requests.Session = None  # type: ignore
+_bnb_usd_price: float = 600.0  # BNB/USD 实时价格, main 中更新
 _gt_session: requests.Session = None  # type: ignore
 _bsc_session: requests.Session = None  # type: ignore
 _bn_session: requests.Session = None  # type: ignore
@@ -492,6 +508,94 @@ def fm_ticker_prices() -> dict[str, float]:
     except Exception as e:
         log.error("fm_ticker: %s", e)
     return prices
+
+
+def flap_get_token_states(addresses: list[str]) -> dict[str, dict]:
+    """
+    通过 RPC eth_call 调用 Portal 合约的 getTokenV5(address) 读取 flap 代币状态。
+    getTokenV5 返回 (ABI 编码的 tuple, 所有数值 18 位精度):
+      [0] status (uint256): 0=Invalid, 1=Tradable, 2=InDuel, 3=Killed, 4=DEX
+      [1] reserve (uint256): 已筹集 BNB (wei)
+      [2] supply (uint256): 当前流通供应量 (wei)
+      [3] price (uint256): 当前代币价格 (wei, BNB/代币)
+      [4] flags (uint256)
+      [5] r (uint256): 虚拟 BNB reserve (wei)
+      [6] h (uint256): 虚拟 token reserve (wei)
+      [7] K (uint256): 常数积 (存储值 = 实际K * 1e18)
+      [8] targetSupply (uint256): 毕业目标供应量 (wei)
+    bonding curve: (x + h)(y + r) = K/1e18, 其中 x=1e9-supply, y=reserve (均为 ether 单位)
+    进度 = reserve / target_reserve
+    返回: {address: {"reserve": float(BNB), "progress": float(0~1), "price_bnb": float, "graduated": bool}}
+    """
+    if not addresses:
+        return {}
+    results = {}
+    # getTokenV5(address) selector: 0x5c4bc504
+    GET_TOKEN_V5_SELECTOR = "0x5c4bc504"
+
+    def _query_one(addr: str) -> tuple[str, dict | None]:
+        call_data = GET_TOKEN_V5_SELECTOR + addr[2:].lower().zfill(64)
+        res = _rpc_call("eth_call", [
+            {"to": FLAP_PORTAL_CONTRACT, "data": call_data},
+            "latest",
+        ])
+        if not res or not res.get("result") or res["result"] == "0x":
+            return addr, None
+        try:
+            raw = res["result"][2:]  # 去掉 0x
+            if len(raw) < 576:  # 至少 9 个 word
+                return addr, None
+            words = [int(raw[i:i+64], 16) for i in range(0, min(len(raw), 768), 64)]
+
+            status = words[0]       # 0=Invalid, 1=Tradable, 2=InDuel, 3=Killed, 4=DEX
+            reserve_wei = words[1]  # 已筹 BNB (wei)
+            price_wei = words[3]    # 当前价格 (wei)
+
+            reserve_bnb = reserve_wei / 1e18
+            price_bnb = price_wei / 1e18
+            graduated = (status == 4)  # DEX 状态 = 已毕业
+
+            # 计算进度: reserve / target_reserve
+            # bonding curve: (x + h)(y + r) = K (ether 单位, K = K_raw / 1e18)
+            # 毕业时 supply = targetSupply → x_target = 1e9 - targetSupply
+            # target_reserve = K / (x_target + h) - r
+            progress = 0.0
+            if graduated:
+                progress = 1.0
+            elif len(words) > 8 and words[5] > 0 and words[7] > 0 and words[8] > 0:
+                r_bnb = words[5] / 1e18
+                h_tokens = words[6] / 1e18
+                K = words[7] / 1e18  # 存储值除以 1e18 得到实际 K
+                target_supply = words[8] / 1e18
+                x_target = 1e9 - target_supply  # 毕业时剩余 token 数
+                denominator = x_target + h_tokens
+                if denominator > 0:
+                    target_reserve = K / denominator - r_bnb
+                    if target_reserve > 0:
+                        progress = min(reserve_bnb / target_reserve, 1.0)
+            elif reserve_bnb > 0:
+                # 兜底: 无 bonding curve 参数时, 用经验值 16 BNB
+                progress = min(reserve_bnb / 16.0, 1.0)
+
+            if status == 0:  # Invalid
+                return addr, None
+
+            return addr, {
+                "reserve": reserve_bnb,
+                "progress": progress,
+                "price_bnb": price_bnb,
+                "graduated": graduated,
+            }
+        except Exception as e:
+            log.debug("flap_get_token_states 解析失败 [%s]: %s", addr[:16], e)
+            return addr, None
+
+    with ThreadPoolExecutor(max_workers=10) as pool:
+        for addr, state in pool.map(lambda a: _query_one(a), addresses):
+            if state:
+                results[addr] = state
+
+    return results
 
 
 # ===================================================================
@@ -1980,11 +2084,13 @@ def admission_filter(new_tokens: list[dict],
                 if detail:
                     detail_map[addr] = detail
 
-    # --- flap 代币: 用 DexScreener 批量查价获取基础数据 ---
+    # --- flap 代币: 用 DexScreener 批量查价获取基础数据 + 链上读取进度 ---
     flap_ds_data = {}
+    flap_states = {}
     if flap_tokens:
         flap_addrs = [t["address"] for t in flap_tokens]
         flap_ds_data = ds_batch_prices(flap_addrs)
+        flap_states = flap_get_token_states(flap_addrs)
 
     # 逐个判断入场条件
     for t in fresh:
@@ -2001,20 +2107,27 @@ def admission_filter(new_tokens: list[dict],
                 rejected.append({"token": t, "detail": None, "reason": f"币龄过大 ({age_desc})"})
                 continue
 
-            # flap 代币构造 detail 兼容结构 (用 DexScreener 数据填充)
+            # flap 代币构造 detail 兼容结构 (用 Portal getTokenV5 链上数据 + DexScreener 填充)
+            flap_state = flap_states.get(t["address"], {})
+            flap_progress = flap_state.get("progress", 0)
+            flap_graduated = flap_state.get("graduated", False)
+            # 价格: DexScreener 优先 (已是 USD), 无则用 getTokenV5 链上价格 (BNB 计价, 需换算)
+            flap_price = ds.get("price", 0)
+            if not flap_price and flap_state.get("price_bnb", 0) > 0:
+                flap_price = flap_state["price_bnb"] * _bnb_usd_price  # BNB→USD
             flap_detail = {
                 "holders": 0,
-                "price": ds.get("price", 0),
+                "price": flap_price,
                 "totalSupply": TOTAL_SUPPLY,  # flap 代币也是 10 亿总量
                 "socialCount": 0,  # flap 无社交媒体 API, 不作为淘汰条件
                 "socialLinks": {},
                 "descr": "",
                 "name": ds.get("name") or t.get("name", ""),
                 "shortName": ds.get("symbol") or t.get("symbol", ""),
-                "progress": 0,  # flap 无进度概念, bonding curve 阶段用 DexScreener 数据
+                "progress": 1.0 if flap_graduated else flap_progress,  # 链上读取真实进度
                 "day1Vol": ds.get("volume24h", 0),
                 "liquidity": ds.get("liquidity", 0),
-                "raisedAmount": 0,
+                "raisedAmount": flap_state.get("reserve", 0),
                 "launchTime": 0,
             }
             admitted.append({"token": t, "detail": flap_detail})
@@ -2133,8 +2246,11 @@ def elimination_check(queue: list[dict], now_ms: int,
                           if t.get("progress", 0) >= 1
                           or t.get("holders", 0) == 0})
 
-    log.info("淘汰检查: 并行查询 %d 个代币 (DS + detail(%d个) + BSCScan持币数(%d个))...",
-             len(pre_filtered), len(need_detail), len(bscscan_addrs))
+    # flap 代币: 通过链上合约读取 bonding curve 进度
+    flap_addrs = [t["address"] for t in pre_filtered if t.get("source") == "flap"]
+
+    log.info("淘汰检查: 并行查询 %d 个代币 (DS + detail(%d个) + BSCScan持币数(%d个) + flap进度(%d个))...",
+             len(pre_filtered), len(need_detail), len(bscscan_addrs), len(flap_addrs))
 
     def _fetch_all_details():
         """并发查询 fm_detail, 5 线程, 失败重试 1 次"""
@@ -2153,13 +2269,15 @@ def elimination_check(queue: list[dict], now_ms: int,
                     detail_map[addr] = detail
         return detail_map
 
-    with ThreadPoolExecutor(max_workers=3) as pool:
+    with ThreadPoolExecutor(max_workers=4) as pool:
         ds_future = pool.submit(ds_batch_prices, addrs)
         detail_future = pool.submit(_fetch_all_details)
         grad_future = pool.submit(graduated_holder_counts, bscscan_addrs)
+        flap_future = pool.submit(flap_get_token_states, flap_addrs)
         ds_data = ds_future.result()
         detail_map = detail_future.result()
         grad_holders = grad_future.result()
+        flap_states = flap_future.result()
 
     # 3. 逐个检查淘汰条件
     for t in pre_filtered:
@@ -2204,7 +2322,20 @@ def elimination_check(queue: list[dict], now_ms: int,
                      _cache_h, current_holders, _src)
         current_liq = (ds.get("liquidity")
                        or t.get("liquidity", 0))
-        current_progress = (detail["progress"] if detail else 0) or t.get("progress", 0)
+        # 进度: four.meme 用 detail API, flap 用 Portal getTokenV5
+        is_flap = t.get("source") == "flap"
+        if is_flap:
+            flap_state = flap_states.get(t["address"], {})
+            flap_graduated = flap_state.get("graduated", False)
+            current_progress = 1.0 if flap_graduated else flap_state.get("progress", t.get("progress", 0))
+            # flap 价格补充: DexScreener 无价格时用 getTokenV5 链上价格 (BNB→USD)
+            if not current_price and flap_state.get("price_bnb", 0) > 0:
+                current_price = flap_state["price_bnb"] * _bnb_usd_price  # BNB→USD
+            # 更新 raisedAmount
+            if flap_state.get("reserve", 0) > 0:
+                t["raisedAmount"] = flap_state["reserve"]
+        else:
+            current_progress = (detail["progress"] if detail else 0) or t.get("progress", 0)
 
         t["price"] = current_price
         t["holders"] = current_holders
@@ -2307,13 +2438,13 @@ def elimination_check(queue: list[dict], now_ms: int,
                     and current_liq < ELIM_LIQ_FLOOR):
                 elim_reason = f"流动性 ${t.get('peakLiquidity', 0):.0f}→${current_liq:.0f}"
 
-        # 5. 进度 < 1% 且币龄 > 2h (仅 four.meme 代币, flap 无进度概念)
-        if not elim_reason and t.get("source") != "flap":
+        # 5. 进度 < 1% 且币龄 > 2h (four.meme + flap, 均有进度数据)
+        if not elim_reason:
             if age_hours > ELIM_PROGRESS_AGE_HOURS and current_progress < ELIM_PROGRESS_MIN:
                 elim_reason = f"进度{current_progress * 100:.2f}% 币龄{age_hours:.1f}h"
 
-        # 5b. 进度 < 5% 且币龄 > 4h (仅 four.meme 代币)
-        if not elim_reason and t.get("source") != "flap":
+        # 5b. 进度 < 5% 且币龄 > 4h (four.meme + flap)
+        if not elim_reason:
             if age_hours > ELIM_PROGRESS_AGE_HOURS_MID and current_progress < ELIM_PROGRESS_MIN_MID:
                 elim_reason = f"进度{current_progress * 100:.2f}% 币龄{age_hours:.1f}h"
 
@@ -2340,8 +2471,8 @@ def elimination_check(queue: list[dict], now_ms: int,
                 elim_reason = (f"持币数跌{(1 - current_holders / peak_h) * 100:.0f}% "
                                f"({peak_h}→{current_holders})")
 
-        # 10. 进度从峰值跌 50% 且币龄 > 6h (热度消退, 仅 four.meme 代币)
-        if not elim_reason and t.get("source") != "flap":
+        # 10. 进度从峰值跌 50% 且币龄 > 6h (热度消退, four.meme + flap)
+        if not elim_reason:
             peak_prog = t.get("peakProgress", 0)
             if (age_hours > ELIM_PROGRESS_DROP_AGE_HOURS
                     and peak_prog > 0.10
@@ -2373,33 +2504,24 @@ def quality_filter(candidates: list[dict], now_ms: int,
                    current_round: int = 0) -> list[dict]:
     """
     精筛: 增量筛选 — 从队列存活币中找"正在起飞"的信号
-    核心思路: 近期有真实增长才推, 三条增量条件全部满足
+    核心思路: 基础门槛 + 单维度优秀 + 买涨不买跌
     判断窗口: 近 1~3 轮 (先查 3 轮差 → 2 轮差 → 1 轮差, 任一满足即可)
 
-    三条增量条件:
-      1. 持币增量: 近 1~3 轮持币数增长 ≥ 45
-      2. 动力增量:
-         - 未毕业币 (four.meme): 进度增长 ≥ 20%
-         - 已毕业币 / flap 代币: 流动性增长 ≥ 5%
-      3. 价格增量: 近 1~3 轮价格涨幅 ≥ 20%
+    基础门槛 (三条全部满足, AND):
+      1. 持币增量: 近 1~3 轮持币数增长 ≥ 10
+      2. 动力增量: 未毕业币进度增长 ≥ 8%; 已毕业币流动性增长 ≥ 1%
+      3. 价格增量: 近 1~3 轮价格涨幅 ≥ 8%
 
-    单调递增约束 (仅 2~3 轮窗口):
-      - 若通过 2 轮或 3 轮窗口达标, 则要求窗口内每轮指标都递增
-      - 不允许"先涨后跌但总体涨"的情况 (避免回落后的假信号)
-      - 1 轮窗口无此约束 (只有 1 个差值, 无法判断趋势)
+    单维度优秀 (至少一条满足, OR):
+      1. 持币增量 ≥ 45
+      2. 未毕业币进度增长 ≥ 20%; 已毕业币流动性增长 ≥ 5%
+      3. 价格涨幅 ≥ 20%
+
+    近一轮上涨约束 (买涨不买跌):
+      - 近 1 轮持币数、价格、动力指标都必须上涨
+      - 不买正在下跌的币, 即使总增量达标
     """
     results = []
-
-    def _is_monotonic_increasing(values: list, include_current: float | int = None) -> bool:
-        """检查序列是否单调递增 (每个值都 > 前一个值)"""
-        if include_current is not None:
-            values = values + [include_current]
-        if len(values) < 2:
-            return True
-        for i in range(1, len(values)):
-            if values[i] <= values[i - 1]:
-                return False
-        return True
 
     for t in candidates:
         current_price = t.get("price", 0)
@@ -2413,27 +2535,41 @@ def quality_filter(candidates: list[dict], now_ms: int,
         prog_hist = t.get("progressHistory", [])
         liq_hist = t.get("liquidityHistory", [])
 
+        is_graduated = progress >= 1.0
+
         # ============================================================
-        # 增量判断: 先 3 轮差 → 2 轮差 → 1 轮差, 任一窗口三条全满足即通过
+        # 近一轮上涨约束: 买涨不买跌, 最近一轮必须全面上涨
+        # ============================================================
+        if len(h_hist) < 1 or len(price_hist) < 1:
+            continue  # 至少需要 1 轮历史
+        if holders <= h_hist[-1]:
+            continue  # 持币数未涨
+        if current_price <= 0 or price_hist[-1] <= 0 or current_price <= price_hist[-1]:
+            continue  # 价格未涨
+        if is_graduated:
+            if len(liq_hist) < 1 or liq <= 0 or liq_hist[-1] <= 0 or liq <= liq_hist[-1]:
+                continue  # 流动性未涨
+        else:
+            if len(prog_hist) < 1 or progress <= prog_hist[-1]:
+                continue  # 进度未涨
+
+        # ============================================================
+        # 增量判断: 先 3 轮差 → 2 轮差 → 1 轮差, 任一窗口满足即通过
         # ============================================================
         passed = False
         for gap in (3, 2, 1):
-            # 条件 1: 持币增量 ≥ 45
+            # --- 条件 1: 持币增量 ---
             if len(h_hist) > gap:
                 h_delta = holders - h_hist[-(gap + 1)]
             elif len(h_hist) == gap:
                 h_delta = holders - h_hist[0]
             else:
                 continue  # 历史数据不足, 跳过此窗口
-            if h_delta < QUALITY_MIN_HOLDERS_DELTA:
-                continue
+            if h_delta < QUALITY_BASE_HOLDERS_DELTA:
+                continue  # 基础门槛不达标
 
-            # 条件 2: 动力增量 (未毕业看进度, 已毕业看流动性)
-            is_graduated = progress >= 1.0
-            is_flap = t.get("source") == "flap"
-            # flap 代币无进度概念, 统一用流动性增长作为动力指标
-            if is_graduated or is_flap:
-                # 已毕业: 流动性增长 ≥ 5%
+            # --- 条件 2: 动力增量 (未毕业看进度, 已毕业看流动性) ---
+            if is_graduated:
                 if len(liq_hist) > gap:
                     prev_liq = liq_hist[-(gap + 1)]
                 elif len(liq_hist) == gap:
@@ -2443,10 +2579,9 @@ def quality_filter(candidates: list[dict], now_ms: int,
                 if prev_liq <= 0 or liq <= 0:
                     continue
                 liq_growth = (liq - prev_liq) / prev_liq
-                if liq_growth < QUALITY_MIN_LIQUIDITY_GROWTH:
+                if liq_growth < QUALITY_BASE_LIQUIDITY_GROWTH:
                     continue
             else:
-                # 未毕业: 进度增长 ≥ 20%
                 if len(prog_hist) > gap:
                     prev_prog = prog_hist[-(gap + 1)]
                 elif len(prog_hist) == gap:
@@ -2454,10 +2589,10 @@ def quality_filter(candidates: list[dict], now_ms: int,
                 else:
                     continue
                 prog_delta = progress - prev_prog
-                if prog_delta < QUALITY_MIN_PROGRESS_DELTA:
+                if prog_delta < QUALITY_BASE_PROGRESS_DELTA:
                     continue
 
-            # 条件 3: 价格涨幅 ≥ 20%
+            # --- 条件 3: 价格涨幅 ---
             if len(price_hist) > gap:
                 prev_price = price_hist[-(gap + 1)]
             elif len(price_hist) == gap:
@@ -2467,46 +2602,38 @@ def quality_filter(candidates: list[dict], now_ms: int,
             if prev_price <= 0 or current_price <= 0:
                 continue
             price_growth = (current_price - prev_price) / prev_price
-            if price_growth < QUALITY_MIN_PRICE_GROWTH:
+            if price_growth < QUALITY_BASE_PRICE_GROWTH:
                 continue
 
-            # ============================================================
-            # 单调递增约束: 2~3 轮窗口要求每轮指标都递增, 不允许回落
-            # ============================================================
-            if gap >= 2:
-                # 提取窗口内的历史值序列 (从旧到新)
-                # 例如 gap=3: 取 h_hist[-4], h_hist[-3], h_hist[-2], h_hist[-1], 再加当前值
-                window_h = h_hist[-gap:] if len(h_hist) >= gap else h_hist[:]
-                window_price = price_hist[-gap:] if len(price_hist) >= gap else price_hist[:]
+            # --- 基础门槛全部达标, 检查单维度优秀 (至少一条 OR) ---
+            excel_holders = h_delta >= QUALITY_EXCEL_HOLDERS_DELTA
+            excel_price = price_growth >= QUALITY_EXCEL_PRICE_GROWTH
+            if is_graduated:
+                excel_power = liq_growth >= QUALITY_EXCEL_LIQUIDITY_GROWTH
+            else:
+                excel_power = prog_delta >= QUALITY_EXCEL_PROGRESS_DELTA
 
-                # 检查持币数单调递增
-                if not _is_monotonic_increasing(window_h, holders):
-                    continue
+            if not (excel_holders or excel_price or excel_power):
+                continue  # 没有任何一个维度优秀
 
-                # 检查价格单调递增
-                if not _is_monotonic_increasing(window_price, current_price):
-                    continue
-
-                # 检查动力指标单调递增 (进度或流动性)
-                if is_graduated or is_flap:
-                    window_liq = liq_hist[-gap:] if len(liq_hist) >= gap else liq_hist[:]
-                    if not _is_monotonic_increasing(window_liq, liq):
-                        continue
-                else:
-                    window_prog = prog_hist[-gap:] if len(prog_hist) >= gap else prog_hist[:]
-                    if not _is_monotonic_increasing(window_prog, progress):
-                        continue
-
-            # 三条全满足 + 单调递增约束通过
+            # 全部通过
             passed = True
-            # 记录命中窗口供日志使用
             t["_quality_gap"] = gap
             t["_quality_h_delta"] = h_delta
             t["_quality_price_growth"] = price_growth
-            if is_graduated or is_flap:
+            if is_graduated:
                 t["_quality_liq_growth"] = liq_growth
             else:
                 t["_quality_prog_delta"] = prog_delta
+            # 记录哪些维度优秀
+            excel_tags = []
+            if excel_holders:
+                excel_tags.append("持币")
+            if excel_power:
+                excel_tags.append("进度" if not is_graduated else "流动性")
+            if excel_price:
+                excel_tags.append("价格")
+            t["_quality_excel"] = "+".join(excel_tags)
             break
 
         if not passed:
@@ -2515,12 +2642,13 @@ def quality_filter(candidates: list[dict], now_ms: int,
         results.append(t)
         gap = t.get("_quality_gap", 0)
         age_ms = now_ms - t.get("createdAt", 0)
-        log.info("精筛: ✓ %s — %d轮窗口, 持币+%d, 价格+%.0f%%, %s, 币龄 %.0fmin",
+        log.info("精筛: ✓ %s — %d轮窗口, 持币+%d, 价格+%.0f%%, %s, 优秀维度[%s], 币龄 %.0fmin",
                  name, gap,
                  t.get("_quality_h_delta", 0),
                  t.get("_quality_price_growth", 0) * 100,
                  "流动性+{:.0f}%".format(t.get("_quality_liq_growth", 0) * 100) if progress >= 1.0
                  else "进度+{:.1f}%".format(t.get("_quality_prog_delta", 0) * 100),
+                 t.get("_quality_excel", ""),
                  age_ms / 60000)
 
     return results
@@ -2664,12 +2792,14 @@ def main():
     _t_start = time.time()
 
     # 行情
+    global _bnb_usd_price
     ticker = fm_ticker_prices()
     bnb = ticker.get("BNB", 0)
     if bnb <= 0:
         log.warning("BNB 价格获取失败, 使用默认 600")
         ticker["BNB"] = 600.0
-    log.info("BNB=$%.2f", ticker.get("BNB", 0))
+    _bnb_usd_price = ticker["BNB"]
+    log.info("BNB=$%.2f", _bnb_usd_price)
 
     now_ms = int(time.time() * 1000)
 
@@ -2881,11 +3011,11 @@ def main():
             if (t.get("peakLiquidity", 0) >= ELIM_LIQ_PEAK_MIN
                     and current_liq < ELIM_LIQ_FLOOR):
                 elim_reason = f"流动性 ${t.get('peakLiquidity', 0):.0f}→${current_liq:.0f}"
-        # 进度淘汰 (仅 four.meme 代币, flap 无进度概念)
-        if not elim_reason and t.get("source") != "flap":
+        # 进度淘汰 (four.meme + flap, 均有进度数据)
+        if not elim_reason:
             if age_hours > ELIM_PROGRESS_AGE_HOURS and current_progress < ELIM_PROGRESS_MIN:
                 elim_reason = f"进度{current_progress * 100:.2f}% 币龄{age_hours:.1f}h"
-        if not elim_reason and t.get("source") != "flap":
+        if not elim_reason:
             if age_hours > ELIM_PROGRESS_AGE_HOURS_MID and current_progress < ELIM_PROGRESS_MIN_MID:
                 elim_reason = f"进度{current_progress * 100:.2f}% 币龄{age_hours:.1f}h"
         # 早期/中期持币数不足
