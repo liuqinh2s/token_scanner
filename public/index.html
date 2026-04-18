@@ -1257,6 +1257,25 @@
       }
     }
 
+    /* ===== 虚拟滚动容器 ===== */
+    .virtual-scroll-container {
+      position: relative;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .virtual-scroll-spacer {
+      position: relative;
+      width: 100%;
+    }
+
+    .virtual-scroll-content {
+      position: absolute;
+      left: 0;
+      right: 0;
+      width: 100%;
+    }
+
     /* ===== 手机端底部导航栏 ===== */
     .mobile-tabbar {
       display: none;
@@ -1417,24 +1436,34 @@
         right: 0;
         bottom: 48px;
         background: var(--bg-primary);
-        overflow-y: auto;
+        overflow: hidden;
         -webkit-overflow-scrolling: touch;
         z-index: 50;
-        padding: 12px 10px;
-        padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+        padding: 0;
+        display: flex;
+        flex-direction: column;
       }
 
       .history-page:not(.hidden) {
-        display: block;
+        display: flex;
       }
 
       .history-page-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 12px;
-        padding-bottom: 10px;
+        padding: 12px 10px 10px;
         border-bottom: 1px solid var(--border-primary);
+        background: var(--bg-primary);
+        flex-shrink: 0;
+      }
+
+      .history-page-list {
+        flex: 1;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 0 10px;
+        padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
       }
 
       .history-page-header h2 {
@@ -1478,29 +1507,28 @@
         right: 0;
         bottom: 48px;
         background: var(--bg-primary);
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
+        overflow: hidden;
         z-index: 50;
         padding: 0;
-        padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+        display: flex;
+        flex-direction: column;
       }
 
       .search-page:not(.hidden) {
-        display: block;
+        display: flex;
       }
 
       .search-page-top {
-        padding: 24px 16px 12px;
+        padding: 16px 10px 8px;
         background: var(--bg-primary);
-        position: sticky;
-        top: 0;
-        z-index: 2;
+        flex-shrink: 0;
       }
 
       .search-page-input-row {
         display: flex;
         gap: 8px;
         align-items: center;
+        margin-bottom: 4px;
       }
 
       .search-page-input-row input {
@@ -1534,20 +1562,20 @@
       }
 
       .search-card-wrapper {
-        margin: 8px 16px 0;
-        background: var(--bg-card);
-        border: 1px solid var(--border-primary);
-        border-radius: 12px;
-        box-shadow: var(--shadow-sm);
-        overflow: hidden;
+        margin: 8px 10px 0;
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        overflow: visible;
       }
 
       .search-page-info {
         text-align: center;
-        font-size: 12px;
+        font-size: 11px;
         color: var(--text-secondary);
-        padding: 10px 16px 8px;
-        line-height: 1.6;
+        padding: 6px 0;
+        line-height: 1.5;
       }
 
       .search-page-info .highlight {
@@ -1562,49 +1590,12 @@
         text-decoration: underline;
       }
 
-      .search-tab-bar {
-        display: flex;
-        gap: 0;
-        padding: 0 4px 6px;
-      }
-
-      .search-tab-btn {
-        flex: 1;
-        text-align: center;
-        padding: 9px 4px;
-        font-size: 12px;
-        background: var(--bg-secondary);
-        color: var(--text-secondary);
-        border: 1px solid var(--border-primary);
-        border-right: none;
-        border-radius: 0;
-        cursor: pointer;
-        transition: all .2s;
-        font-weight: 500;
-        white-space: nowrap;
-      }
-
-      .search-tab-btn:last-child {
-        border-right: 1px solid var(--border-primary);
-      }
-
-      .search-tab-btn:first-child {
-        border-radius: 8px 0 0 8px;
-      }
-
-      .search-tab-btn:last-child {
-        border-radius: 0 8px 8px 0;
-      }
-
-      .search-tab-btn.active {
-        background: var(--accent);
-        color: var(--bg-primary);
-        border-color: var(--accent);
-        font-weight: 700;
-      }
-
       .search-results-area {
+        flex: 1;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
         padding: 8px 10px;
+        padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
       }
 
       .search-empty-state {
@@ -2153,7 +2144,7 @@
       <button class="history-back-btn" id="historyBackBtn"
         onclick="goLatest();updateHistoryPageHighlight(null)">回到最新</button>
     </div>
-    <div id="historyListMobile"></div>
+    <div class="history-page-list" id="historyListMobile"></div>
   </div>
 
   <!-- 搜索页面（手机端） -->
@@ -2166,29 +2157,26 @@
       </div>
       <div class="search-card-wrapper" id="searchCardWrapper" style="display:none">
         <div id="mobileSearchInfo" class="search-page-info"></div>
-        <div class="search-tab-bar" id="searchTabBar">
-          <button class="search-tab-btn active" data-stab="s-filtered"
-            onclick="switchSearchTab('s-filtered')">精筛结果</button>
-          <button class="search-tab-btn" data-stab="s-queue" onclick="switchSearchTab('s-queue')">队列存活</button>
-          <button class="search-tab-btn" data-stab="s-breakthrough"
-            onclick="switchSearchTab('s-breakthrough')">已突破</button>
-          <button class="search-tab-btn" data-stab="s-eliminated"
-            onclick="switchSearchTab('s-eliminated')">本轮淘汰</button>
-          <button class="search-tab-btn" data-stab="s-rejected" onclick="switchSearchTab('s-rejected')">入场淘汰</button>
+        <div class="tab-bar" id="searchTabBar">
+          <button class="tab-btn active" data-stab="s-filtered" onclick="switchSearchTab('s-filtered')">精筛结果</button>
+          <button class="tab-btn" data-stab="s-queue" onclick="switchSearchTab('s-queue')">队列存活</button>
+          <button class="tab-btn" data-stab="s-breakthrough" onclick="switchSearchTab('s-breakthrough')">已突破</button>
+          <button class="tab-btn" data-stab="s-eliminated" onclick="switchSearchTab('s-eliminated')">本轮淘汰</button>
+          <button class="tab-btn" data-stab="s-rejected" onclick="switchSearchTab('s-rejected')">入场淘汰</button>
         </div>
       </div>
-      <div class="search-results-area" id="searchResultsArea">
-        <div class="search-empty-state" id="searchEmptyState">
-          <span class="search-empty-icon">🔍</span>
-          <div class="search-empty-text">搜索代币</div>
-          <div class="search-empty-hint">输入名称、代号或合约地址</div>
-        </div>
-        <div id="searchFilteredCards" style="display:none"></div>
-        <div id="searchQueueCards" style="display:none"></div>
-        <div id="searchBreakthroughCards" style="display:none"></div>
-        <div id="searchEliminatedCards" style="display:none"></div>
-        <div id="searchRejectedCards" style="display:none"></div>
+    </div>
+    <div class="search-results-area" id="searchResultsArea">
+      <div class="search-empty-state" id="searchEmptyState">
+        <span class="search-empty-icon">🔍</span>
+        <div class="search-empty-text">搜索代币</div>
+        <div class="search-empty-hint">输入名称、代号或合约地址</div>
       </div>
+      <div id="searchFilteredCards" style="display:none"></div>
+      <div id="searchQueueCards" style="display:none"></div>
+      <div id="searchBreakthroughCards" style="display:none"></div>
+      <div id="searchEliminatedCards" style="display:none"></div>
+      <div id="searchRejectedCards" style="display:none"></div>
     </div>
   </div>
 
@@ -2358,6 +2346,92 @@
     let autoRefreshEnabled = true;
     const cache = {};
     const isDesktop = () => window.innerWidth > 768;
+
+    /* ===== 通用虚拟滚动渲染器 ===== */
+    const virtualListState = {};
+    const CARD_HEIGHT = 210;
+    const BUFFER_COUNT = 8;
+    const VIRTUAL_THRESHOLD = 50;
+
+    function renderVirtualList(container, items, cardBuilder, listId, scrollContainer) {
+      // 清理之前的状态
+      if (virtualListState[listId] && virtualListState[listId].cleanup) {
+        virtualListState[listId].cleanup();
+      }
+
+      // 少量数据直接渲染
+      if (items.length <= VIRTUAL_THRESHOLD) {
+        container.innerHTML = items.map((t, i) => cardBuilder(t, i)).join('');
+        virtualListState[listId] = null;
+        return;
+      }
+
+      // 创建虚拟滚动结构
+      const totalHeight = items.length * CARD_HEIGHT;
+      container.innerHTML = `<div style="height:${totalHeight}px;position:relative;width:100%;">
+        <div id="vsc_${listId}" style="position:absolute;left:0;right:0;top:0;width:100%;"></div>
+      </div>`;
+
+      // 确定滚动容器：优先使用传入的容器，否则使用 window
+      const scroller = scrollContainer || window;
+      let lastStart = -1, lastEnd = -1;
+
+      function renderVisible() {
+        const el = document.getElementById('vsc_' + listId);
+        if (!el || !el.parentElement) return;
+
+        let scrolled, viewportHeight;
+        if (scrollContainer) {
+          // 容器内滚动：计算容器内的滚动位置
+          const containerRect = scrollContainer.getBoundingClientRect();
+          const spacerRect = el.parentElement.getBoundingClientRect();
+          scrolled = Math.max(0, containerRect.top - spacerRect.top);
+          viewportHeight = containerRect.height;
+        } else {
+          // window 滚动
+          const parentRect = el.parentElement.getBoundingClientRect();
+          scrolled = Math.max(0, -parentRect.top);
+          viewportHeight = window.innerHeight;
+        }
+
+        const startIndex = Math.max(0, Math.floor(scrolled / CARD_HEIGHT) - BUFFER_COUNT);
+        const visibleCount = Math.ceil(viewportHeight / CARD_HEIGHT) + BUFFER_COUNT * 2;
+        const endIndex = Math.min(items.length, startIndex + visibleCount);
+
+        if (lastStart === startIndex && lastEnd === endIndex) return;
+        lastStart = startIndex;
+        lastEnd = endIndex;
+
+        el.style.top = (startIndex * CARD_HEIGHT) + 'px';
+        el.innerHTML = items.slice(startIndex, endIndex).map((t, i) => cardBuilder(t, startIndex + i)).join('');
+      }
+
+      let rafId = null;
+      function onScroll() {
+        if (rafId) return;
+        rafId = requestAnimationFrame(() => {
+          rafId = null;
+          renderVisible();
+        });
+      }
+
+      scroller.addEventListener('scroll', onScroll, { passive: true });
+      renderVisible();
+
+      virtualListState[listId] = {
+        cleanup: () => {
+          scroller.removeEventListener('scroll', onScroll);
+          if (rafId) cancelAnimationFrame(rafId);
+        }
+      };
+    }
+
+    function cleanupVirtualList(listId) {
+      if (virtualListState[listId] && virtualListState[listId].cleanup) {
+        virtualListState[listId].cleanup();
+        virtualListState[listId] = null;
+      }
+    }
 
     /* 主题切换 */
     function toggleTheme() {
@@ -2884,6 +2958,9 @@
       const cardList = document.getElementById('eliminatedCardList');
       const items = (data.eliminatedThisRound || []);
 
+      // 清理之前的虚拟滚动
+      cleanupVirtualList('eliminated');
+
       if (items.length === 0) {
         tbody.innerHTML = '';
         cardList.innerHTML = '';
@@ -2892,6 +2969,7 @@
       }
       noElim.classList.add('hidden');
 
+      // 桌面端：渲染表格
       tbody.innerHTML = items.map((t, i) => {
         const addr = t.address || '';
         const tagsHtml = buildAllTags(t);
@@ -2907,7 +2985,12 @@
         </tr>`;
       }).join('');
 
-      cardList.innerHTML = items.map(t => buildElimCard(t, false)).join('');
+      // 手机端：使用虚拟滚动
+      if (!isDesktop()) {
+        renderVirtualList(cardList, items, (t, i) => buildElimCard(t, false), 'eliminated');
+      } else {
+        cardList.innerHTML = items.map(t => buildElimCard(t, false)).join('');
+      }
     }
 
     function renderRejected(data) {
@@ -2915,6 +2998,9 @@
       const noRej = document.getElementById('noRejected');
       const cardList = document.getElementById('rejectedCardList');
       const items = (data.rejectedAtEntry || []);
+
+      // 清理之前的虚拟滚动
+      cleanupVirtualList('rejected');
 
       if (items.length === 0) {
         tbody.innerHTML = '';
@@ -2924,6 +3010,7 @@
       }
       noRej.classList.add('hidden');
 
+      // 桌面端：渲染表格
       tbody.innerHTML = items.map((t, i) => {
         const addr = t.address || '';
         const tagsHtml = buildAllTags(t);
@@ -2939,7 +3026,12 @@
         </tr>`;
       }).join('');
 
-      cardList.innerHTML = items.map(t => buildElimCard(t, false)).join('');
+      // 手机端：使用虚拟滚动
+      if (!isDesktop()) {
+        renderVirtualList(cardList, items, (t, i) => buildElimCard(t, false), 'rejected');
+      } else {
+        cardList.innerHTML = items.map(t => buildElimCard(t, false)).join('');
+      }
     }
 
     /* 淘汰/拒绝代币卡片 */
@@ -2975,6 +3067,7 @@
         </div>
       </div>`;
     }
+
 
     function switchTab(tab) {
       currentTab = tab;
@@ -3082,6 +3175,9 @@
         if (isDesktop()) await renderHistoryList('historyListDesktop', true);
         if (historyVisible) await renderHistoryList('historyList', true);
         if (!isDesktop()) await renderMobileHistoryList(true);
+        // 滚动历史列表到顶部（最新一条）
+        const mobileList = document.getElementById('historyListMobile');
+        if (mobileList) mobileList.scrollTop = 0;
         showToast('已回到最新');
       } catch (e) { showToast('加载失败'); }
     }
@@ -3295,7 +3391,7 @@
 
     function switchSearchTab(tab) {
       currentSearchTab = tab;
-      document.querySelectorAll('.search-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.stab === tab));
+      document.querySelectorAll('#searchTabBar .tab-btn').forEach(b => b.classList.toggle('active', b.dataset.stab === tab));
       renderSearchTab(tab);
     }
 
@@ -3334,16 +3430,14 @@
         return;
       }
 
-      if (tab === 's-filtered') {
-        el.innerHTML = items.map((t, i) => buildTokenCard(t, i, true)).join('');
-      } else if (tab === 's-queue') {
-        el.innerHTML = items.map((t, i) => buildQueueCard(t, i, true)).join('');
-      } else if (tab === 's-breakthrough') {
-        el.innerHTML = items.map((t, i) => buildBreakthroughCard(t, i, true)).join('');
-      } else {
-        // 淘汰和入场淘汰
-        el.innerHTML = items.map(t => buildElimCard(t, true)).join('');
-      }
+      // 使用虚拟滚动渲染，传入搜索结果区域作为滚动容器
+      const cardBuilder = (tab === 's-filtered') ? (t, i) => buildTokenCard(t, i, true)
+        : (tab === 's-queue') ? (t, i) => buildQueueCard(t, i, true)
+          : (tab === 's-breakthrough') ? (t, i) => buildBreakthroughCard(t, i, true)
+            : (t, i) => buildElimCard(t, true);
+
+      const scrollContainer = document.getElementById('searchResultsArea');
+      renderVirtualList(el, items, cardBuilder, 'search-' + tab, scrollContainer);
     }
 
     function clearMobileSearch() {
