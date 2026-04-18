@@ -64,6 +64,7 @@ if (scanFiles.length === 0) {
       total_tokens: data.totalTokens,
       filtered_tokens: data.filteredTokens,
       queue_size: (data.queue || []).length,
+      new_token_count: data.newDiscovered || data.totalTokens || 0,
       breakthrough_count: (data.breakthroughTokens || []).length,
       eliminated_count: (data.eliminatedThisRound || []).length,
       rejected_count: (data.rejectedAtEntry || []).length,
