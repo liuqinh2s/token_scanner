@@ -1,5 +1,6 @@
 """
 数据源: BSC RPC (链上事件) + four.meme API (详情) + DexScreener (价格) + GeckoTerminal (持币数)
+代币来源: four.meme + flap (BSC 链上两大代币发射平台)
 
 与 token_trading/scanner.py 的区别:
   - 配置从 config.local.json 加载 (proxy 格式: {host, port})
@@ -10,8 +11,8 @@
   - 日志仅输出到 stdout
 
 v6 架构: 极速扫描 (1 分钟一轮)
-  1. 链上发现 (~1s): BSC RPC eth_getLogs → four.meme V1 合约 TokenCreated 事件 → 新代币地址
-  2. 入场筛 (~数秒): four.meme Detail API → 淘汰无社交 / 总量≠10亿 / 币龄>5min
+  1. 链上发现 (~1s): BSC RPC eth_getLogs → four.meme + flap 合约 TokenCreated 事件 → 新代币地址
+  2. 入场筛 (~数秒): four.meme Detail API (仅 four.meme 代币) / DexScreener (flap 代币) → 淘汰无社交 / 总量≠10亿 / 币龄>5min
   3. 淘汰检查 (~数秒): DexScreener 批量查价 + GeckoTerminal 持币数 + Detail API → 永久淘汰弃盘币
   4. 精筛 (瞬时): 增量筛选, 从存活币中找起飞信号
   5. 仿盘检测: 本地统计同名代币数量 (零 API 调用), 有大量仿盘(≥3)则标记
@@ -28,11 +29,11 @@ v6 架构: 极速扫描 (1 分钟一轮)
   - 价格从峰值跌 90%+
   - 持币地址从 ≥30 跌破 10
   - 持币数从峰值跌 70%+ (峰值≥50, 清理僵尸币)
-  - 无社交媒体
+  - 无社交媒体 (仅 four.meme, flap 无社交 API)
   - 流动性从 >$1k 跌破 $100 (仅已毕业代币)
-  - 进度 < 1% 且币龄 > 2h
-  - 进度 < 5% 且币龄 > 4h
-  - 进度从峰值跌 50%+ 且币龄 > 6h (热度消退)
+  - 进度 < 1% 且币龄 > 2h (仅 four.meme, flap 无进度概念)
+  - 进度 < 5% 且币龄 > 4h (仅 four.meme)
+  - 进度从峰值跌 50%+ 且币龄 > 6h (热度消退, 仅 four.meme)
   - 币龄 > 15min 且最高持币数 < 3
   - 币龄 > 1h 且最高持币数 < 5
   - 币龄 > 48h
@@ -41,7 +42,7 @@ v6 架构: 极速扫描 (1 分钟一轮)
 精筛条件 (增量筛选, 核心思路: 近期有真实增长才推):
   三条增量条件全部满足 (近 1~3 轮, 先查 3 轮差 → 2 轮差 → 1 轮差, 任一满足即可):
   - 持币增量: 近 1~3 轮持币数增长 ≥ 45
-  - 动力增量: 未毕业币进度增长 ≥ 20%; 已毕业币流动性增长 ≥ 5%
+  - 动力增量: 未毕业 four.meme 币进度增长 ≥ 20%; 已毕业币/flap 币流动性增长 ≥ 5%
   - 价格增量: 近 1~3 轮价格涨幅 ≥ 20%
   - 单调递增约束: 2~3 轮窗口要求每轮指标都递增, 不允许"先涨后跌但总体涨"
   - 仿盘数: 仅标记, 不排除 (仿盘多=热门信号, 交给用户判断)
@@ -129,11 +130,21 @@ TOKEN_CREATE_TOPIC = "0x396d5e902b675b032348d3d2e9517ee8f0c4a926603fbc075d3d282f
 TOKEN_CREATE_TOPIC_V3 = "0x0a5575b3648bae2210cee56bf33254cc1ddfbc7bf637c0af2ac18b14fb1bae19"  # 新版 TokenCreate (8 words, 无名称/时间戳, 当前主力)
 ERC20_TRANSFER_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
 
+# flap 合约地址 (BSC 链上代币发射平台, 来源: docs.flap.sh)
+# Portal:    0xe2cE6ab80874Fa9Fa2aAE65D277Dd6B8e65C9De0 (事件发射合约, TokenCreated 事件在此)
+# Launchpad: 0x1de460f363AF910f51726DEf188F9004276Bf4bc (主 launchpad 合约)
+# 代币后缀: 标准代币 8888, 税币 7777
+FLAP_PORTAL_CONTRACT = "0xe2ce6ab80874fa9fa2aae65d277dd6b8e65c9de0"
+# TokenCreated(uint256 ts, address creator, uint256 nonce, address token, string name, string symbol, string meta)
+FLAP_TOKEN_CREATE_TOPIC = "0x504e7f360b2e5fe33cbaaae4c593bc55305328341bf79009e43e0e3b7f699603"
+
 # 所有 TokenCreate 事件监听配置 (新增事件只需在此追加)
+# 每项: (合约地址, 事件 topic, 来源标识)
 # 注意: 0x7db52723... 是买卖事件 (同一代币多次出现), 不要监听
-FOUR_MEME_FACTORIES = [
-    (FOUR_MEME_CONTRACT, TOKEN_CREATE_TOPIC),       # 旧版 TokenCreate
-    (FOUR_MEME_CONTRACT, TOKEN_CREATE_TOPIC_V3),    # 新版 TokenCreate (同一合约, 不同 topic)
+TOKEN_FACTORIES = [
+    (FOUR_MEME_CONTRACT, TOKEN_CREATE_TOPIC, "four.meme"),       # four.meme 旧版 TokenCreate
+    (FOUR_MEME_CONTRACT, TOKEN_CREATE_TOPIC_V3, "four.meme"),    # four.meme 新版 TokenCreate (同一合约, 不同 topic)
+    (FLAP_PORTAL_CONTRACT, FLAP_TOKEN_CREATE_TOPIC, "flap"),     # flap TokenCreated
 ]
 
 FM_HEADERS = {
@@ -210,6 +221,7 @@ KNOWN_EXCLUDE_ADDRESSES = {
     "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",  # USDC
     FOUR_MEME_CONTRACT.lower(),
     "0xd36b6d646ac6e23672e9eedec558164c7f2d6deb",  # four.meme 交易代理合约 (非工厂)
+    FLAP_PORTAL_CONTRACT.lower(),                    # flap Portal 合约
 }
 
 
@@ -499,12 +511,13 @@ def _rpc_call(method: str, params: list) -> dict | None:
         return None
 
 
-def _parse_token_from_log(log_entry: dict) -> dict | None:
+def _parse_token_from_log(log_entry: dict, source: str = "four.meme") -> dict | None:
     """
     从 eth_getLogs 返回的单条日志中解析代币信息。
-    支持两种事件格式:
-      旧版 (12 words): word[0]=creator, word[1]=token, word[6]=timestamp, word[8+]=name/symbol
-      新版 (8 words):  word[0]=token, word[1]=creator, 无时间戳/名称 (需 detail API 补全)
+    支持多平台事件格式:
+      four.meme 旧版 (12 words): word[0]=creator, word[1]=token, word[6]=timestamp, word[8+]=name/symbol
+      four.meme 新版 (8 words):  word[0]=token, word[1]=creator, 无时间戳/名称 (需 detail API 补全)
+      flap (动态长度): word[0]=ts, word[1]=creator, word[2]=nonce, word[3]=token, 后跟 name/symbol/meta 动态字符串
     """
     try:
         data = log_entry["data"][2:]  # 去掉 0x 前缀
@@ -513,6 +526,63 @@ def _parse_token_from_log(log_entry: dict) -> dict | None:
 
         n_words = len(data) // 64
 
+        if source == "flap":
+            # flap TokenCreated 事件:
+            # word[0]=ts(uint256), word[1]=creator(address), word[2]=nonce(uint256),
+            # word[3]=token(address), word[4]=offset(name), word[5]=offset(symbol), word[6]=offset(meta)
+            # 后跟动态字符串数据
+            if n_words < 7:
+                return None
+
+            create_ts = int(data[0:64], 16)  # word[0]: 时间戳
+            creator_addr = ("0x" + data[88:128]).lower()  # word[1]: creator
+            token_addr = ("0x" + data[216:256]).lower()  # word[3]: token
+
+            # 验证时间戳合理性
+            TS_MIN, TS_MAX = 1577808000, 1893456000
+            if not (TS_MIN <= create_ts <= TS_MAX):
+                create_ts = 0
+
+            # 解码 name 和 symbol (动态字符串)
+            name, symbol = "", ""
+            try:
+                # word[4] 是 name 的偏移量 (相对于 data 起始)
+                name_offset = int(data[256:320], 16) * 2  # 字节偏移 → hex 字符偏移
+                if name_offset + 64 <= len(data):
+                    name_len = int(data[name_offset:name_offset + 64], 16)
+                    if 0 < name_len < 200:
+                        name_data_start = name_offset + 64
+                        name = bytes.fromhex(
+                            data[name_data_start:name_data_start + name_len * 2]
+                        ).decode("utf-8", errors="replace")
+
+                # word[5] 是 symbol 的偏移量
+                sym_offset = int(data[320:384], 16) * 2
+                if sym_offset + 64 <= len(data):
+                    sym_len = int(data[sym_offset:sym_offset + 64], 16)
+                    if 0 < sym_len < 100:
+                        sym_data_start = sym_offset + 64
+                        symbol = bytes.fromhex(
+                            data[sym_data_start:sym_data_start + sym_len * 2]
+                        ).decode("utf-8", errors="replace")
+            except Exception:
+                pass
+
+            # flap 代币后缀: 标准代币 8888, 税币 7777
+            if not token_addr.endswith("8888") and not token_addr.endswith("7777"):
+                return None
+
+            return {
+                "address": token_addr,
+                "creator": creator_addr,
+                "createdAt": create_ts * 1000 if create_ts else 0,
+                "name": name,
+                "symbol": symbol,
+                "block": int(log_entry["blockNumber"], 16),
+                "source": "flap",
+            }
+
+        # --- four.meme 事件解析 ---
         # 根据 data 长度区分新旧版本
         if n_words >= 10:
             # 旧版 (12 words): word[0]=creator, word[1]=token
@@ -572,6 +642,7 @@ def _parse_token_from_log(log_entry: dict) -> dict | None:
             "name": name,
             "symbol": symbol,
             "block": int(log_entry["blockNumber"], 16),
+            "source": "four.meme",
         }
     except Exception:
         return None
@@ -579,8 +650,8 @@ def _parse_token_from_log(log_entry: dict) -> dict | None:
 
 def discover_on_chain(from_block: int) -> tuple[list[dict], int]:
     """
-    链上发现: 通过 BSC RPC eth_getLogs 查询所有 four.meme 工厂合约的代币创建事件
-    支持多版本合约 (FOUR_MEME_FACTORIES), 新增合约只需在常量区追加即可。
+    链上发现: 通过 BSC RPC eth_getLogs 查询所有工厂合约的代币创建事件
+    支持多平台 (TOKEN_FACTORIES: four.meme + flap), 新增平台只需在常量区追加即可。
     返回: (新代币列表, 最新区块号)
     """
     # 获取最新区块号
@@ -599,8 +670,8 @@ def discover_on_chain(from_block: int) -> tuple[list[dict], int]:
         log.warning("区块跨度过大 (%d), 截断到最近 5000 blocks", latest_block - from_block)
         from_block = latest_block - 5000
 
-    log.info("链上扫描区块 %d ~ %d (%d blocks), 监听 %d 个工厂合约",
-             from_block, latest_block, latest_block - from_block, len(FOUR_MEME_FACTORIES))
+    log.info("链上扫描区块 %d ~ %d (%d blocks), 监听 %d 个工厂合约 (four.meme + flap)",
+             from_block, latest_block, latest_block - from_block, len(TOKEN_FACTORIES))
 
     tokens = []
     seen_addrs = set()  # 去重 (理论上不同合约不会创建同一代币, 但防御性编程)
@@ -611,7 +682,7 @@ def discover_on_chain(from_block: int) -> tuple[list[dict], int]:
         end = min(current + chunk - 1, latest_block)
 
         # 对每个工厂合约 + 事件组合分别查询
-        for factory_addr, event_topic in FOUR_MEME_FACTORIES:
+        for factory_addr, event_topic, source in TOKEN_FACTORIES:
             try:
                 res = _rpc_call("eth_getLogs", [{
                     "address": factory_addr,
@@ -631,7 +702,7 @@ def discover_on_chain(from_block: int) -> tuple[list[dict], int]:
                     continue
 
                 for log_entry in (res.get("result") or []):
-                    parsed = _parse_token_from_log(log_entry)
+                    parsed = _parse_token_from_log(log_entry, source)
                     if parsed and parsed["address"] not in seen_addrs:
                         seen_addrs.add(parsed["address"])
                         tokens.append(parsed)
@@ -642,7 +713,10 @@ def discover_on_chain(from_block: int) -> tuple[list[dict], int]:
         current = end + 1
         time.sleep(0.1)
 
-    log.info("链上发现 %d 个新代币 (来自 %d 个工厂合约)", len(tokens), len(FOUR_MEME_FACTORIES))
+    # 按来源统计
+    fm_count = sum(1 for t in tokens if t.get("source") == "four.meme")
+    flap_count = sum(1 for t in tokens if t.get("source") == "flap")
+    log.info("链上发现 %d 个新代币 (four.meme: %d, flap: %d)", len(tokens), fm_count, flap_count)
 
     # 回退: 对 createdAt=0 的代币, 用区块时间戳补全
     need_block_ts = [t for t in tokens if t.get("createdAt", 0) == 0]
@@ -1866,7 +1940,7 @@ def calc_min_price_all(candles: list[list]) -> float | None:
 def admission_filter(new_tokens: list[dict],
                      existing_addrs: set[str]) -> tuple[list[dict], list[dict]]:
     """
-    入场筛: 对新发现的代币调 detail API, 淘汰无社交/总量≠10亿/币龄过大
+    入场筛: 对新发现的代币调 detail API (仅 four.meme) 或 DexScreener (flap), 淘汰无社交/总量≠10亿/币龄过大
     同时用 detail API 的 launchTime 修正链上解析可能不准的 createdAt
     返回: (admitted, rejected)
       admitted: [{"token": ..., "detail": ...}]
@@ -1879,58 +1953,105 @@ def admission_filter(new_tokens: list[dict],
     if not fresh:
         return admitted, rejected
 
-    log.info("入场筛: 对 %d 个新代币调 detail API...", len(fresh))
+    # 按来源分组
+    fm_tokens = [t for t in fresh if t.get("source") != "flap"]
+    flap_tokens = [t for t in fresh if t.get("source") == "flap"]
+
+    log.info("入场筛: %d 个新代币 (four.meme: %d, flap: %d)...",
+             len(fresh), len(fm_tokens), len(flap_tokens))
 
     now_ms = int(time.time() * 1000)
     max_age_ms = MAX_AGE_HOURS * 3600 * 1000
 
-    # 并发查询 detail (5 线程)
+    # --- four.meme 代币: 调 detail API ---
     detail_map = {}
-    def _query_detail(addr: str) -> tuple[str, dict | None]:
-        d = fm_detail(addr)
-        if d is None:
-            time.sleep(0.5)
-            d = fm_detail(addr)  # 重试 1 次
-        return addr, d
+    if fm_tokens:
+        def _query_detail(addr: str) -> tuple[str, dict | None]:
+            d = fm_detail(addr)
+            if d is None:
+                time.sleep(0.5)
+                d = fm_detail(addr)  # 重试 1 次
+            return addr, d
 
-    with ThreadPoolExecutor(max_workers=5) as pool:
-        futures = [pool.submit(_query_detail, t["address"]) for t in fresh]
-        for f in as_completed(futures):
-            addr, detail = f.result()
-            if detail:
-                detail_map[addr] = detail
+        with ThreadPoolExecutor(max_workers=5) as pool:
+            futures = [pool.submit(_query_detail, t["address"]) for t in fm_tokens]
+            for f in as_completed(futures):
+                addr, detail = f.result()
+                if detail:
+                    detail_map[addr] = detail
+
+    # --- flap 代币: 用 DexScreener 批量查价获取基础数据 ---
+    flap_ds_data = {}
+    if flap_tokens:
+        flap_addrs = [t["address"] for t in flap_tokens]
+        flap_ds_data = ds_batch_prices(flap_addrs)
 
     # 逐个判断入场条件
     for t in fresh:
-        detail = detail_map.get(t["address"])
-        if not detail:
-            rejected.append({"token": t, "detail": None, "reason": "detail API 无数据"})
-            continue
+        is_flap = t.get("source") == "flap"
 
-        # 用 detail API 的 launchTime 修正 createdAt (链上解析可能不准)
-        if detail.get("launchTime") and detail["launchTime"] > 0:
-            t["createdAt"] = detail["launchTime"]
+        if is_flap:
+            # flap 代币: 无 Detail API, 用链上事件数据 + DexScreener
+            ds = flap_ds_data.get(t["address"], {})
 
-        # 入场条件: 币龄不超过 MAX_AGE_HOURS
-        token_age_ms = now_ms - t.get("createdAt", 0)
-        if t.get("createdAt", 0) <= 0 or token_age_ms > max_age_ms:
-            age_desc = f"币龄{token_age_ms / 3600000:.1f}h" if t.get("createdAt", 0) > 0 else "创建时间未知"
-            rejected.append({"token": t, "detail": detail, "reason": f"币龄过大 ({age_desc})"})
-            continue
+            # 入场条件: 币龄不超过 MAX_AGE_HOURS
+            token_age_ms = now_ms - t.get("createdAt", 0)
+            if t.get("createdAt", 0) <= 0 or token_age_ms > max_age_ms:
+                age_desc = f"币龄{token_age_ms / 3600000:.1f}h" if t.get("createdAt", 0) > 0 else "创建时间未知"
+                rejected.append({"token": t, "detail": None, "reason": f"币龄过大 ({age_desc})"})
+                continue
 
-        # 入场条件: 社交 ≥ 1, 总供应量 = 10亿
-        reasons = []
-        if detail["socialCount"] < MIN_SOCIAL_COUNT:
-            reasons.append("无社交媒体")
-        if detail["totalSupply"] != TOTAL_SUPPLY:
-            reasons.append(f"总量≠10亿 ({detail['totalSupply']})")
-        if reasons:
-            rejected.append({"token": t, "detail": detail, "reason": ", ".join(reasons)})
-            continue
-        admitted.append({"token": t, "detail": detail})
+            # flap 代币构造 detail 兼容结构 (用 DexScreener 数据填充)
+            flap_detail = {
+                "holders": 0,
+                "price": ds.get("price", 0),
+                "totalSupply": TOTAL_SUPPLY,  # flap 代币也是 10 亿总量
+                "socialCount": 0,  # flap 无社交媒体 API, 不作为淘汰条件
+                "socialLinks": {},
+                "descr": "",
+                "name": ds.get("name") or t.get("name", ""),
+                "shortName": ds.get("symbol") or t.get("symbol", ""),
+                "progress": 0,  # flap 无进度概念, bonding curve 阶段用 DexScreener 数据
+                "day1Vol": ds.get("volume24h", 0),
+                "liquidity": ds.get("liquidity", 0),
+                "raisedAmount": 0,
+                "launchTime": 0,
+            }
+            admitted.append({"token": t, "detail": flap_detail})
 
-    log.info("入场筛: 通过 %d/%d (淘汰 %d: 无社交/总量不符)",
-             len(admitted), len(fresh), len(rejected))
+        else:
+            # four.meme 代币: 原有逻辑
+            detail = detail_map.get(t["address"])
+            if not detail:
+                rejected.append({"token": t, "detail": None, "reason": "detail API 无数据"})
+                continue
+
+            # 用 detail API 的 launchTime 修正 createdAt (链上解析可能不准)
+            if detail.get("launchTime") and detail["launchTime"] > 0:
+                t["createdAt"] = detail["launchTime"]
+
+            # 入场条件: 币龄不超过 MAX_AGE_HOURS
+            token_age_ms = now_ms - t.get("createdAt", 0)
+            if t.get("createdAt", 0) <= 0 or token_age_ms > max_age_ms:
+                age_desc = f"币龄{token_age_ms / 3600000:.1f}h" if t.get("createdAt", 0) > 0 else "创建时间未知"
+                rejected.append({"token": t, "detail": detail, "reason": f"币龄过大 ({age_desc})"})
+                continue
+
+            # 入场条件: 社交 ≥ 1, 总供应量 = 10亿
+            reasons = []
+            if detail["socialCount"] < MIN_SOCIAL_COUNT:
+                reasons.append("无社交媒体")
+            if detail["totalSupply"] != TOTAL_SUPPLY:
+                reasons.append(f"总量≠10亿 ({detail['totalSupply']})")
+            if reasons:
+                rejected.append({"token": t, "detail": detail, "reason": ", ".join(reasons)})
+                continue
+            admitted.append({"token": t, "detail": detail})
+
+    fm_admitted = sum(1 for a in admitted if a["token"].get("source") != "flap")
+    flap_admitted = sum(1 for a in admitted if a["token"].get("source") == "flap")
+    log.info("入场筛: 通过 %d/%d (four.meme: %d, flap: %d, 淘汰 %d)",
+             len(admitted), len(fresh), fm_admitted, flap_admitted, len(rejected))
     return admitted, rejected
 
 
@@ -2000,7 +2121,10 @@ def elimination_check(queue: list[dict], now_ms: int,
     addrs = [t["address"] for t in pre_filtered]
 
     # 新入队代币 (本轮刚加入) 不需要再查 detail, 入场筛已经查过
-    need_detail = [t for t in pre_filtered if now_ms - t.get("addedAt", 0) > 60000]
+    # flap 代币不查 fm_detail (无此 API)
+    need_detail = [t for t in pre_filtered
+                   if now_ms - t.get("addedAt", 0) > 60000
+                   and t.get("source") != "flap"]
 
     # 需要 BSCScan 爬取持币数的代币:
     # 1. 已毕业代币 (progress >= 1): detail API 毕业后返回 0, 必须用链上数据
@@ -2173,8 +2297,8 @@ def elimination_check(queue: list[dict], now_ms: int,
                     and current_holders < ELIM_HOLDERS_FLOOR):
                 elim_reason = f"持币数 {t.get('peakHolders', 0)}→{current_holders}"
 
-        # 3. 无社交媒体
-        if not elim_reason and detail and detail["socialCount"] < MIN_SOCIAL_COUNT:
+        # 3. 无社交媒体 (仅 four.meme 代币, flap 无社交 API)
+        if not elim_reason and detail and detail["socialCount"] < MIN_SOCIAL_COUNT and t.get("source") != "flap":
             elim_reason = "无社交媒体"
 
         # 4. 流动性从 >$1k 跌破 $100 (仅已毕业代币, 未毕业流动性数据不准确)
@@ -2183,13 +2307,13 @@ def elimination_check(queue: list[dict], now_ms: int,
                     and current_liq < ELIM_LIQ_FLOOR):
                 elim_reason = f"流动性 ${t.get('peakLiquidity', 0):.0f}→${current_liq:.0f}"
 
-        # 5. 进度 < 1% 且币龄 > 2h
-        if not elim_reason:
+        # 5. 进度 < 1% 且币龄 > 2h (仅 four.meme 代币, flap 无进度概念)
+        if not elim_reason and t.get("source") != "flap":
             if age_hours > ELIM_PROGRESS_AGE_HOURS and current_progress < ELIM_PROGRESS_MIN:
                 elim_reason = f"进度{current_progress * 100:.2f}% 币龄{age_hours:.1f}h"
 
-        # 5b. 进度 < 5% 且币龄 > 4h
-        if not elim_reason:
+        # 5b. 进度 < 5% 且币龄 > 4h (仅 four.meme 代币)
+        if not elim_reason and t.get("source") != "flap":
             if age_hours > ELIM_PROGRESS_AGE_HOURS_MID and current_progress < ELIM_PROGRESS_MIN_MID:
                 elim_reason = f"进度{current_progress * 100:.2f}% 币龄{age_hours:.1f}h"
 
@@ -2216,8 +2340,8 @@ def elimination_check(queue: list[dict], now_ms: int,
                 elim_reason = (f"持币数跌{(1 - current_holders / peak_h) * 100:.0f}% "
                                f"({peak_h}→{current_holders})")
 
-        # 10. 进度从峰值跌 50% 且币龄 > 6h (热度消退)
-        if not elim_reason:
+        # 10. 进度从峰值跌 50% 且币龄 > 6h (热度消退, 仅 four.meme 代币)
+        if not elim_reason and t.get("source") != "flap":
             peak_prog = t.get("peakProgress", 0)
             if (age_hours > ELIM_PROGRESS_DROP_AGE_HOURS
                     and peak_prog > 0.10
@@ -2255,8 +2379,8 @@ def quality_filter(candidates: list[dict], now_ms: int,
     三条增量条件:
       1. 持币增量: 近 1~3 轮持币数增长 ≥ 45
       2. 动力增量:
-         - 未毕业币: 进度增长 ≥ 20%
-         - 已毕业币: 流动性增长 ≥ 5%
+         - 未毕业币 (four.meme): 进度增长 ≥ 20%
+         - 已毕业币 / flap 代币: 流动性增长 ≥ 5%
       3. 价格增量: 近 1~3 轮价格涨幅 ≥ 20%
 
     单调递增约束 (仅 2~3 轮窗口):
@@ -2306,7 +2430,9 @@ def quality_filter(candidates: list[dict], now_ms: int,
 
             # 条件 2: 动力增量 (未毕业看进度, 已毕业看流动性)
             is_graduated = progress >= 1.0
-            if is_graduated:
+            is_flap = t.get("source") == "flap"
+            # flap 代币无进度概念, 统一用流动性增长作为动力指标
+            if is_graduated or is_flap:
                 # 已毕业: 流动性增长 ≥ 5%
                 if len(liq_hist) > gap:
                     prev_liq = liq_hist[-(gap + 1)]
@@ -2362,7 +2488,7 @@ def quality_filter(candidates: list[dict], now_ms: int,
                     continue
 
                 # 检查动力指标单调递增 (进度或流动性)
-                if is_graduated:
+                if is_graduated or is_flap:
                     window_liq = liq_hist[-gap:] if len(liq_hist) >= gap else liq_hist[:]
                     if not _is_monotonic_increasing(window_liq, liq):
                         continue
@@ -2377,7 +2503,7 @@ def quality_filter(candidates: list[dict], now_ms: int,
             t["_quality_gap"] = gap
             t["_quality_h_delta"] = h_delta
             t["_quality_price_growth"] = price_growth
-            if is_graduated:
+            if is_graduated or is_flap:
                 t["_quality_liq_growth"] = liq_growth
             else:
                 t["_quality_prog_delta"] = prog_delta
@@ -2587,6 +2713,7 @@ def main():
                 "address": token["address"],
                 "creator": token.get("creator", ""),
                 "block": token.get("block", 0),
+                "source": token.get("source", "four.meme"),
                 "name": detail.get("name") or token.get("name", ""),
                 "symbol": detail.get("shortName") or token.get("symbol", ""),
                 "createdAt": token["createdAt"],
@@ -2746,19 +2873,19 @@ def main():
             if (t.get("peakHolders", 0) >= ELIM_HOLDERS_PEAK_MIN
                     and current_holders < ELIM_HOLDERS_FLOOR):
                 elim_reason = f"持币数 {t.get('peakHolders', 0)}→{current_holders}"
-        # 无社交
-        if not elim_reason and t.get("socialCount", 0) < MIN_SOCIAL_COUNT:
+        # 无社交 (仅 four.meme 代币, flap 无社交 API)
+        if not elim_reason and t.get("socialCount", 0) < MIN_SOCIAL_COUNT and t.get("source") != "flap":
             elim_reason = "无社交媒体"
         # 流动性枯竭 (仅已毕业)
         if not elim_reason and is_graduated:
             if (t.get("peakLiquidity", 0) >= ELIM_LIQ_PEAK_MIN
                     and current_liq < ELIM_LIQ_FLOOR):
                 elim_reason = f"流动性 ${t.get('peakLiquidity', 0):.0f}→${current_liq:.0f}"
-        # 进度淘汰
-        if not elim_reason:
+        # 进度淘汰 (仅 four.meme 代币, flap 无进度概念)
+        if not elim_reason and t.get("source") != "flap":
             if age_hours > ELIM_PROGRESS_AGE_HOURS and current_progress < ELIM_PROGRESS_MIN:
                 elim_reason = f"进度{current_progress * 100:.2f}% 币龄{age_hours:.1f}h"
-        if not elim_reason:
+        if not elim_reason and t.get("source") != "flap":
             if age_hours > ELIM_PROGRESS_AGE_HOURS_MID and current_progress < ELIM_PROGRESS_MIN_MID:
                 elim_reason = f"进度{current_progress * 100:.2f}% 币龄{age_hours:.1f}h"
         # 早期/中期持币数不足
@@ -2808,6 +2935,18 @@ def main():
     scan_time_str = now_dt.strftime("%Y-%m-%d %H:%M:%S")
     file_ts = now_dt.strftime("%Y-%m-%dT%H-%M-%S")
 
+    def _detect_source(t: dict) -> str:
+        """检测代币来源平台: 优先用 source 字段, 回退到地址后缀判断"""
+        src = t.get("source")
+        if src:
+            return src
+        addr = (t.get("address") or "").lower()
+        if addr.endswith("8888") or addr.endswith("7777"):
+            return "flap"
+        if addr.endswith("4444") or addr.endswith("ffff"):
+            return "four.meme"
+        return "four.meme"
+
     # tokens: 精筛结果
     out_tokens = []
     for t in quality_results:
@@ -2846,6 +2985,7 @@ def main():
             "dev_behavior": t.get("devBehavior"),
             "is_rocket": t.get("isRocket", False),
             "is_graduated": t.get("isGraduated", False),
+            "source": _detect_source(t),
         })
 
     # queue: 存活快照
@@ -2871,6 +3011,7 @@ def main():
             "consec_drops": t.get("consecDrops", 0),
             "copycat_count": cc.get("count", 0),
             "is_copycat": cc.get("isCopycat", False),
+            "source": _detect_source(t),
         })
 
     # eliminatedThisRound: 本轮淘汰
@@ -2890,6 +3031,7 @@ def main():
             "age_hours": round((now_ms - e.get("createdAt", 0)) / 3600000, 2),
             "copycat_count": cc.get("count", 0),
             "is_copycat": cc.get("isCopycat", False),
+            "source": _detect_source(e),
         })
 
     # rejectedAtEntry: 入场被拒
@@ -2912,6 +3054,7 @@ def main():
             "age_hours": round((now_ms - token.get("createdAt", 0)) / 3600000, 2),
             "copycat_count": 0,
             "is_copycat": False,
+            "source": _detect_source(token),
         })
 
     # breakthroughTokens: 从 survivors 中提取已突破代币 (实时数据, 同时出现在队列和已突破 tab)
@@ -2933,6 +3076,7 @@ def main():
             "raised_amount": t.get("raisedAmount", 0),
             "age_hours": round((now_ms - t.get("createdAt", 0)) / 3600000, 2),
             "breakthrough_at": t.get("breakthroughAt", 0),
+            "source": _detect_source(t),
         })
 
     # 统计近48小时淘汰的唯一代币数 (从历史扫描数据文件汇总, 避免 queue.json 1000 条截断)

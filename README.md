@@ -1,6 +1,6 @@
 # BSC Token Scanner
 
-BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme) 合约的 `TokenCreated` 事件发现新代币，采用**队列淘汰制**持续跟踪，自动剔除弃盘币，对存活代币执行增量精筛 + 精筛后防线深度检查。
+BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme) 和 [Flap](https://bnb.flap.sh) 合约的 `TokenCreated` 事件发现新代币，采用**队列淘汰制**持续跟踪，自动剔除弃盘币，对存活代币执行增量精筛 + 精筛后防线深度检查。
 
 与姊妹项目 `token_trading` 共用同一套筛选策略，由外部 cron（GitHub Actions）每 15 分钟触发一次，单次执行，输出 JSON 到 `data/` 目录供前端展示。
 
@@ -10,10 +10,11 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 每 15 分钟执行一次:
 
 1. 链上发现 (~1s)
-   BSC RPC eth_getLogs → four.meme TokenCreated 事件 → 新代币地址
+   BSC RPC eth_getLogs → four.meme + flap TokenCreated 事件 → 新代币地址
 
 2. 入场筛 (~数秒)
-   four.meme Detail API → 淘汰无社交 / 总量≠10亿 / 币龄>48h
+   four.meme Detail API (仅 four.meme 代币) / DexScreener (flap 代币)
+   → 淘汰无社交 / 总量≠10亿 / 币龄>48h
 
 3. 淘汰检查 (~数秒)
    DexScreener 批量查价(含交易量/买卖笔数) + GeckoTerminal 持币数 + Detail API
@@ -26,6 +27,13 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 5. 仿盘检测
    本地统计同名代币数量 (零 API 调用)
 ```
+
+## 代币来源
+
+| 平台 | 合约 | 代币后缀 | Detail API |
+|------|------|----------|------------|
+| four.meme | `0x5c952063...` (TokenManagerOriginal) | `4444` / `ffff` | ✅ four.meme Detail API |
+| flap | `0xe2cE6ab0...` (Portal) | `8888` / `7777` | ❌ 无 (用 DexScreener) |
 
 ## 数据源
 
@@ -78,11 +86,11 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 | 1 | 价格从峰值跌 90%+ | 暴跌弃盘 |
 | 2 | 持币地址从 ≥30 跌破 10 | 大量抛售 |
 | 3 | 持币数从峰值跌 70%+ (峰值≥50) | 僵尸币清理 |
-| 4 | 无社交媒体 | 无运营意愿 |
+| 4 | 无社交媒体 | 无运营意愿 (仅 four.meme, flap 无社交 API) |
 | 5 | 流动性从 >$1k 跌破 $100 (仅已毕业) | 流动性枯竭 |
-| 6 | 进度 < 1% 且币龄 > 2h | bonding curve 上的死币 |
-| 6b | 进度 < 5% 且币龄 > 4h | 进度停滞 |
-| 7 | 进度从峰值跌 50%+ 且币龄 > 6h | 热度消退 |
+| 6 | 进度 < 1% 且币龄 > 2h | bonding curve 上的死币 (仅 four.meme) |
+| 6b | 进度 < 5% 且币龄 > 4h | 进度停滞 (仅 four.meme) |
+| 7 | 进度从峰值跌 50%+ 且币龄 > 6h | 热度消退 (仅 four.meme) |
 | 8 | 币龄 > 15min 且最高持币数 < 3 | 无人问津 |
 | 9 | 币龄 > 1h 且最高持币数 < 5 | 热度不足 |
 | 10 | 币龄 > 48h | 超出关注窗口 |
@@ -97,8 +105,8 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 | 条件 | 阈值 | 说明 |
 |------|------|------|
 | 持币增量 | 近 1~3 轮增长 ≥ 45 | 有真实买盘涌入 |
-| 动力增量（未毕业） | 近 1~3 轮进度增长 ≥ 20% | 资金持续涌入 bonding curve |
-| 动力增量（已毕业） | 近 1~3 轮流动性增长 ≥ 5% | 毕业后流动性持续增加 |
+| 动力增量（未毕业 four.meme） | 近 1~3 轮进度增长 ≥ 20% | 资金持续涌入 bonding curve |
+| 动力增量（已毕业 / flap） | 近 1~3 轮流动性增长 ≥ 5% | 毕业后流动性持续增加 |
 | 价格增量 | 近 1~3 轮价格涨幅 ≥ 20% | 价格正在加速上涨 |
 | 仿盘数 | 仅标记, 不排除 | 仿盘多=热门信号, 🔥 标签展示, 交给用户判断 |
 

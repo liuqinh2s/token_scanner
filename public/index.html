@@ -565,6 +565,38 @@
       border-color: color-mix(in srgb, var(--accent) 27%, transparent);
     }
 
+    .link-flap {
+      color: #a78bfa;
+    }
+
+    .link-flap:hover {
+      background: color-mix(in srgb, #a78bfa 13%, transparent);
+      border-color: color-mix(in srgb, #a78bfa 27%, transparent);
+    }
+
+    .source-badge {
+      display: inline-block;
+      font-size: 10px;
+      padding: 1px 5px;
+      border-radius: 3px;
+      margin-right: 4px;
+      font-weight: 600;
+      vertical-align: middle;
+      line-height: 1.4;
+    }
+
+    .source-badge.badge-4m {
+      color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 12%, transparent);
+      border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+    }
+
+    .source-badge.badge-flap {
+      color: #a78bfa;
+      background: color-mix(in srgb, #a78bfa 12%, transparent);
+      border: 1px solid color-mix(in srgb, #a78bfa 25%, transparent);
+    }
+
     .link-bn {
       color: var(--link-green);
     }
@@ -2246,11 +2278,11 @@
         </div>
         <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle" title="切换主题">🌙</button>
         <p class="filter-desc" id="filterDesc">
-          链上扫描 four.meme TokenCreated 事件 → 入场筛(社交≥1、总量10亿、币龄&lt;48h) →
+          链上扫描 four.meme / flap.sh TokenCreated 事件 → 入场筛(社交≥1、总量10亿、币龄&lt;48h) →
           队列淘汰(价格跌90%/持币30→10/持币跌70%(峰≥50)/无社交/流动性1k→100(仅毕业)/进度&lt;1%且币龄&gt;2h/进度&lt;5%且币龄&gt;4h/进度跌50%且币龄&gt;6h/15min峰值持币&lt;3/1h峰值持币&lt;5/币龄&gt;48h)
           🚀价格突破(峰值≥0.0001 → 标记已突破, 保留队列继续跟踪, 仅受币龄淘汰)
           → 增量精筛(近1~3轮: 持币+45/未毕业进度+20%或已毕业流动性+5%/价格+20%, 三条全满足; 2~3轮窗口要求每轮递增)<br>
-          数据源: DexScreener 价格 · GeckoTerminal 已毕业持币数 · four.meme Detail API<br>
+          数据源: DexScreener 价格 · GeckoTerminal 已毕业持币数 · four.meme / flap.sh Detail API<br>
           🔥仿盘标记(≥3个同名, 仅标记不排除) · 目标价区间: 0.000001 ~ 0.0001
         </p>
       </header>
@@ -2631,21 +2663,21 @@
             <span class="flow-num">1</span>
             <div>
               <div class="flow-title">链上发现 (~1s)</div>
-              <div class="flow-desc">BSC RPC eth_getLogs 扫描 four.meme TokenCreated 事件，100% 覆盖链上新代币</div>
+              <div class="flow-desc">BSC RPC eth_getLogs 扫描 four.meme / flap.sh TokenCreated 事件，100% 覆盖链上新代币</div>
             </div>
           </div>
           <div class="flow-step">
             <span class="flow-num">2</span>
             <div>
               <div class="flow-title">入场筛选 (~数秒)</div>
-              <div class="flow-desc">four.meme Detail API → 淘汰无社交 / 总量≠10亿 / 币龄过大</div>
+              <div class="flow-desc">four.meme / flap.sh Detail API → 淘汰无社交 / 总量≠10亿 / 币龄过大（flap 代币跳过社交和总量检查）</div>
             </div>
           </div>
           <div class="flow-step">
             <span class="flow-num">3</span>
             <div>
               <div class="flow-title">队列淘汰 (~数秒)</div>
-              <div class="flow-desc">DexScreener 批量查价 + GeckoTerminal 持币数 + Detail API → 永久淘汰弃盘币</div>
+              <div class="flow-desc">DexScreener 批量查价 + GeckoTerminal 持币数 + Detail API → 永久淘汰弃盘币（flap 代币跳过无社交淘汰）</div>
             </div>
           </div>
           <div class="flow-step">
@@ -2671,7 +2703,7 @@
           <li>价格从峰值跌 90%+</li>
           <li>持币数从 ≥30 跌破 10</li>
           <li>持币数从峰值跌 70%+（峰值≥50，清理僵尸币）</li>
-          <li>无社交媒体</li>
+          <li>无社交媒体（flap 代币跳过此条件）</li>
           <li>流动性从 &gt;$1k 跌破 $100（仅已毕业代币）</li>
           <li>进度 &lt; 1% 且币龄 &gt; 2h</li>
           <li>进度 &lt; 5% 且币龄 &gt; 4h</li>
@@ -2701,8 +2733,8 @@
       <div class="about-section">
         <h3>📊 数据源</h3>
         <ul class="about-list">
-          <li>BSC RPC — 链上 TokenCreated 事件发现</li>
-          <li>four.meme Detail API — 代币详情 / 社交 / 进度 / 未毕业持币数</li>
+          <li>BSC RPC — 链上 TokenCreated 事件发现（four.meme + flap.sh）</li>
+          <li>four.meme / flap.sh Detail API — 代币详情 / 社交 / 进度 / 未毕业持币数</li>
           <li>DexScreener — 批量价格 / 流动性 / 交易量 / 买卖笔数</li>
           <li>GeckoTerminal — 已毕业代币持币数</li>
         </ul>
@@ -3062,13 +3094,38 @@
       return (hours / 24).toFixed(1) + '天';
     }
 
-    function addrHtml(addr) {
+    function detectSource(addr, source) {
+      if (source === 'flap') return 'flap';
+      if (source === 'four.meme') return 'four.meme';
+      if (!addr) return 'four.meme';
+      const suffix = addr.slice(-4).toLowerCase();
+      if (suffix === '8888' || suffix === '7777') return 'flap';
+      return 'four.meme';
+    }
+
+    function platformLink(addr, source) {
+      const src = detectSource(addr, source);
+      if (src === 'flap') {
+        return `<a class="link-flap" href="https://bnb.flap.sh/token/${addr}" target="_blank" rel="noopener">Flap</a>`;
+      }
+      return `<a class="link-4m" href="https://four.meme/token/${addr}" target="_blank" rel="noopener">4M</a>`;
+    }
+
+    function sourceBadge(addr, source) {
+      const src = detectSource(addr, source);
+      if (src === 'flap') {
+        return '<span class="source-badge badge-flap">🦋Flap</span>';
+      }
+      return '<span class="source-badge badge-4m">4M</span>';
+    }
+
+    function addrHtml(addr, source) {
       return `<div class="addr-cell">
         <span class="addr-text" title="${addr}">${shortAddr(addr)}</span>
         <span class="addr-links">
           <button class="copy-btn" onclick="copyAddr('${addr}')">Copy</button>
           <a class="link-bsc" href="https://bscscan.com/token/${addr}" target="_blank" rel="noopener">BSC</a>
-          <a class="link-4m" href="https://four.meme/token/${addr}" target="_blank" rel="noopener">4M</a>
+          ${platformLink(addr, source)}
           <a class="link-bn" href="https://web3.binance.com/zh-CN/token/bsc/${addr}" target="_blank" rel="noopener">币安</a>
         </span>
       </div>`;
@@ -3175,8 +3232,8 @@
         const scanTimeHtml = searchMode && t._scanTime ? `<span class="search-scan-time">📍 ${esc(t._scanTime)}</span>` : '';
         return `<tr>
       <td>${i + 1}</td>
-      <td><div class="name-cell"><span class="name-symbol-primary" onclick="copySymbol('${esc(t.symbol || '--')}')" title="点击复制">${esc(t.symbol || '--')}</span><span class="name-secondary">${esc(t.name || '--')}</span>${scanTimeHtml}</div></td>
-      <td>${addrHtml(addr)}</td>
+      <td><div class="name-cell">${sourceBadge(addr, t.source)}<span class="name-symbol-primary" onclick="copySymbol('${esc(t.symbol || '--')}')" title="点击复制">${esc(t.symbol || '--')}</span><span class="name-secondary">${esc(t.name || '--')}</span>${scanTimeHtml}</div></td>
+      <td>${addrHtml(addr, t.source)}</td>
       <td style="text-align:right"><span class="holders-val">${t.holders || 0}</span><br><span class="holders-peak">峰${t.peak_holders || 0}</span></td>
       <td>
         <div class="price-info"><span class="price-label">现</span> ${fmtPrice(t.price)}</div>
@@ -3215,8 +3272,8 @@
         const scanTimeHtml = searchMode && t._scanTime ? `<span class="search-scan-time">📍 ${esc(t._scanTime)}</span>` : '';
         return `<tr>
           <td>${i + 1}</td>
-          <td><div class="name-cell"><span class="name-symbol-primary" onclick="copySymbol('${esc(t.symbol || '--')}')" title="点击复制">${esc(t.symbol || '--')}</span><span class="name-secondary">${esc(t.name || '--')}</span>${scanTimeHtml}</div></td>
-          <td>${addrHtml(addr)}</td>
+          <td><div class="name-cell">${sourceBadge(addr, t.source)}<span class="name-symbol-primary" onclick="copySymbol('${esc(t.symbol || '--')}')" title="点击复制">${esc(t.symbol || '--')}</span><span class="name-secondary">${esc(t.name || '--')}</span>${scanTimeHtml}</div></td>
+          <td>${addrHtml(addr, t.source)}</td>
           <td style="text-align:right"><span class="holders-val">${t.holders || 0}</span><br><span class="holders-peak">峰${t.peak_holders || 0}</span></td>
           <td><div class="price-info"><span class="price-label">现</span> ${fmtPrice(t.price)}</div><div class="price-info"><span class="price-label">峰</span> ${fmtPrice(t.peak_price)}</div></td>
           <td><div class="price-info">${fmtLiq(t)}</div></td>
@@ -3250,8 +3307,8 @@
         const scanTimeHtml = searchMode && t._scanTime ? `<span class="search-scan-time">📍 ${esc(t._scanTime)}</span>` : '';
         return `<tr>
           <td>${i + 1}</td>
-          <td><div class="name-cell"><span class="name-symbol-primary" onclick="copySymbol('${esc(t.symbol || '--')}')" title="点击复制">🚀${esc(t.symbol || '--')}</span><span class="name-secondary">${esc(t.name || '--')}</span>${scanTimeHtml}</div></td>
-          <td>${addrHtml(addr)}</td>
+          <td><div class="name-cell">${sourceBadge(addr, t.source)}<span class="name-symbol-primary" onclick="copySymbol('${esc(t.symbol || '--')}')" title="点击复制">🚀${esc(t.symbol || '--')}</span><span class="name-secondary">${esc(t.name || '--')}</span>${scanTimeHtml}</div></td>
+          <td>${addrHtml(addr, t.source)}</td>
           <td style="text-align:right"><span class="holders-val">${t.holders || 0}</span><br><span class="holders-peak">峰${t.peak_holders || 0}</span></td>
           <td><div class="price-info"><span class="price-label">现</span> ${fmtPrice(t.price)}</div><div class="price-info"><span class="price-label">峰</span> ${fmtPrice(t.peak_price)}</div></td>
           <td><div class="price-info">${fmtLiq(t)}</div></td>
@@ -3274,14 +3331,14 @@
       return `<div class="token-card">
         ${scanTimeHtml}
         <div class="card-top">
-          <span><span class="card-name" onclick="copySymbol('${esc(t.symbol || '--')}')" title="点击复制">${esc(t.symbol || '--')}</span><span class="card-symbol">${esc(t.name || '--')}</span></span>
+          <span>${sourceBadge(addr, t.source)}<span class="card-name" onclick="copySymbol('${esc(t.symbol || '--')}')" title="点击复制">${esc(t.symbol || '--')}</span><span class="card-symbol">${esc(t.name || '--')}</span></span>
           <span class="card-holders">${t.holders || 0}</span>
         </div>
         <div class="card-addr-row">
           <span class="card-addr-text">${shortA}</span>
           <button class="copy-btn" onclick="copyAddr('${addr}')">Copy</button>
           <a class="link-bsc" href="https://bscscan.com/token/${addr}" target="_blank" rel="noopener">BSC</a>
-          <a class="link-4m" href="https://four.meme/token/${addr}" target="_blank" rel="noopener">4M</a>
+          ${platformLink(addr, t.source)}
         </div>
         <div class="card-price-row">
           <span>现:${fmtPrice(t.price)}</span>
@@ -3307,14 +3364,14 @@
       return `<div class="token-card">
         ${scanTimeHtml}
         <div class="card-top">
-          <span><span class="card-name" onclick="copySymbol('${esc(t.symbol || '--')}')" title="点击复制">${esc(t.symbol || '--')}</span><span class="card-symbol">${esc(t.name || '--')}</span></span>
+          <span>${sourceBadge(addr, t.source)}<span class="card-name" onclick="copySymbol('${esc(t.symbol || '--')}')" title="点击复制">${esc(t.symbol || '--')}</span><span class="card-symbol">${esc(t.name || '--')}</span></span>
           <span class="card-holders">${t.holders || 0}</span>
         </div>
         <div class="card-addr-row">
           <span class="card-addr-text">${shortA}</span>
           <button class="copy-btn" onclick="copyAddr('${addr}')">Copy</button>
           <a class="link-bsc" href="https://bscscan.com/token/${addr}" target="_blank" rel="noopener">BSC</a>
-          <a class="link-4m" href="https://four.meme/token/${addr}" target="_blank" rel="noopener">4M</a>
+          ${platformLink(addr, t.source)}
         </div>
         <div class="card-price-row">
           <span>现:${fmtPrice(t.price)}</span>
@@ -3339,14 +3396,14 @@
       return `<div class="token-card">
         ${scanTimeHtml}
         <div class="card-top">
-          <span><span class="card-name" onclick="copySymbol('${esc(t.symbol || '--')}')" title="点击复制">🚀${esc(t.symbol || '--')}</span><span class="card-symbol">${esc(t.name || '--')}</span></span>
+          <span>${sourceBadge(addr, t.source)}<span class="card-name" onclick="copySymbol('${esc(t.symbol || '--')}')" title="点击复制">🚀${esc(t.symbol || '--')}</span><span class="card-symbol">${esc(t.name || '--')}</span></span>
           <span class="card-holders">${t.holders || 0}</span>
         </div>
         <div class="card-addr-row">
           <span class="card-addr-text">${shortA}</span>
           <button class="copy-btn" onclick="copyAddr('${addr}')">Copy</button>
           <a class="link-bsc" href="https://bscscan.com/token/${addr}" target="_blank" rel="noopener">BSC</a>
-          <a class="link-4m" href="https://four.meme/token/${addr}" target="_blank" rel="noopener">4M</a>
+          ${platformLink(addr, t.source)}
         </div>
         <div class="card-price-row">
           <span>现:${fmtPrice(t.price)}</span>
@@ -3385,8 +3442,8 @@
         const tagsHtml = buildAllTags(t);
         return `<tr>
           <td>${i + 1}</td>
-          <td><div class="name-cell"><span class="name-symbol-primary" onclick="copySymbol('${esc(t.symbol || '--')}')" title="点击复制">${esc(t.symbol || '--')}</span><span class="name-secondary">${esc(t.name || '--')}</span></div></td>
-          <td>${addrHtml(addr)}</td>
+          <td><div class="name-cell">${sourceBadge(addr, t.source)}<span class="name-symbol-primary" onclick="copySymbol('${esc(t.symbol || '--')}')" title="点击复制">${esc(t.symbol || '--')}</span><span class="name-secondary">${esc(t.name || '--')}</span></div></td>
+          <td>${addrHtml(addr, t.source)}</td>
           <td style="text-align:right"><span class="holders-val">${t.holders || 0}</span><br><span class="holders-peak">峰${t.peak_holders || 0}</span></td>
           <td><div class="price-info"><span class="price-label">现</span> ${fmtPrice(t.price)}</div><div class="price-info"><span class="price-label">峰</span> ${fmtPrice(t.peak_price || t.max_price)}</div></td>
           <td><span class="elim-reason">${esc(t.reason || '--')}</span></td>
@@ -3426,8 +3483,8 @@
         const tagsHtml = buildAllTags(t);
         return `<tr>
           <td>${i + 1}</td>
-          <td><div class="name-cell"><span class="name-symbol-primary" onclick="copySymbol('${esc(t.symbol || '--')}')" title="点击复制">${esc(t.symbol || '--')}</span><span class="name-secondary">${esc(t.name || '--')}</span></div></td>
-          <td>${addrHtml(addr)}</td>
+          <td><div class="name-cell">${sourceBadge(addr, t.source)}<span class="name-symbol-primary" onclick="copySymbol('${esc(t.symbol || '--')}')" title="点击复制">${esc(t.symbol || '--')}</span><span class="name-secondary">${esc(t.name || '--')}</span></div></td>
+          <td>${addrHtml(addr, t.source)}</td>
           <td style="text-align:right"><span class="holders-val">${t.holders || 0}</span></td>
           <td><div class="price-info">${fmtPrice(t.price)}</div></td>
           <td><span class="elim-reason">${esc(t.reason || '--')}</span></td>
@@ -3454,14 +3511,14 @@
       return `<div class="token-card">
         ${scanTimeHtml}
         <div class="card-top">
-          <span><span class="card-name" onclick="copySymbol('${esc(t.symbol || '--')}')" title="点击复制">${esc(t.symbol || '--')}</span><span class="card-symbol">${esc(t.name || '--')}</span></span>
+          <span>${sourceBadge(addr, t.source)}<span class="card-name" onclick="copySymbol('${esc(t.symbol || '--')}')" title="点击复制">${esc(t.symbol || '--')}</span><span class="card-symbol">${esc(t.name || '--')}</span></span>
           <span class="card-holders">${t.holders || 0}</span>
         </div>
         <div class="card-addr-row">
           <span class="card-addr-text">${shortA}</span>
           <button class="copy-btn" onclick="copyAddr('${addr}')">Copy</button>
           <a class="link-bsc" href="https://bscscan.com/token/${addr}" target="_blank" rel="noopener">BSC</a>
-          <a class="link-4m" href="https://four.meme/token/${addr}" target="_blank" rel="noopener">4M</a>
+          ${platformLink(addr, t.source)}
         </div>
         <div class="card-price-row">
           <span>现:${fmtPrice(t.price)}</span>
