@@ -20,6 +20,9 @@ const SITE_DATA_DIR = path.join(SITE_DIR, "data");
 const SCANS_DIR = path.join(SITE_DATA_DIR, "scans");
 const PUBLIC_DIR = path.join(__dirname, "..", "public");
 
+// 止盈触发点 (%), 精筛成功率以此为判定标准 — 改这里即可全局生效
+const TP_TRIGGER_PCT = 50;
+
 // Ensure output dirs
 for (const d of [SITE_DIR, SITE_DATA_DIR, SCANS_DIR]) {
   if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
@@ -139,6 +142,98 @@ if (scanFiles.length === 0) {
   const uniqueAddrs = new Set(searchIndex.map(t => t.a)).size;
   fs.writeFileSync(path.join(SITE_DATA_DIR, "search-index.json"), JSON.stringify(searchIndex));
   console.log(`[BUILD] Search index: ${searchIndex.length} records, ${uniqueAddrs} unique tokens.`);
+
+  // ===== 精筛成功率统计 =====
+  // 遍历所有扫描结果，收集精筛通过的代币，跟踪后续峰值价格
+  // 成功 = 后续峰值价格 ≥ 精筛时价格 × (1 + TP_TRIGGER_PCT/100)
+  const qualityMap = {}; // address -> { 首次精筛信息 + 后续最高价 }
+  const SUCCESS_THRESHOLD = 1 + TP_TRIGGER_PCT / 100;
+
+  // 正序遍历 (oldest first)
+  scanFilesAsc.forEach((file) => {
+    const data = JSON.parse(fs.readFileSync(path.join(DATA_DIR, file), "utf-8"));
+    const st = data.scanTime;
+
+    // 记录精筛通过的代币 (首次出现时记录入场价)
+    for (const t of (data.tokens || [])) {
+      const addr = t.address || '';
+      if (!addr) continue;
+      if (!qualityMap[addr]) {
+        qualityMap[addr] = {
+          address: addr,
+          name: t.name || '',
+          symbol: t.symbol || '',
+          entryPrice: t.price || 0,
+          entryTime: st,
+          entryHolders: t.holders || 0,
+          entryProgress: t.progress || 0,
+          entryLiquidity: t.liquidity || 0,
+          peakPrice: t.peak_price || t.price || 0,
+          latestPrice: t.price || 0,
+          socialLinks: t.social_links || {},
+          copycatCount: t.copycat_count || 0,
+          isCopycat: t.is_copycat || false,
+        };
+      }
+    }
+
+    // 更新所有已记录代币的峰值价格 (从队列/精筛/突破中获取最新价格)
+    const allTokens = [
+      ...(data.tokens || []),
+      ...(data.queue || []),
+      ...(data.breakthroughTokens || []),
+    ];
+    for (const t of allTokens) {
+      const addr = t.address || '';
+      if (!addr || !qualityMap[addr]) continue;
+      const price = t.price || 0;
+      const peakPrice = t.peak_price || 0;
+      if (price > qualityMap[addr].peakPrice) qualityMap[addr].peakPrice = price;
+      if (peakPrice > qualityMap[addr].peakPrice) qualityMap[addr].peakPrice = peakPrice;
+      // 更新最新价格
+      qualityMap[addr].latestPrice = price;
+    }
+  });
+
+  // 分类: 成功 vs 失败
+  const successTokens = [];
+  const failTokens = [];
+
+  for (const [addr, info] of Object.entries(qualityMap)) {
+    if (info.entryPrice <= 0) continue;
+    const peakGrowth = (info.peakPrice - info.entryPrice) / info.entryPrice;
+    const latestGrowth = (info.latestPrice - info.entryPrice) / info.entryPrice;
+    const item = {
+      ...info,
+      peakGrowth: Math.round(peakGrowth * 10000) / 100,   // 百分比, 保留2位
+      latestGrowth: Math.round(latestGrowth * 10000) / 100,
+    };
+    if (info.peakPrice >= info.entryPrice * SUCCESS_THRESHOLD) {
+      successTokens.push(item);
+    } else {
+      failTokens.push(item);
+    }
+  }
+
+  // 按峰值涨幅降序排列
+  successTokens.sort((a, b) => b.peakGrowth - a.peakGrowth);
+  failTokens.sort((a, b) => b.peakGrowth - a.peakGrowth);
+
+  const totalQuality = successTokens.length + failTokens.length;
+  const successRate = totalQuality > 0 ? Math.round(successTokens.length / totalQuality * 10000) / 100 : 0;
+
+  const qualityStats = {
+    tpTriggerPct: TP_TRIGGER_PCT,
+    totalCount: totalQuality,
+    successCount: successTokens.length,
+    failCount: failTokens.length,
+    successRate: successRate,
+    successTokens: successTokens,
+    failTokens: failTokens,
+  };
+
+  fs.writeFileSync(path.join(SITE_DATA_DIR, "quality-stats.json"), JSON.stringify(qualityStats));
+  console.log(`[BUILD] Quality stats: ${totalQuality} tokens, ${successTokens.length} success (${successRate}%), ${failTokens.length} fail.`);
   console.log(`[BUILD] Generated data for ${scanFiles.length} scans.`);
 }
 
@@ -161,6 +256,10 @@ html = html.replace(
 html = html.replace(
   /cachedFetch\('\/api\/search-index'/g,
   "cachedFetch('data/search-index.json'"
+);
+html = html.replace(
+  /cachedFetch\('\/api\/quality-stats'/g,
+  "cachedFetch('data/quality-stats.json'"
 );
 html = html.replace(
   /cachedFetch\('\/api\/scan\/'\s*\+\s*([^)]+)\)/g,
@@ -220,8 +319,8 @@ html = html.replace(
 
 // Add startAutoRefresh() to init
 html = html.replace(
-  /loadLatest\(\);\s*\n(\s*)initDesktopHistory\(\);/,
-  'loadLatest();\n$1initDesktopHistory();\n$1startAutoRefresh();'
+  /loadLatest\(\);\s*\n(\s*)initDesktopHistory\(\);\s*\n(\s*)loadQualityStats\(\);/,
+  'loadLatest();\n$1initDesktopHistory();\n$2loadQualityStats();\n$2startAutoRefresh();'
 );
 
 fs.writeFileSync(path.join(SITE_DIR, "index.html"), html);

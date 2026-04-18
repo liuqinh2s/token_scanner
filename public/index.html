@@ -1297,6 +1297,10 @@
       display: none;
     }
 
+    .quality-page {
+      display: none;
+    }
+
     @media (max-width: 768px) {
       .mobile-tabbar {
         display: flex;
@@ -1845,6 +1849,338 @@
         padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
         overflow: visible;
       }
+
+      /* ===== 精筛成功率页面 ===== */
+      .quality-page {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 48px;
+        background: var(--bg-primary);
+        overflow: hidden;
+        z-index: 50;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .quality-page:not(.hidden) {
+        display: flex;
+      }
+
+      .quality-page-header {
+        flex-shrink: 0;
+        padding: 16px 14px 0;
+        background: var(--bg-primary);
+        border-bottom: 1px solid var(--border-primary);
+      }
+
+      .quality-page-header .quality-panel-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+      }
+
+      .quality-page-header .quality-panel-title h2 {
+        color: var(--accent);
+        font-size: 18px;
+        font-weight: 800;
+      }
+
+      .quality-page-header .quality-stats-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+
+      .quality-page-header .quality-stat-item {
+        flex: 1;
+        text-align: center;
+        padding: 8px 4px;
+        border-radius: 10px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-primary);
+      }
+
+      .quality-page-header .quality-stat-item .qs-val {
+        font-size: 20px;
+      }
+
+      .quality-page-header .quality-tab-bar {
+        display: flex;
+        gap: 0;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 0;
+      }
+
+      .quality-page-header .quality-tab-btn {
+        flex: 1;
+        padding: 8px 8px;
+        font-size: 13px;
+      }
+
+      .quality-page-list {
+        flex: 1;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 8px 10px;
+        padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+      }
+
+      .quality-page .quality-card {
+        padding: 14px 14px;
+        margin-bottom: 8px;
+        border-radius: 12px;
+      }
+
+      .quality-page .quality-card-name {
+        font-size: 14px;
+        max-width: 200px;
+      }
+
+      .quality-page .quality-card-growth {
+        font-size: 14px;
+      }
+
+      .quality-page .quality-card-meta {
+        font-size: 11px;
+        gap: 10px;
+      }
+    }
+
+    /* ===== 精筛成功率右侧面板 ===== */
+    .quality-panel {
+      width: 320px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      background: var(--bg-card);
+      border: 1px solid var(--border-primary);
+      border-radius: 12px;
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .quality-panel-header {
+      flex-shrink: 0;
+      padding: 12px 14px 0;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-primary);
+      z-index: 2;
+    }
+
+    .quality-panel-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .quality-panel-title h3 {
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .quality-rate-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: var(--accent-dim);
+      color: var(--accent);
+      border: 1px solid var(--accent-border);
+    }
+
+    .quality-stats-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .quality-stat-item {
+      flex: 1;
+      text-align: center;
+      padding: 6px 4px;
+      border-radius: 8px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-primary);
+    }
+
+    .quality-stat-item .qs-val {
+      display: block;
+      font-size: 16px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .quality-stat-item .qs-label {
+      display: block;
+      font-size: 9px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      margin-top: 2px;
+    }
+
+    .quality-stat-item.qs-success .qs-val {
+      color: var(--link-green);
+    }
+
+    .quality-stat-item.qs-fail .qs-val {
+      color: var(--danger-text);
+    }
+
+    .quality-tab-bar {
+      display: flex;
+      gap: 0;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 0;
+    }
+
+    .quality-tab-btn {
+      flex: 1;
+      text-align: center;
+      background: var(--bg-secondary);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-primary);
+      border-radius: 0;
+      padding: 6px 8px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 500;
+      transition: all .2s;
+      border-right: none;
+    }
+
+    .quality-tab-btn:last-child {
+      border-right: 1px solid var(--border-primary);
+    }
+
+    .quality-tab-btn:first-child {
+      border-radius: 8px 0 0 8px;
+    }
+
+    .quality-tab-btn:last-child {
+      border-radius: 0 8px 8px 0;
+    }
+
+    .quality-tab-btn.active {
+      background: var(--accent);
+      color: var(--bg-primary);
+      border-color: var(--accent);
+      font-weight: 700;
+    }
+
+    .quality-tab-btn:hover:not(.active) {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+
+    .quality-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 10px;
+      min-height: 0;
+    }
+
+    .quality-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-primary);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 6px;
+      transition: all .15s;
+    }
+
+    .quality-card:hover {
+      border-color: var(--border-hover);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .quality-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .quality-card-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-bright);
+      cursor: pointer;
+      transition: color .15s;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 160px;
+    }
+
+    .quality-card-name:hover {
+      color: var(--accent);
+    }
+
+    .quality-card-growth {
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .quality-card-growth.positive {
+      color: var(--link-green);
+    }
+
+    .quality-card-growth.negative {
+      color: var(--danger-text);
+    }
+
+    .quality-card-meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-size: 10px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .quality-card-meta span {
+      white-space: nowrap;
+    }
+
+    .quality-card-addr {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 10px;
+      color: var(--link-blue);
+      cursor: pointer;
+      transition: color .15s;
+    }
+
+    .quality-card-addr:hover {
+      color: var(--accent);
+    }
+
+    .quality-empty {
+      text-align: center;
+      padding: 40px 16px;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    /* 桌面端隐藏手机端精筛面板 */
+    .mobile-quality-panel {
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      .quality-panel {
+        display: none !important;
+      }
     }
 
     /* ===== 自动刷新指示器 ===== */
@@ -1922,7 +2258,7 @@
       <!-- 手机端淘汰统计 hero -->
       <div class="mobile-hero-stat" id="mobileHeroStat" style="display:none">
         <span class="hero-number" id="heroElimCount">--</span>
-        <span class="hero-label">近 48 小时淘汰代币数，帮你排除垃圾币</span>
+        <span class="hero-label">近 48 小时淘汰 <span id="heroFilteredInline" style="color:var(--accent);font-weight:700"></span></span>
       </div>
 
       <div class="stats-bar" id="statsBar">
@@ -2099,6 +2435,31 @@
           </div>
         </div>
       </div>
+      <!-- 精筛成功率面板 -->
+      <div class="quality-panel" id="qualityPanel">
+        <div class="quality-panel-header">
+          <div class="quality-panel-title">
+            <h3>📊 精筛成功率</h3>
+            <span class="quality-rate-badge" id="qualityRateBadge">--</span>
+          </div>
+          <div class="quality-stats-row">
+            <div class="quality-stat-item qs-success">
+              <span class="qs-val" id="qualitySuccessCount">0</span>
+              <span class="qs-label" id="qualitySuccessLabel">成功</span>
+            </div>
+            <div class="quality-stat-item qs-fail">
+              <span class="qs-val" id="qualityFailCount">0</span>
+              <span class="qs-label" id="qualityFailLabel">失败</span>
+            </div>
+          </div>
+          <div class="quality-tab-bar">
+            <button class="quality-tab-btn active" data-qtab="success" onclick="switchQualityTab('success')">✅ 成功</button>
+            <button class="quality-tab-btn" data-qtab="fail" onclick="switchQualityTab('fail')">❌ 失败</button>
+          </div>
+        </div>
+        <div class="quality-list" id="qualitySuccessList"></div>
+        <div class="quality-list hidden" id="qualityFailList"></div>
+      </div>
     </div>
   </div>
 
@@ -2112,6 +2473,14 @@
           <polyline points="9 22 9 12 15 12 15 22" />
         </svg></span>
       <span class="mobile-tab-label">首页</span>
+    </button>
+    <button class="mobile-tab" data-page="quality" onclick="switchPage('quality')">
+      <span class="mobile-tab-icon"><svg viewBox="0 0 24 24">
+          <line x1="18" y1="20" x2="18" y2="10" />
+          <line x1="12" y1="20" x2="12" y2="4" />
+          <line x1="6" y1="20" x2="6" y2="14" />
+        </svg></span>
+      <span class="mobile-tab-label">精筛</span>
     </button>
     <button class="mobile-tab" data-page="history" onclick="switchPage('history')">
       <span class="mobile-tab-icon"><svg viewBox="0 0 24 24">
@@ -2180,8 +2549,35 @@
     </div>
   </div>
 
+  <!-- 精筛成功率页面（手机端） -->
+  <div class="quality-page hidden" id="qualityPage">
+    <div class="quality-page-header">
+      <div class="quality-panel-title">
+        <h2>📊 精筛成功率</h2>
+        <span class="quality-rate-badge" id="mobileQualityRateBadge">--</span>
+      </div>
+      <div class="quality-stats-row">
+        <div class="quality-stat-item qs-success">
+          <span class="qs-val" id="mobileQualitySuccessCount">0</span>
+          <span class="qs-label" id="mobileQualitySuccessLabel">成功</span>
+        </div>
+        <div class="quality-stat-item qs-fail">
+          <span class="qs-val" id="mobileQualityFailCount">0</span>
+          <span class="qs-label" id="mobileQualityFailLabel">失败</span>
+        </div>
+      </div>
+      <div class="quality-tab-bar">
+        <button class="quality-tab-btn active" data-mqtab="success" onclick="switchMobileQualityTab('success')">✅ 成功</button>
+        <button class="quality-tab-btn" data-mqtab="fail" onclick="switchMobileQualityTab('fail')">❌ 失败</button>
+      </div>
+    </div>
+    <div class="quality-page-list" id="mobileQualitySuccessList"></div>
+    <div class="quality-page-list hidden" id="mobileQualityFailList"></div>
+  </div>
+
   <!-- 设置页面（手机端） -->
   <div class="settings-page hidden" id="settingsPage">
+
     <h2>设置</h2>
     <div class="settings-group">
       <div class="settings-row" onclick="toggleMobileTheme(event)">
@@ -2504,6 +2900,7 @@
       const aboutPage = document.getElementById('aboutPage');
       const historyPage = document.getElementById('historyPage');
       const searchPage = document.getElementById('searchPage');
+      const qualityPage = document.getElementById('qualityPage');
       const settingsPage = document.getElementById('settingsPage');
 
       document.querySelectorAll('.mobile-tab').forEach(t => t.classList.toggle('active', t.dataset.page === page));
@@ -2513,6 +2910,7 @@
       aboutPage.classList.add('hidden');
       if (historyPage) historyPage.classList.add('hidden');
       if (searchPage) searchPage.classList.add('hidden');
+      if (qualityPage) qualityPage.classList.add('hidden');
       if (settingsPage) settingsPage.classList.add('hidden');
 
       if (page === 'home') {
@@ -2530,6 +2928,11 @@
             const input = document.getElementById('mobileSearchInput');
             if (input) input.focus();
           }, 100);
+        }
+      } else if (page === 'quality') {
+        if (qualityPage) {
+          qualityPage.classList.remove('hidden');
+          renderMobileQualityPanel();
         }
       } else if (page === 'settings') {
         if (settingsPage) {
@@ -2718,6 +3121,13 @@
         if (heroStat && !isDesktop()) heroStat.style.display = '';
         const desktopEl = document.getElementById('elimTotal48h');
         if (desktopEl) desktopEl.textContent = data.eliminatedTotal48h.toLocaleString();
+      }
+
+      // 手机端 hero 显示精筛通过数
+      const filteredCount = data.filteredTokens || 0;
+      const heroFilteredInline = document.getElementById('heroFilteredInline');
+      if (heroFilteredInline) {
+        heroFilteredInline.textContent = filteredCount > 0 ? ' · 精筛通过 ' + filteredCount : '';
       }
 
       // 更新手机端 tab 标题中的数字
@@ -3462,13 +3872,123 @@
       document.querySelectorAll('.search-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.stab === 's-filtered'));
     }
 
+    /* ===== 精筛成功率面板 ===== */
+    let currentQualityTab = 'success';
+    let qualityStatsData = null;
+
+    async function loadQualityStats() {
+      try {
+        qualityStatsData = await cachedFetch('/api/quality-stats', true);
+        renderQualityPanel();
+      } catch (e) {
+        console.error('加载精筛成功率失败:', e);
+      }
+    }
+
+    function renderQualityPanel() {
+      if (!qualityStatsData) return;
+      const d = qualityStatsData;
+      const tp = d.tpTriggerPct || 50;
+
+      // 更新统计数字
+      const badge = document.getElementById('qualityRateBadge');
+      if (badge) badge.textContent = d.successRate + '%';
+      const sc = document.getElementById('qualitySuccessCount');
+      if (sc) sc.textContent = d.successCount;
+      const fc = document.getElementById('qualityFailCount');
+      if (fc) fc.textContent = d.failCount;
+      const sl = document.getElementById('qualitySuccessLabel');
+      if (sl) sl.textContent = '成功 (涨≥' + tp + '%)';
+      const fl = document.getElementById('qualityFailLabel');
+      if (fl) fl.textContent = '失败 (<' + tp + '%)';
+
+      // 渲染列表
+      renderQualityList('qualitySuccessList', d.successTokens || []);
+      renderQualityList('qualityFailList', d.failTokens || []);
+    }
+
+    function renderQualityList(containerId, tokens) {
+      const el = document.getElementById(containerId);
+      if (!el) return;
+      if (tokens.length === 0) {
+        el.innerHTML = '<div class="quality-empty">暂无数据</div>';
+        return;
+      }
+      el.innerHTML = tokens.map(t => {
+        const addr = t.address || '';
+        const shortA = addr.length > 16 ? addr.slice(0, 6) + '…' + addr.slice(-4) : addr;
+        const peakGrowthCls = t.peakGrowth >= 0 ? 'positive' : 'negative';
+        const peakGrowthSign = t.peakGrowth >= 0 ? '+' : '';
+        const latestGrowthCls = t.latestGrowth >= 0 ? 'positive' : 'negative';
+        const latestGrowthSign = t.latestGrowth >= 0 ? '+' : '';
+        return `<div class="quality-card">
+          <div class="quality-card-top">
+            <span class="quality-card-name" onclick="copySymbol('${esc(t.symbol || '--')}')" title="${esc(t.name || '')}">${esc(t.symbol || '--')}</span>
+            <span class="quality-card-growth ${peakGrowthCls}">峰 ${peakGrowthSign}${t.peakGrowth}%</span>
+          </div>
+          <div class="quality-card-meta">
+            <span class="quality-card-addr" onclick="copyAddr('${addr}')" title="${addr}">${shortA}</span>
+            <span>入:${fmtPrice(t.entryPrice)}</span>
+            <span>峰:${fmtPrice(t.peakPrice)}</span>
+            <span class="${latestGrowthCls}">现 ${latestGrowthSign}${t.latestGrowth}%</span>
+          </div>
+          <div class="quality-card-meta" style="margin-top:2px">
+            <span>持币:${t.entryHolders || 0}</span>
+            <span>${esc(t.entryTime || '')}</span>
+            ${t.copycatCount > 0 ? '<span style="color:var(--danger-text)">🔥' + t.copycatCount + '仿</span>' : ''}
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function switchQualityTab(tab) {
+      currentQualityTab = tab;
+      document.querySelectorAll('#qualityPanel .quality-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.qtab === tab));
+      document.getElementById('qualitySuccessList').classList.toggle('hidden', tab !== 'success');
+      document.getElementById('qualityFailList').classList.toggle('hidden', tab !== 'fail');
+    }
+
+    /* ===== 手机端精筛成功率 ===== */
+    let currentMobileQualityTab = 'success';
+
+    function renderMobileQualityPanel() {
+      if (!qualityStatsData) return;
+      const d = qualityStatsData;
+      const tp = d.tpTriggerPct || 50;
+
+      const badge = document.getElementById('mobileQualityRateBadge');
+      if (badge) badge.textContent = d.successRate + '%';
+      const sc = document.getElementById('mobileQualitySuccessCount');
+      if (sc) sc.textContent = d.successCount;
+      const fc = document.getElementById('mobileQualityFailCount');
+      if (fc) fc.textContent = d.failCount;
+      const sl = document.getElementById('mobileQualitySuccessLabel');
+      if (sl) sl.textContent = '成功 (涨≥' + tp + '%)';
+      const fl = document.getElementById('mobileQualityFailLabel');
+      if (fl) fl.textContent = '失败 (<' + tp + '%)';
+
+      renderQualityList('mobileQualitySuccessList', d.successTokens || []);
+      renderQualityList('mobileQualityFailList', d.failTokens || []);
+    }
+
+    function switchMobileQualityTab(tab) {
+      currentMobileQualityTab = tab;
+      document.querySelectorAll('#qualityPage .quality-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.mqtab === tab));
+      document.getElementById('mobileQualitySuccessList').classList.toggle('hidden', tab !== 'success');
+      document.getElementById('mobileQualityFailList').classList.toggle('hidden', tab !== 'fail');
+    }
+
     loadLatest();
     initDesktopHistory();
+    loadQualityStats();
 
     // 自动刷新：每60秒轮询最新数据（仅在非搜索、非历史浏览时刷新）
     setInterval(async () => {
       if (!autoRefreshEnabled || searchMode || activeHistoryId != null) return;
-      try { await loadLatest(); } catch (_) { }
+      try {
+        await loadLatest();
+        await loadQualityStats();
+      } catch (_) { }
     }, 60 * 1000);
   </script>
 </body>
