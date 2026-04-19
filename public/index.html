@@ -3396,7 +3396,7 @@
       return `<div class="token-card">
         ${scanTimeHtml}
         <div class="card-top">
-          <span>${sourceBadge(addr, t.source)}<span class="card-name" onclick="copySymbol('${esc(t.symbol || '--')}')" title="点击复制">${esc(t.symbol || '--')}</span><span class="card-symbol">${esc(t.name || '--')}</span></span>
+          <span><span style="color:var(--text-muted);font-size:12px;margin-right:6px">#${i + 1}</span>${sourceBadge(addr, t.source)}<span class="card-name" onclick="copySymbol('${esc(t.symbol || '--')}')" title="点击复制">${esc(t.symbol || '--')}</span><span class="card-symbol">${esc(t.name || '--')}</span></span>
           <span class="card-holders">${t.holders || 0}</span>
         </div>
         <div class="card-addr-row">
@@ -3430,7 +3430,7 @@
       return `<div class="token-card">
         ${scanTimeHtml}
         <div class="card-top">
-          <span>${sourceBadge(addr, t.source)}<span class="card-name" onclick="copySymbol('${esc(t.symbol || '--')}')" title="点击复制">${esc(t.symbol || '--')}</span><span class="card-symbol">${esc(t.name || '--')}</span></span>
+          <span><span style="color:var(--text-muted);font-size:12px;margin-right:6px">#${i + 1}</span>${sourceBadge(addr, t.source)}<span class="card-name" onclick="copySymbol('${esc(t.symbol || '--')}')" title="点击复制">${esc(t.symbol || '--')}</span><span class="card-symbol">${esc(t.name || '--')}</span></span>
           <span class="card-holders">${t.holders || 0}</span>
         </div>
         <div class="card-addr-row">
@@ -3463,7 +3463,7 @@
       return `<div class="token-card">
         ${scanTimeHtml}
         <div class="card-top">
-          <span>${sourceBadge(addr, t.source)}<span class="card-name" onclick="copySymbol('${esc(t.symbol || '--')}')" title="点击复制">🚀${esc(t.symbol || '--')}</span><span class="card-symbol">${esc(t.name || '--')}</span></span>
+          <span><span style="color:var(--text-muted);font-size:12px;margin-right:6px">#${i + 1}</span>${sourceBadge(addr, t.source)}<span class="card-name" onclick="copySymbol('${esc(t.symbol || '--')}')" title="点击复制">🚀${esc(t.symbol || '--')}</span><span class="card-symbol">${esc(t.name || '--')}</span></span>
           <span class="card-holders">${t.holders || 0}</span>
         </div>
         <div class="card-addr-row">
@@ -3522,9 +3522,9 @@
 
       // 手机端：使用虚拟滚动
       if (!isDesktop()) {
-        renderVirtualList(cardList, items, (t, i) => buildElimCard(t, false), 'eliminated');
+        renderVirtualList(cardList, items, (t, i) => buildElimCard(t, i, false), 'eliminated');
       } else {
-        cardList.innerHTML = items.map(t => buildElimCard(t, false)).join('');
+        cardList.innerHTML = items.map((t, i) => buildElimCard(t, i, false)).join('');
       }
     }
 
@@ -3563,14 +3563,14 @@
 
       // 手机端：使用虚拟滚动
       if (!isDesktop()) {
-        renderVirtualList(cardList, items, (t, i) => buildElimCard(t, false), 'rejected');
+        renderVirtualList(cardList, items, (t, i) => buildElimCard(t, i, false), 'rejected');
       } else {
-        cardList.innerHTML = items.map(t => buildElimCard(t, false)).join('');
+        cardList.innerHTML = items.map((t, i) => buildElimCard(t, i, false)).join('');
       }
     }
 
     /* 淘汰/拒绝代币卡片 */
-    function buildElimCard(t, showScanTime) {
+    function buildElimCard(t, i, showScanTime) {
       const addr = t.address || '';
       const shortA = addr.length > 16 ? addr.slice(0, 8) + '...' + addr.slice(-6) : addr;
       const tagsHtml = buildAllTags(t);
@@ -3579,7 +3579,7 @@
       return `<div class="token-card">
         ${scanTimeHtml}
         <div class="card-top">
-          <span>${sourceBadge(addr, t.source)}<span class="card-name" onclick="copySymbol('${esc(t.symbol || '--')}')" title="点击复制">${esc(t.symbol || '--')}</span><span class="card-symbol">${esc(t.name || '--')}</span></span>
+          <span><span style="color:var(--text-muted);font-size:12px;margin-right:6px">#${i + 1}</span>${sourceBadge(addr, t.source)}<span class="card-name" onclick="copySymbol('${esc(t.symbol || '--')}')" title="点击复制">${esc(t.symbol || '--')}</span><span class="card-symbol">${esc(t.name || '--')}</span></span>
           <span class="card-holders">${t.holders || 0}</span>
         </div>
         <div class="card-addr-row">
@@ -3970,7 +3970,7 @@
       const cardBuilder = (tab === 's-filtered') ? (t, i) => buildTokenCard(t, i, true)
         : (tab === 's-queue') ? (t, i) => buildQueueCard(t, i, true)
           : (tab === 's-breakthrough') ? (t, i) => buildBreakthroughCard(t, i, true)
-            : (t, i) => buildElimCard(t, true);
+            : (t, i) => buildElimCard(t, i, true);
 
       const scrollContainer = document.getElementById('searchResultsArea');
       renderVirtualList(el, items, cardBuilder, 'search-' + tab, scrollContainer);

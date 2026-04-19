@@ -20,8 +20,12 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
    DexScreener 批量查价(含交易量/买卖笔数) + GeckoTerminal 持币数 + Detail API
    → 永久淘汰弃盘币
 
+3b. K线修正
+   对持币≥50 的存活代币拉 GT 15min K线
+   → 修正 peakPrice + 记录 klineHigh/klineLow (过山车检测)
+
 4. 精筛 (瞬时)
-   潜伏型筛选: 持币≥50 + 进度30%~90% + 币龄≤10h + 没在崩盘 + 仿盘≥3
+   潜伏型筛选: 持币≥50 + 进度30%~90% + 币龄≤10h + 没在崩盘 + 仿盘≥3 + 没有过山车行情
    → 从存活币中找蓄势待发信号
 
 5. 毕业通道 (瞬时)
@@ -50,6 +54,7 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 | flap.sh 页面 SSR | flap 代币社交媒体 (twitter/telegram/website) | ~5 req/s |
 | DexScreener API | 批量价格+流动性+交易量+买卖笔数 | ~300 req/min |
 | GeckoTerminal Token Info | 持币地址数 (已毕业代币, 链上索引) | ~30 req/min |
+| GeckoTerminal OHLCV | 15min K线 (持币≥50 代币的峰值修正+过山车检测) | ~30 req/min (串行, 每个 2s) |
 | 本地队列统计 | 仿盘检测：同名/近似名代币数量 | 无 |
 
 ### 目标价区间
@@ -58,7 +63,11 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 
 峰值价格突破 0.0001 的代币标记为「已突破」，保留在队列中继续跟踪更新，跳过常规淘汰条件（价格跌幅、持币数下降等），仅受币龄 >48h 淘汰。已突破代币同时出现在队列存活和已突破 tab 中，便于单独查看和统计分析。
 
-峰值价格（peakPrice）是代币在队列存活期间记录到的最高价格（每轮用 DexScreener 实时价取 max），用于淘汰判断（价格跌 90% 淘汰）。
+峰值价格（peakPrice）是代币在队列存活期间记录到的最高价格。每轮通过两种方式更新：
+1. DexScreener 实时价快照取 max（每轮必做）
+2. GeckoTerminal 15min K线最高价修正（仅对持币≥50 的代币，补充快照间隔内的冲高遗漏）
+
+K线同时记录 klineHigh/klineLow，用于精筛的过山车检测（振幅过大说明已被炒过一轮）。
 
 ### 持币数查询方案
 
@@ -119,6 +128,7 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 | 近 1 轮持币变化 | ≥ -5 | 没在大量流失 |
 | 近 1 轮价格变化 | ≥ -20% | 没在暴跌 |
 | 仿盘数 | ≥ 3 | 有市场热度, 冷门题材排除 |
+| 过山车检测 | K线振幅<3x 或 回撤<50% | K线最高/最低≥3倍 且 当前价从高点回撤≥50% → 已被炒过一轮, 排除 |
 
 ## 毕业通道（刚毕业强势币）
 
@@ -246,6 +256,8 @@ npm run dev                     # 启动开发服务器（live-server）
 | `QUALITY_MAX_AGE_HOURS` | 10 | 精筛: 币龄 ≤ 10h (还年轻) |
 | `QUALITY_MIN_H_DELTA` | -5 | 精筛: 近 1 轮持币变化 ≥ -5 (没在大量流失) |
 | `QUALITY_MIN_PRICE_CHANGE` | -0.20 | 精筛: 近 1 轮价格变化 ≥ -20% (没在暴跌) |
+| `QUALITY_MAX_KLINE_SWING` | 3.0 | 精筛: K线最高/最低 ≥ 3 倍视为过山车 |
+| `QUALITY_MIN_KLINE_DRAWDOWN` | 0.50 | 精筛: 当前价从K线最高回撤 ≥ 50% 确认在下跌途中 |
 | `GRAD_MIN_HOLDERS` | 100 | 毕业通道: 持币数 ≥ 100 |
 | `GRAD_MIN_LIQUIDITY` | 10000 | 毕业通道: 流动性 ≥ $10,000 |
 | `GRAD_MIN_H_DELTA` | 0 | 毕业通道: 近 1 轮持币变化 ≥ 0 |
