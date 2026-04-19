@@ -26,16 +26,17 @@ v6 架构: 极速扫描 (1 分钟一轮)
   - RPC Transfer 日志持币数 (bonding curve 阶段不产生标准 Transfer, 不准确)
 
 淘汰条件 (永久剔除):
-  - 价格从峰值跌 90%+
+  - 价格从峰值跌 90%+ (保护: 当前价格<1e-7 视为 API 异常, 跳过)
   - 持币地址从 ≥30 跌破 10
   - 持币数从峰值跌 70%+ (峰值≥50, 清理僵尸币)
   - 无社交媒体 (four.meme 通过 detail API, flap 通过 flap.sh 页面 SSR 提取, 统一淘汰)
   - 流动性从 >$1k 跌破 $100 (仅已毕业代币)
   - 进度 < 1% 且币龄 > 2h (four.meme + flap, 均通过链上数据获取进度, flap 用 Portal getTokenV5)
   - 进度 < 5% 且币龄 > 4h
-  - 进度从峰值跌 50%+ 且币龄 > 6h (热度消退)
+  - 进度从峰值跌 50%+ 且币龄 > 6h (热度消退; 峰值持币≥50 的社区币放宽到 70%)
   - 币龄 > 15min 且最高持币数 < 3
   - 币龄 > 1h 且最高持币数 < 5
+  - 币龄 > 2h 且最高持币数 < 8 (清理僵尸币)
   - 币龄 > 48h
   - 价格突破: 峰值价格 ≥ 0.0001 → 标记为已突破, 保留在队列中继续跟踪, 仅受币龄>48h淘汰
   - 突破 flap 刷新: 每轮对突破中的 flap 代币强制重新拉取数据, 重算 peakPrice, 不达标则取消突破标记
@@ -199,11 +200,15 @@ ELIM_PROGRESS_AGE_HOURS = 2           # 进度<1%淘汰的币龄门槛
 ELIM_PROGRESS_MIN_MID = 0.05          # 进度 < 5%
 ELIM_PROGRESS_AGE_HOURS_MID = 4       # 进度<5%淘汰的币龄门槛
 ELIM_PROGRESS_DROP_PCT = 0.50         # 进度从峰值跌 50% 淘汰 (热度消退)
+ELIM_PROGRESS_DROP_PCT_RELAXED = 0.70 # 进度从峰值跌 70% 淘汰 (峰值持币≥50 的社区币, 给更多缓冲)
 ELIM_PROGRESS_DROP_AGE_HOURS = 6      # 进度跌幅淘汰的币龄门槛 (给新币缓冲时间)
 ELIM_EARLY_PEAK_HOLDERS = 3           # 币龄>15min 最高持币数 < 3 淘汰
 ELIM_EARLY_AGE_MIN = 0.25             # 15 分钟 = 0.25h
 ELIM_MID_PEAK_HOLDERS = 5             # 币龄>1h 最高持币数 < 5 淘汰
 ELIM_MID_AGE_HOURS = 1                # 1 小时
+ELIM_LATE_PEAK_HOLDERS = 8            # 币龄>2h 最高持币数 < 8 淘汰 (数据验证: 峰值持币8~9的代币偶有后续增长, 留出缓冲)
+ELIM_LATE_AGE_HOURS = 2               # 2 小时
+ELIM_PRICE_DROP_MIN_PRICE = 1e-7      # 价格暴跌保护: 当前价格低于此值视为 API 异常, 跳过价格跌幅淘汰
 
 # 价格突破阈值 (标记为已突破, 但保留在队列中继续跟踪, 仅受币龄淘汰)
 # 已突破代币可参与精筛 (毕业通道), 前端单独 tab 展示
@@ -2435,6 +2440,8 @@ def elimination_check(queue: list[dict], now_ms: int,
             elim_reason = f"币龄{age_hours:.1f}h 最高持币仅{peak_h}"
         elif age_hours > ELIM_MID_AGE_HOURS and peak_h < ELIM_MID_PEAK_HOLDERS:
             elim_reason = f"币龄{age_hours:.1f}h 最高持币仅{peak_h}"
+        elif age_hours > ELIM_LATE_AGE_HOURS and peak_h < ELIM_LATE_PEAK_HOLDERS:
+            elim_reason = f"币龄{age_hours:.1f}h 最高持币仅{peak_h}"
 
         if elim_reason:
             eliminated.append({**t, "eliminatedAt": now_ms, "elimReason": elim_reason})
@@ -2664,9 +2671,11 @@ def elimination_check(queue: list[dict], now_ms: int,
                 survivors.append(t)
             continue
 
-        # 1. 价格从峰值跌 90%+
+        # 1. 价格从峰值跌 90%+ (增加异常值保护: 价格<1e-7 视为 API 垃圾数据, 跳过)
         peak = t.get("peakPrice", 0)
-        if peak > 0 and current_price > 0 and current_price < peak * (1 - ELIM_PRICE_DROP_PCT):
+        if (peak > 0 and current_price > 0
+                and current_price >= ELIM_PRICE_DROP_MIN_PRICE
+                and current_price < peak * (1 - ELIM_PRICE_DROP_PCT)):
             elim_reason = (f"价格跌{(1 - current_price / peak) * 100:.0f}% "
                            f"(峰:{peak:.2e} 现:{current_price:.2e})")
 
@@ -2706,6 +2715,11 @@ def elimination_check(queue: list[dict], now_ms: int,
             if age_hours > ELIM_MID_AGE_HOURS and t.get("peakHolders", 0) < ELIM_MID_PEAK_HOLDERS:
                 elim_reason = f"币龄{age_hours:.1f}h 最高持币仅{t.get('peakHolders', 0)}"
 
+        # 7b. 币龄>2h 最高持币数 < 8 (清理僵尸币, 数据验证: 峰值持币8~9偶有后续增长, 留缓冲)
+        if not elim_reason:
+            if age_hours > ELIM_LATE_AGE_HOURS and t.get("peakHolders", 0) < ELIM_LATE_PEAK_HOLDERS:
+                elim_reason = f"币龄{age_hours:.1f}h 最高持币仅{t.get('peakHolders', 0)}"
+
         # 8. 修正后币龄 > 48h
         if not elim_reason:
             if age_hours > MAX_AGE_HOURS:
@@ -2719,12 +2733,15 @@ def elimination_check(queue: list[dict], now_ms: int,
                 elim_reason = (f"持币数跌{(1 - current_holders / peak_h) * 100:.0f}% "
                                f"({peak_h}→{current_holders})")
 
-        # 10. 进度从峰值跌 50% 且币龄 > 6h (热度消退, four.meme + flap)
+        # 10. 进度从峰值跌 50%/70% 且币龄 > 6h (热度消退, four.meme + flap)
+        #     峰值持币≥50 的社区币用宽松阈值 70%, 其他用 50%
         if not elim_reason:
             peak_prog = t.get("peakProgress", 0)
+            peak_h = t.get("peakHolders", 0)
+            drop_pct = ELIM_PROGRESS_DROP_PCT_RELAXED if peak_h >= ELIM_HOLDERS_DROP_PEAK_MIN else ELIM_PROGRESS_DROP_PCT
             if (age_hours > ELIM_PROGRESS_DROP_AGE_HOURS
                     and peak_prog > 0.10
-                    and current_progress < peak_prog * (1 - ELIM_PROGRESS_DROP_PCT)):
+                    and current_progress < peak_prog * (1 - drop_pct)):
                 elim_reason = (f"进度跌{(1 - current_progress / peak_prog) * 100:.0f}% "
                                f"({peak_prog * 100:.1f}%→{current_progress * 100:.1f}%)")
 

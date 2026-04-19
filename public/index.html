@@ -2308,7 +2308,7 @@
         <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle" title="切换主题">🌙</button>
         <p class="filter-desc" id="filterDesc">
           链上扫描 four.meme / flap.sh TokenCreated 事件 → 入场筛(社交≥1、总量10亿、币龄&lt;48h) →
-          队列淘汰(价格跌90%/持币30→10/持币跌70%(峰≥50)/无社交/流动性1k→100(仅毕业)/进度&lt;1%且币龄&gt;2h/进度&lt;5%且币龄&gt;4h/进度跌50%且币龄&gt;6h/15min峰值持币&lt;3/1h峰值持币&lt;5/币龄&gt;48h)
+          队列淘汰(价格跌90%(价格&lt;1e-7跳过)/持币30→10/持币跌70%(峰≥50)/无社交/流动性1k→100(仅毕业)/进度&lt;1%且币龄&gt;2h/进度&lt;5%且币龄&gt;4h/进度跌50%且币龄&gt;6h(社区币70%)/15min峰值持币&lt;3/1h峰值持币&lt;5/2h峰值持币&lt;8/币龄&gt;48h)
           🚀价格突破(峰值≥0.0001 → 标记已突破, 保留队列继续跟踪, 仅受币龄淘汰)
           → 潜伏型精筛(仅未毕业币: 持币≥50/进度30%~90%/币龄≤10h/近1轮持币变化≥-5/近1轮价格变化≥-20%, 全部AND)<br>
           数据源: DexScreener 价格 · GeckoTerminal 已毕业持币数 · four.meme / flap.sh Detail API<br>
@@ -2739,16 +2739,17 @@
       <div class="about-section">
         <h3>❌ 淘汰条件</h3>
         <ul class="about-list">
-          <li>价格从峰值跌 90%+</li>
+          <li>价格从峰值跌 90%+（当前价格 &lt; 1e-7 视为 API 异常，跳过）</li>
           <li>持币数从 ≥30 跌破 10</li>
           <li>持币数从峰值跌 70%+（峰值≥50，清理僵尸币）</li>
           <li>无社交媒体（four.meme 通过 Detail API, flap 通过 flap.sh 页面 SSR 提取, 统一淘汰）</li>
           <li>流动性从 &gt;$1k 跌破 $100（仅已毕业代币）</li>
           <li>进度 &lt; 1% 且币龄 &gt; 2h</li>
           <li>进度 &lt; 5% 且币龄 &gt; 4h</li>
-          <li>进度从峰值跌 50%+ 且币龄 &gt; 6h（热度消退）</li>
+          <li>进度从峰值跌 50%+ 且币龄 &gt; 6h（热度消退；峰值持币≥50 的社区币放宽到 70%）</li>
           <li>币龄 &gt; 15min 且最高持币 &lt; 3</li>
           <li>币龄 &gt; 1h 且最高持币 &lt; 5</li>
+          <li>币龄 &gt; 2h 且最高持币 &lt; 8（清理僵尸币）</li>
           <li>币龄 &gt; 48h</li>
           <li>🚀 价格突破: 峰值价格 ≥ 0.0001 → 标记为「已突破」，保留在队列中继续跟踪，仅受币龄淘汰</li>
         </ul>

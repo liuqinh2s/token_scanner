@@ -53,7 +53,7 @@ inclusion: always
 - 队列状态持久化在 `data/queue.json`，扫描结果按时间戳存在 `data/` 目录
 - 每轮扫描结果包含 `tokens`（精筛通过）、`queue`（存活快照）、`eliminatedThisRound`（本轮淘汰）三个数组
 - `build.js` 处理 `data/` 时必须排除 `queue.json`
-- 前端有四个 Tab：精筛结果、队列存活、本轮淘汰、入场淘汰
+- 前端有五个 Tab：精筛结果、队列存活、已突破、本轮淘汰、入场淘汰
 
 ## 本地调试网络规则
 
