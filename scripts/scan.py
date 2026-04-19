@@ -29,7 +29,7 @@ v6 架构: 极速扫描 (1 分钟一轮)
   - 价格从峰值跌 90%+
   - 持币地址从 ≥30 跌破 10
   - 持币数从峰值跌 70%+ (峰值≥50, 清理僵尸币)
-  - 无社交媒体 (仅 four.meme, flap 无社交 API)
+  - 无社交媒体 (four.meme 通过 detail API, flap 通过 flap.sh 页面 SSR 提取, 统一淘汰)
   - 流动性从 >$1k 跌破 $100 (仅已毕业代币)
   - 进度 < 1% 且币龄 > 2h (four.meme + flap, 均通过链上数据获取进度, flap 用 Portal getTokenV5)
   - 进度 < 5% 且币龄 > 4h
@@ -145,6 +145,8 @@ ERC20_TRANSFER_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a
 FLAP_PORTAL_CONTRACT = "0xe2ce6ab80874fa9fa2aae65d277dd6b8e65c9de0"
 # TokenCreated(uint256 ts, address creator, uint256 nonce, address token, string name, string symbol, string meta)
 FLAP_TOKEN_CREATE_TOPIC = "0x504e7f360b2e5fe33cbaaae4c593bc55305328341bf79009e43e0e3b7f699603"
+# flap.sh 代币详情页 (Next.js SSR, metadata 含社交链接)
+FLAP_PAGE_URL = "https://flap.sh/bnb/"
 # 毕业目标 reserve: 由 Portal getTokenV5() 返回的 bonding curve 参数动态计算 (不再硬编码)
 
 # 所有 TokenCreate 事件监听配置 (新增事件只需在此追加)
@@ -210,6 +212,15 @@ ELIM_MID_AGE_HOURS = 1                # 1 小时
 # 价格突破阈值 (标记为已突破, 但保留在队列中继续跟踪, 仅受币龄淘汰)
 # 已突破代币可参与精筛 (毕业通道), 前端单独 tab 展示
 BREAKTHROUGH_PRICE = 0.0001           # 峰值价格 ≥ 0.0001 标记为已突破
+
+# flap quote token 分类 (用于价格换算)
+# 零地址 = 原生 BNB, 需乘 BNB/USD; 稳定币 = 已是 USD 计价, 无需换算; 其他 = 非标代币计价
+FLAP_STABLE_QUOTES = {
+    "0x55d398326f99059ff775485246999027b3197955",  # USDT
+    "0xe9e7cea3dedca5984780bafc599bd69add087d56",  # BUSD
+    "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",  # USDC
+    "0x61a10e8556bed032ea176330e7f17d6a12a10000",  # USD1/lisUSD
+}
 
 
 # 已知的 DEX Router 地址 (用于识别买入/卖出行为)
@@ -510,22 +521,129 @@ def fm_ticker_prices() -> dict[str, float]:
     return prices
 
 
+def flap_ipfs_meta(cid: str) -> dict | None:
+    """
+    通过 IPFS 网关获取 flap 代币元数据 (含社交链接)。
+    代币创建时项目方提交的 metadata 存储在 IPFS, CID 在链上 TokenCreated 事件的 meta 字段。
+    返回: {"twitter": str|None, "telegram": str|None, "website": str|None, "description": str}
+    """
+    if not cid or not cid.startswith("baf"):
+        return None
+    _ensure_sessions()
+    # 多网关容错
+    gateways = [
+        f"https://ipfs.io/ipfs/{cid}",
+        f"https://gateway.pinata.cloud/ipfs/{cid}",
+        f"https://4everland.io/ipfs/{cid}",
+    ]
+    for gw_url in gateways:
+        try:
+            r = _gt_session.get(gw_url, timeout=8)
+            if r.status_code != 200:
+                continue
+            meta = r.json()
+            return {
+                "twitter": meta.get("twitter") or None,
+                "telegram": meta.get("telegram") or None,
+                "website": meta.get("website") or None,
+                "description": meta.get("description") or "",
+            }
+        except Exception:
+            continue
+    return None
+
+
+def flap_page_meta(address: str) -> dict | None:
+    """
+    回退方案: 从 flap.sh 代币页面 SSR 数据中提取社交媒体信息。
+    flap.sh 是 Next.js SSR 渲染, metadata 直接嵌入 HTML。
+    """
+    _ensure_sessions()
+    try:
+        url = f"{FLAP_PAGE_URL}{address}"
+        r = _gt_session.get(url, timeout=15, headers={
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                          "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "text/html",
+        })
+        if r.status_code != 200:
+            return None
+        html = r.text
+        m = re.search(
+            r'"metadata":\{[^}]*"twitter":(?:"[^"]*"|null)[^}]*\}',
+            html,
+        )
+        if not m:
+            m = re.search(
+                r'"metadata":\{[^}]*"telegram":(?:"[^"]*"|null)[^}]*\}',
+                html,
+            )
+        if not m:
+            return None
+        raw = m.group()
+        json_str = "{" + raw.split(":{", 1)[1]
+        meta = json.loads(json_str)
+        return {
+            "twitter": meta.get("twitter") or None,
+            "telegram": meta.get("telegram") or None,
+            "website": meta.get("website") or None,
+            "description": meta.get("description") or "",
+        }
+    except Exception as e:
+        log.debug("flap_page_meta [%s]: %s", address[:16], e)
+        return None
+
+
+def flap_batch_details(tokens: list[dict]) -> dict[str, dict]:
+    """
+    批量获取 flap 代币社交媒体信息。
+    优先用链上事件中的 IPFS CID 查 IPFS 网关 (轻量、稳定),
+    IPFS 失败时回退到 flap.sh 页面 SSR 提取。
+    tokens: [{"address": ..., "meta": "bafkrei...", ...}]
+    返回: {address: {"twitter": ..., "telegram": ..., "website": ..., "description": ...}}
+    """
+    if not tokens:
+        return {}
+    results = {}
+
+    def _query(t: dict) -> tuple[str, dict | None]:
+        addr = t["address"]
+        cid = t.get("meta", "")
+        # 优先 IPFS
+        d = flap_ipfs_meta(cid) if cid else None
+        # 回退 flap.sh 页面
+        if d is None:
+            d = flap_page_meta(addr)
+        return addr, d
+
+    with ThreadPoolExecutor(max_workers=5) as pool:
+        futures = [pool.submit(_query, t) for t in tokens]
+        for f in as_completed(futures):
+            addr, detail = f.result()
+            if detail:
+                results[addr] = detail
+    return results
+
+
 def flap_get_token_states(addresses: list[str]) -> dict[str, dict]:
     """
     通过 RPC eth_call 调用 Portal 合约的 getTokenV5(address) 读取 flap 代币状态。
     getTokenV5 返回 (ABI 编码的 tuple, 所有数值 18 位精度):
       [0] status (uint256): 0=Invalid, 1=Tradable, 2=InDuel, 3=Killed, 4=DEX
-      [1] reserve (uint256): 已筹集 BNB (wei)
+      [1] reserve (uint256): 已筹集 quote token 数量 (wei)
       [2] supply (uint256): 当前流通供应量 (wei)
-      [3] price (uint256): 当前代币价格 (wei, BNB/代币)
+      [3] price (uint256): 当前代币价格 (wei, quote_token/代币)
       [4] flags (uint256)
-      [5] r (uint256): 虚拟 BNB reserve (wei)
+      [5] r (uint256): 虚拟 quote reserve (wei)
       [6] h (uint256): 虚拟 token reserve (wei)
       [7] K (uint256): 常数积 (存储值 = 实际K * 1e18)
       [8] targetSupply (uint256): 毕业目标供应量 (wei)
+      [9] quoteToken (address): 计价代币地址 (零地址=原生BNB, 否则为ERC-20如USD1/USDT等)
     bonding curve: (x + h)(y + r) = K/1e18, 其中 x=1e9-supply, y=reserve (均为 ether 单位)
     进度 = reserve / target_reserve
-    返回: {address: {"reserve": float(BNB), "progress": float(0~1), "price_bnb": float, "graduated": bool}}
+    返回: {address: {"reserve": float, "progress": float(0~1), "price_native": float,
+                     "graduated": bool, "quote_token": str}}
+    quote_token: 零地址=BNB计价(需乘BNB/USD), 稳定币地址=USD计价(无需换算), 其他=非标计价
     """
     if not addresses:
         return {}
@@ -548,12 +666,18 @@ def flap_get_token_states(addresses: list[str]) -> dict[str, dict]:
             words = [int(raw[i:i+64], 16) for i in range(0, min(len(raw), 768), 64)]
 
             status = words[0]       # 0=Invalid, 1=Tradable, 2=InDuel, 3=Killed, 4=DEX
-            reserve_wei = words[1]  # 已筹 BNB (wei)
-            price_wei = words[3]    # 当前价格 (wei)
+            reserve_wei = words[1]  # 已筹 quote token (wei)
+            price_wei = words[3]    # 当前价格 (wei, quote_token/代币)
 
-            reserve_bnb = reserve_wei / 1e18
-            price_bnb = price_wei / 1e18
+            reserve_native = reserve_wei / 1e18
+            price_native = price_wei / 1e18
             graduated = (status == 4)  # DEX 状态 = 已毕业
+
+            # 解析 quote token 地址 (word[9], 零地址=原生BNB)
+            quote_token = ZERO_ADDRESS
+            if len(words) > 9 and len(raw) >= 640:
+                qt_hex = raw[9 * 64 + 24: 9 * 64 + 64]
+                quote_token = ("0x" + qt_hex).lower()
 
             # 计算进度: reserve / target_reserve
             # bonding curve: (x + h)(y + r) = K (ether 单位, K = K_raw / 1e18)
@@ -563,27 +687,29 @@ def flap_get_token_states(addresses: list[str]) -> dict[str, dict]:
             if graduated:
                 progress = 1.0
             elif len(words) > 8 and words[5] > 0 and words[7] > 0 and words[8] > 0:
-                r_bnb = words[5] / 1e18
+                r_virtual = words[5] / 1e18
                 h_tokens = words[6] / 1e18
                 K = words[7] / 1e18  # 存储值除以 1e18 得到实际 K
                 target_supply = words[8] / 1e18
                 x_target = 1e9 - target_supply  # 毕业时剩余 token 数
                 denominator = x_target + h_tokens
                 if denominator > 0:
-                    target_reserve = K / denominator - r_bnb
+                    target_reserve = K / denominator - r_virtual
                     if target_reserve > 0:
-                        progress = min(reserve_bnb / target_reserve, 1.0)
-            elif reserve_bnb > 0:
-                # 兜底: 无 bonding curve 参数时, 用经验值 16 BNB
-                progress = min(reserve_bnb / 16.0, 1.0)
+                        progress = min(reserve_native / target_reserve, 1.0)
+            elif reserve_native > 0:
+                # 兜底: 无 bonding curve 参数时, 用经验值估算
+                fallback_target = 16.0 if quote_token == ZERO_ADDRESS else 10000.0
+                progress = min(reserve_native / fallback_target, 1.0)
 
             if status == 0:  # Invalid
                 return addr, None
 
             return addr, {
-                "reserve": reserve_bnb,
+                "reserve": reserve_native,
                 "progress": progress,
-                "price_bnb": price_bnb,
+                "price_native": price_native,
+                "quote_token": quote_token,
                 "graduated": graduated,
             }
         except Exception as e:
@@ -594,6 +720,57 @@ def flap_get_token_states(addresses: list[str]) -> dict[str, dict]:
         for addr, state in pool.map(lambda a: _query_one(a), addresses):
             if state:
                 results[addr] = state
+
+    return results
+
+
+def flap_price_to_usd(price_native: float, quote_token: str) -> float:
+    """
+    将 flap 链上价格 (quote_token 计价) 转换为 USD。
+    - 零地址 = 原生 BNB → 乘以 BNB/USD
+    - 稳定币 (USDT/BUSD/USDC/USD1) → 已是 USD, 直接返回
+    - 其他代币 → 无法换算, 返回 0 (依赖 DexScreener 提供 USD 价格)
+    """
+    if price_native <= 0:
+        return 0.0
+    qt = quote_token.lower()
+    if qt == ZERO_ADDRESS:
+        # BNB 计价 → 乘以 BNB/USD
+        return price_native * _bnb_usd_price
+    if qt in FLAP_STABLE_QUOTES:
+        # 稳定币计价 → 已是 USD
+        return price_native
+    # 非标代币计价 (如"币安人生") → 无法换算
+    return 0.0
+
+
+def erc20_total_supplies(addresses: list[str]) -> dict[str, int]:
+    """
+    通过 RPC eth_call 批量读取 ERC-20 totalSupply()。
+    返回: {address: total_supply_int} (已除以 decimals=18, 取整数)
+    totalSupply() selector: 0x18160ddd
+    """
+    if not addresses:
+        return {}
+    results = {}
+
+    def _query_one(addr: str) -> tuple[str, int | None]:
+        res = _rpc_call("eth_call", [
+            {"to": addr, "data": "0x18160ddd"},
+            "latest",
+        ])
+        if not res or not res.get("result") or res["result"] == "0x":
+            return addr, None
+        try:
+            raw_val = int(res["result"], 16)
+            return addr, raw_val // (10 ** 18)  # 18 位精度
+        except Exception:
+            return addr, None
+
+    with ThreadPoolExecutor(max_workers=10) as pool:
+        for addr, supply in pool.map(lambda a: _query_one(a), addresses):
+            if supply is not None:
+                results[addr] = supply
 
     return results
 
@@ -647,8 +824,8 @@ def _parse_token_from_log(log_entry: dict, source: str = "four.meme") -> dict | 
             if not (TS_MIN <= create_ts <= TS_MAX):
                 create_ts = 0
 
-            # 解码 name 和 symbol (动态字符串)
-            name, symbol = "", ""
+            # 解码 name, symbol, meta (动态字符串)
+            name, symbol, meta_cid = "", "", ""
             try:
                 # word[4] 是 name 的偏移量 (相对于 data 起始)
                 name_offset = int(data[256:320], 16) * 2  # 字节偏移 → hex 字符偏移
@@ -669,6 +846,16 @@ def _parse_token_from_log(log_entry: dict, source: str = "four.meme") -> dict | 
                         symbol = bytes.fromhex(
                             data[sym_data_start:sym_data_start + sym_len * 2]
                         ).decode("utf-8", errors="replace")
+
+                # word[6] 是 meta 的偏移量 (IPFS CID 字符串, 如 bafkrei...)
+                meta_offset = int(data[384:448], 16) * 2
+                if meta_offset + 64 <= len(data):
+                    meta_len = int(data[meta_offset:meta_offset + 64], 16)
+                    if 0 < meta_len < 200:
+                        meta_data_start = meta_offset + 64
+                        meta_cid = bytes.fromhex(
+                            data[meta_data_start:meta_data_start + meta_len * 2]
+                        ).decode("utf-8", errors="replace")
             except Exception:
                 pass
 
@@ -682,6 +869,7 @@ def _parse_token_from_log(log_entry: dict, source: str = "four.meme") -> dict | 
                 "createdAt": create_ts * 1000 if create_ts else 0,
                 "name": name,
                 "symbol": symbol,
+                "meta": meta_cid,  # IPFS CID, 含社交媒体元数据
                 "block": int(log_entry["blockNumber"], 16),
                 "source": "flap",
             }
@@ -2084,13 +2272,17 @@ def admission_filter(new_tokens: list[dict],
                 if detail:
                     detail_map[addr] = detail
 
-    # --- flap 代币: 用 DexScreener 批量查价获取基础数据 + 链上读取进度 ---
+    # --- flap 代币: 用 DexScreener 批量查价获取基础数据 + 链上读取进度 + ERC-20 totalSupply + 社交媒体 ---
     flap_ds_data = {}
     flap_states = {}
+    flap_supplies = {}
+    flap_social = {}
     if flap_tokens:
         flap_addrs = [t["address"] for t in flap_tokens]
         flap_ds_data = ds_batch_prices(flap_addrs)
         flap_states = flap_get_token_states(flap_addrs)
+        flap_supplies = erc20_total_supplies(flap_addrs)
+        flap_social = flap_batch_details(flap_tokens)
 
     # 逐个判断入场条件
     for t in fresh:
@@ -2107,24 +2299,53 @@ def admission_filter(new_tokens: list[dict],
                 rejected.append({"token": t, "detail": None, "reason": f"币龄过大 ({age_desc})"})
                 continue
 
-            # flap 代币构造 detail 兼容结构 (用 Portal getTokenV5 链上数据 + DexScreener 填充)
+            # 入场条件: 总供应量 = 10亿 (通过 ERC-20 totalSupply() 链上读取)
+            real_supply = flap_supplies.get(t["address"])
+            if real_supply is None:
+                rejected.append({"token": t, "detail": None, "reason": "totalSupply 读取失败"})
+                continue
+            if real_supply != TOTAL_SUPPLY:
+                rejected.append({"token": t, "detail": None, "reason": f"总量≠10亿 ({real_supply})"})
+                continue
+
+            # flap 代币构造 detail 兼容结构 (用 Portal getTokenV5 链上数据 + DexScreener + flap.sh 社交)
             flap_state = flap_states.get(t["address"], {})
             flap_progress = flap_state.get("progress", 0)
             flap_graduated = flap_state.get("graduated", False)
-            # 价格: DexScreener 优先 (已是 USD), 无则用 getTokenV5 链上价格 (BNB 计价, 需换算)
+            # 价格: DexScreener 优先 (已是 USD), 无则用 getTokenV5 链上价格 (根据 quote_token 换算)
             flap_price = ds.get("price", 0)
-            if not flap_price and flap_state.get("price_bnb", 0) > 0:
-                flap_price = flap_state["price_bnb"] * _bnb_usd_price  # BNB→USD
+            if not flap_price and flap_state.get("price_native", 0) > 0:
+                flap_price = flap_price_to_usd(
+                    flap_state["price_native"],
+                    flap_state.get("quote_token", ZERO_ADDRESS),
+                )
+            # 社交媒体: 从 flap.sh 页面 SSR 数据提取
+            flap_meta = flap_social.get(t["address"])
+            if flap_meta is None:
+                # flap.sh 页面抓取失败, 无法判断社交状态, 淘汰
+                rejected.append({"token": t, "detail": None, "reason": "flap.sh 页面抓取失败"})
+                continue
+            social_links = {}
+            if flap_meta.get("twitter"):
+                social_links["twitter"] = flap_meta["twitter"]
+            if flap_meta.get("telegram"):
+                social_links["telegram"] = flap_meta["telegram"]
+            if flap_meta.get("website"):
+                social_links["website"] = flap_meta["website"]
+            # 入场条件: 社交 ≥ 1 (与 four.meme 统一)
+            if len(social_links) < MIN_SOCIAL_COUNT:
+                rejected.append({"token": t, "detail": None, "reason": "无社交媒体"})
+                continue
             flap_detail = {
                 "holders": 0,
                 "price": flap_price,
-                "totalSupply": TOTAL_SUPPLY,  # flap 代币也是 10 亿总量
-                "socialCount": 0,  # flap 无社交媒体 API, 不作为淘汰条件
-                "socialLinks": {},
-                "descr": "",
+                "totalSupply": real_supply,
+                "socialCount": len(social_links),
+                "socialLinks": social_links,
+                "descr": flap_meta.get("description", ""),
                 "name": ds.get("name") or t.get("name", ""),
                 "shortName": ds.get("symbol") or t.get("symbol", ""),
-                "progress": 1.0 if flap_graduated else flap_progress,  # 链上读取真实进度
+                "progress": 1.0 if flap_graduated else flap_progress,
                 "day1Vol": ds.get("volume24h", 0),
                 "liquidity": ds.get("liquidity", 0),
                 "raisedAmount": flap_state.get("reserve", 0),
@@ -2328,9 +2549,12 @@ def elimination_check(queue: list[dict], now_ms: int,
             flap_state = flap_states.get(t["address"], {})
             flap_graduated = flap_state.get("graduated", False)
             current_progress = 1.0 if flap_graduated else flap_state.get("progress", t.get("progress", 0))
-            # flap 价格补充: DexScreener 无价格时用 getTokenV5 链上价格 (BNB→USD)
-            if not current_price and flap_state.get("price_bnb", 0) > 0:
-                current_price = flap_state["price_bnb"] * _bnb_usd_price  # BNB→USD
+            # flap 价格补充: DexScreener 无价格时用 getTokenV5 链上价格 (根据 quote_token 换算)
+            if not current_price and flap_state.get("price_native", 0) > 0:
+                current_price = flap_price_to_usd(
+                    flap_state["price_native"],
+                    flap_state.get("quote_token", ZERO_ADDRESS),
+                )
             # 更新 raisedAmount
             if flap_state.get("reserve", 0) > 0:
                 t["raisedAmount"] = flap_state["reserve"]
@@ -2428,8 +2652,8 @@ def elimination_check(queue: list[dict], now_ms: int,
                     and current_holders < ELIM_HOLDERS_FLOOR):
                 elim_reason = f"持币数 {t.get('peakHolders', 0)}→{current_holders}"
 
-        # 3. 无社交媒体 (仅 four.meme 代币, flap 无社交 API)
-        if not elim_reason and detail and detail["socialCount"] < MIN_SOCIAL_COUNT and t.get("source") != "flap":
+        # 3. 无社交媒体 (four.meme + flap 统一淘汰)
+        if not elim_reason and detail and detail["socialCount"] < MIN_SOCIAL_COUNT:
             elim_reason = "无社交媒体"
 
         # 4. 流动性从 >$1k 跌破 $100 (仅已毕业代币, 未毕业流动性数据不准确)
@@ -3003,8 +3227,8 @@ def main():
             if (t.get("peakHolders", 0) >= ELIM_HOLDERS_PEAK_MIN
                     and current_holders < ELIM_HOLDERS_FLOOR):
                 elim_reason = f"持币数 {t.get('peakHolders', 0)}→{current_holders}"
-        # 无社交 (仅 four.meme 代币, flap 无社交 API)
-        if not elim_reason and t.get("socialCount", 0) < MIN_SOCIAL_COUNT and t.get("source") != "flap":
+        # 无社交 (four.meme + flap 统一淘汰)
+        if not elim_reason and t.get("socialCount", 0) < MIN_SOCIAL_COUNT:
             elim_reason = "无社交媒体"
         # 流动性枯竭 (仅已毕业)
         if not elim_reason and is_graduated:
