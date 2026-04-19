@@ -40,16 +40,14 @@ v6 架构: 极速扫描 (1 分钟一轮)
   - 价格突破: 峰值价格 ≥ 0.0001 → 标记为已突破, 保留在队列中继续跟踪, 仅受币龄>48h淘汰
   - 突破 flap 刷新: 每轮对突破中的 flap 代币强制重新拉取数据, 重算 peakPrice, 不达标则取消突破标记
 
-精筛条件 (增量筛选, 核心思路: 基础门槛 + 单维度优秀 + 买涨不买跌):
-  近一轮上涨约束: 最近 1 轮持币数、价格、动力指标都必须上涨 (买涨不买跌)
-  基础门槛 (三条全部满足, AND, 近 1~3 轮窗口):
-  - 持币增量: 近 1~3 轮持币数增长 ≥ 10
-  - 动力增量: 未毕业币进度增长 ≥ 8%; 已毕业币流动性增长 ≥ 1%
-  - 价格增量: 近 1~3 轮价格涨幅 ≥ 8%
-  单维度优秀 (至少一条满足, OR):
-  - 持币增量 ≥ 45
-  - 未毕业币进度增长 ≥ 20%; 已毕业币流动性增长 ≥ 5%
-  - 价格涨幅 ≥ 20%
+精筛条件 (潜伏型筛选, 核心思路: 蓄势待发, 不追涨):
+  仅未毕业币, 已毕业币不走此通道
+  条件 (全部满足, AND):
+  - 持币数 ≥ 50 (有真实社区)
+  - 进度 30%~90% (有真金白银, 还有上涨空间)
+  - 币龄 ≤ 10h (还年轻)
+  - 近 1 轮持币变化 ≥ -5 (没在大量流失)
+  - 近 1 轮价格变化 ≥ -20% (没在暴跌)
   - 仿盘数: 仅标记, 不排除 (仿盘多=热门信号, 交给用户判断)
 """
 from __future__ import annotations
@@ -174,20 +172,17 @@ BINANCE_HEADERS = {
     "User-Agent": "binance-web3/1.1 (Skill)",
 }
 
-# 精筛阈值 (增量筛选: 近 1~3 轮增量达标即通过)
+# 精筛阈值 (潜伏型: 蓄势待发, 不追涨)
 MAX_AGE_HOURS = 48
 SCAN_INTERVAL_MIN = 15                 # GitHub Actions cron 间隔 (分钟)
 TOTAL_SUPPLY = 1_000_000_000           # 10亿
-# --- 精筛: 最低限度 (三条全部满足, AND) ---
-QUALITY_BASE_HOLDERS_DELTA = 10        # 精筛基础: 近 1~3 轮持币数增长 ≥ 10
-QUALITY_BASE_PROGRESS_DELTA = 0.08     # 精筛基础: 近 1~3 轮进度增长 ≥ 8% (未毕业币)
-QUALITY_BASE_LIQUIDITY_GROWTH = 0.01   # 精筛基础: 近 1~3 轮流动性增长 ≥ 1% (已毕业币)
-QUALITY_BASE_PRICE_GROWTH = 0.08       # 精筛基础: 近 1~3 轮价格涨幅 ≥ 8%
-# --- 精筛: 单维度优秀 (任一满足, OR) ---
-QUALITY_EXCEL_HOLDERS_DELTA = 45       # 精筛优秀: 近 1~3 轮持币数增长 ≥ 45
-QUALITY_EXCEL_PROGRESS_DELTA = 0.20    # 精筛优秀: 近 1~3 轮进度增长 ≥ 20% (未毕业币)
-QUALITY_EXCEL_LIQUIDITY_GROWTH = 0.05  # 精筛优秀: 近 1~3 轮流动性增长 ≥ 5% (已毕业币)
-QUALITY_EXCEL_PRICE_GROWTH = 0.20      # 精筛优秀: 近 1~3 轮价格涨幅 ≥ 20%
+# --- 精筛: 潜伏型条件 (未毕业币, 有社区基础 + 有资金 + 没在崩盘) ---
+QUALITY_MIN_HOLDERS = 50               # 精筛: 持币数 ≥ 50 (有真实社区)
+QUALITY_MIN_PROGRESS = 0.30            # 精筛: 进度 ≥ 30% (有真金白银)
+QUALITY_MAX_PROGRESS = 0.90            # 精筛: 进度 < 90% (还有上涨空间)
+QUALITY_MAX_AGE_HOURS = 10             # 精筛: 币龄 ≤ 10h (还年轻)
+QUALITY_MIN_H_DELTA = -5              # 精筛: 近 1 轮持币变化 ≥ -5 (没在大量流失)
+QUALITY_MIN_PRICE_CHANGE = -0.20       # 精筛: 近 1 轮价格变化 ≥ -20% (没在暴跌)
 COPYCAT_MARK_MIN = 3                   # 仿盘数 ≥3 标记 (仅标记, 不排除)
 MIN_SOCIAL_COUNT = 1                   # 最少关联社交媒体数
 
@@ -2842,29 +2837,23 @@ def breakthrough_flap_refresh(survivors: list[dict], breakthrough: list[dict],
 
 
 # ===================================================================
-#  Step 5: 精筛 — 增量筛选
+#  Step 5: 精筛 — 潜伏型筛选
 # ===================================================================
 def quality_filter(candidates: list[dict], now_ms: int,
                    cooldown_map: dict[str, int] | None = None,
                    current_round: int = 0) -> list[dict]:
     """
-    精筛: 增量筛选 — 从队列存活币中找"正在起飞"的信号
-    核心思路: 基础门槛 + 单维度优秀 + 买涨不买跌
-    判断窗口: 近 1~3 轮 (先查 3 轮差 → 2 轮差 → 1 轮差, 任一满足即可)
+    精筛: 潜伏型筛选 — 从队列存活币中找"蓄势待发"的代币
+    核心思路: 不追涨, 在代币有社区基础 + 有资金 + 没在崩盘时潜伏进去
 
-    基础门槛 (三条全部满足, AND):
-      1. 持币增量: 近 1~3 轮持币数增长 ≥ 10
-      2. 动力增量: 未毕业币进度增长 ≥ 8%; 已毕业币流动性增长 ≥ 1%
-      3. 价格增量: 近 1~3 轮价格涨幅 ≥ 8%
+    条件 (全部满足, AND, 仅未毕业币):
+      1. 持币数 ≥ 50 (有真实社区)
+      2. 进度 30%~90% (有真金白银, 还有上涨空间)
+      3. 币龄 ≤ 10h (还年轻)
+      4. 近 1 轮持币变化 ≥ -5 (没在大量流失)
+      5. 近 1 轮价格变化 ≥ -20% (没在暴跌)
 
-    单维度优秀 (至少一条满足, OR):
-      1. 持币增量 ≥ 45
-      2. 未毕业币进度增长 ≥ 20%; 已毕业币流动性增长 ≥ 5%
-      3. 价格涨幅 ≥ 20%
-
-    近一轮上涨约束 (买涨不买跌):
-      - 近 1 轮持币数、价格、动力指标都必须上涨
-      - 不买正在下跌的币, 即使总增量达标
+    已毕业币不走此通道 (毕业后价格波动大, 潜伏逻辑不适用)
     """
     results = []
 
@@ -2873,128 +2862,52 @@ def quality_filter(candidates: list[dict], now_ms: int,
         holders = t.get("holders", 0)
         name = t.get("name") or t.get("address", "")[:16]
         progress = t.get("progress", 0)
-        liq = t.get("liquidity", 0)
 
-        h_hist = t.get("holdersHistory", [])
-        price_hist = t.get("priceHistory", [])
-        prog_hist = t.get("progressHistory", [])
-        liq_hist = t.get("liquidityHistory", [])
-
-        is_graduated = progress >= 1.0
-
-        # ============================================================
-        # 近一轮上涨约束: 买涨不买跌, 最近一轮必须全面上涨
-        # ============================================================
-        if len(h_hist) < 1 or len(price_hist) < 1:
-            continue  # 至少需要 1 轮历史
-        if holders <= h_hist[-1]:
-            continue  # 持币数未涨
-        if current_price <= 0 or price_hist[-1] <= 0 or current_price <= price_hist[-1]:
-            continue  # 价格未涨
-        if is_graduated:
-            if len(liq_hist) < 1 or liq <= 0 or liq_hist[-1] <= 0 or liq <= liq_hist[-1]:
-                continue  # 流动性未涨
-        else:
-            if len(prog_hist) < 1 or progress <= prog_hist[-1]:
-                continue  # 进度未涨
-
-        # ============================================================
-        # 增量判断: 先 3 轮差 → 2 轮差 → 1 轮差, 任一窗口满足即通过
-        # ============================================================
-        passed = False
-        for gap in (3, 2, 1):
-            # --- 条件 1: 持币增量 ---
-            if len(h_hist) > gap:
-                h_delta = holders - h_hist[-(gap + 1)]
-            elif len(h_hist) == gap:
-                h_delta = holders - h_hist[0]
-            else:
-                continue  # 历史数据不足, 跳过此窗口
-            if h_delta < QUALITY_BASE_HOLDERS_DELTA:
-                continue  # 基础门槛不达标
-
-            # --- 条件 2: 动力增量 (未毕业看进度, 已毕业看流动性) ---
-            if is_graduated:
-                if len(liq_hist) > gap:
-                    prev_liq = liq_hist[-(gap + 1)]
-                elif len(liq_hist) == gap:
-                    prev_liq = liq_hist[0]
-                else:
-                    continue
-                if prev_liq <= 0 or liq <= 0:
-                    continue
-                liq_growth = (liq - prev_liq) / prev_liq
-                if liq_growth < QUALITY_BASE_LIQUIDITY_GROWTH:
-                    continue
-            else:
-                if len(prog_hist) > gap:
-                    prev_prog = prog_hist[-(gap + 1)]
-                elif len(prog_hist) == gap:
-                    prev_prog = prog_hist[0]
-                else:
-                    continue
-                prog_delta = progress - prev_prog
-                if prog_delta < QUALITY_BASE_PROGRESS_DELTA:
-                    continue
-
-            # --- 条件 3: 价格涨幅 ---
-            if len(price_hist) > gap:
-                prev_price = price_hist[-(gap + 1)]
-            elif len(price_hist) == gap:
-                prev_price = price_hist[0]
-            else:
-                continue
-            if prev_price <= 0 or current_price <= 0:
-                continue
-            price_growth = (current_price - prev_price) / prev_price
-            if price_growth < QUALITY_BASE_PRICE_GROWTH:
-                continue
-
-            # --- 基础门槛全部达标, 检查单维度优秀 (至少一条 OR) ---
-            excel_holders = h_delta >= QUALITY_EXCEL_HOLDERS_DELTA
-            excel_price = price_growth >= QUALITY_EXCEL_PRICE_GROWTH
-            if is_graduated:
-                excel_power = liq_growth >= QUALITY_EXCEL_LIQUIDITY_GROWTH
-            else:
-                excel_power = prog_delta >= QUALITY_EXCEL_PROGRESS_DELTA
-
-            if not (excel_holders or excel_price or excel_power):
-                continue  # 没有任何一个维度优秀
-
-            # 全部通过
-            passed = True
-            t["_quality_gap"] = gap
-            t["_quality_h_delta"] = h_delta
-            t["_quality_price_growth"] = price_growth
-            if is_graduated:
-                t["_quality_liq_growth"] = liq_growth
-            else:
-                t["_quality_prog_delta"] = prog_delta
-            # 记录哪些维度优秀
-            excel_tags = []
-            if excel_holders:
-                excel_tags.append("持币")
-            if excel_power:
-                excel_tags.append("进度" if not is_graduated else "流动性")
-            if excel_price:
-                excel_tags.append("价格")
-            t["_quality_excel"] = "+".join(excel_tags)
-            break
-
-        if not passed:
+        # 仅未毕业币
+        if progress >= 1.0:
             continue
 
-        results.append(t)
-        gap = t.get("_quality_gap", 0)
+        # 持币数门槛
+        if holders < QUALITY_MIN_HOLDERS:
+            continue
+
+        # 进度区间
+        if progress < QUALITY_MIN_PROGRESS or progress >= QUALITY_MAX_PROGRESS:
+            continue
+
+        # 币龄
         age_ms = now_ms - t.get("createdAt", 0)
-        log.info("精筛: ✓ %s — %d轮窗口, 持币+%d, 价格+%.0f%%, %s, 优秀维度[%s], 币龄 %.0fmin",
-                 name, gap,
-                 t.get("_quality_h_delta", 0),
-                 t.get("_quality_price_growth", 0) * 100,
-                 "流动性+{:.0f}%".format(t.get("_quality_liq_growth", 0) * 100) if progress >= 1.0
-                 else "进度+{:.1f}%".format(t.get("_quality_prog_delta", 0) * 100),
-                 t.get("_quality_excel", ""),
-                 age_ms / 60000)
+        age_hours = age_ms / 3600000
+        if age_hours > QUALITY_MAX_AGE_HOURS:
+            continue
+
+        # 近 1 轮变化检查 (需要历史数据)
+        h_hist = t.get("holdersHistory", [])
+        price_hist = t.get("priceHistory", [])
+
+        if len(h_hist) < 1 or len(price_hist) < 1:
+            continue
+
+        # 持币变化: 没在大量流失
+        h_delta = holders - h_hist[-1]
+        if h_delta < QUALITY_MIN_H_DELTA:
+            continue
+
+        # 价格变化: 没在暴跌
+        prev_price = price_hist[-1]
+        if prev_price <= 0 or current_price <= 0:
+            continue
+        price_change = (current_price - prev_price) / prev_price
+        if price_change < QUALITY_MIN_PRICE_CHANGE:
+            continue
+
+        # 全部通过
+        t["_quality_h_delta"] = h_delta
+        t["_quality_price_change"] = price_change
+        results.append(t)
+        log.info("精筛: ✓ %s — 持币=%d(+%d), 进度=%.1f%%, 价格%+.1f%%, 币龄 %.1fh",
+                 name, holders, h_delta, progress * 100,
+                 price_change * 100, age_hours)
 
     return results
 
