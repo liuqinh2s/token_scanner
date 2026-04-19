@@ -2508,10 +2508,23 @@ def elimination_check(queue: list[dict], now_ms: int,
         detail = detail_map.get(t["address"])
         age_hours = (now_ms - t.get("createdAt", 0)) / 3600000
 
-        # 更新动态数据 (DexScreener > detail > 队列缓存)
-        current_price = (ds.get("price")
-                         or (detail["price"] if detail else 0)
-                         or t.get("price", 0))
+        # 更新动态数据 (DexScreener > detail/flap链上 > 队列缓存)
+        # 注意: flap 代币不查 detail, 价格优先级为 DexScreener > flap链上换算 > 缓存
+        is_flap = t.get("source") == "flap"
+        ds_price = ds.get("price") or 0
+        if is_flap:
+            flap_state = flap_states.get(t["address"], {})
+            flap_chain_price = 0
+            if flap_state.get("price_native", 0) > 0:
+                flap_chain_price = flap_price_to_usd(
+                    flap_state["price_native"],
+                    flap_state.get("quote_token", ZERO_ADDRESS),
+                )
+            current_price = ds_price or flap_chain_price or t.get("price", 0)
+        else:
+            current_price = (ds_price
+                             or (detail["price"] if detail else 0)
+                             or t.get("price", 0))
         # 持币数优先级:
         # 已毕业: BSCScan (链上索引) > 缓存 (detail 毕业后返回 0, 不用)
         # 未毕业: detail API > BSCScan 兜底 (detail 返回 0 时) > 缓存
@@ -2546,17 +2559,9 @@ def elimination_check(queue: list[dict], now_ms: int,
         current_liq = (ds.get("liquidity")
                        or t.get("liquidity", 0))
         # 进度: four.meme 用 detail API, flap 用 Portal getTokenV5
-        is_flap = t.get("source") == "flap"
         if is_flap:
-            flap_state = flap_states.get(t["address"], {})
             flap_graduated = flap_state.get("graduated", False)
             current_progress = 1.0 if flap_graduated else flap_state.get("progress", t.get("progress", 0))
-            # flap 价格补充: DexScreener 无价格时用 getTokenV5 链上价格 (根据 quote_token 换算)
-            if not current_price and flap_state.get("price_native", 0) > 0:
-                current_price = flap_price_to_usd(
-                    flap_state["price_native"],
-                    flap_state.get("quote_token", ZERO_ADDRESS),
-                )
             # 更新 raisedAmount
             if flap_state.get("reserve", 0) > 0:
                 t["raisedAmount"] = flap_state["reserve"]
