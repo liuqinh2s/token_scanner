@@ -1,11 +1,14 @@
 /**
  * Build Script - generates static JSON files for GitHub Pages frontend.
  *
+ * 数据策略: data/ 保留 7 天, 前端展示近 2 天, 其余 5 天供数据分析 (精筛成功率统计)
+ *
  * Reads scan results from data/, generates:
  *   site/data/latest.json    - most recent scan result (含 queue/breakthrough 快照)
- *   site/data/history.json   - list of all scans (summary, 含 queue_size/breakthrough_count)
- *   site/data/scans/0.json   - individual scan results (0 = newest)
- *   site/data/search-index.json - deduplicated tokens for client-side search
+ *   site/data/history.json   - list of display-period scans (近 2 天, summary)
+ *   site/data/scans/0.json   - individual scan results (近 2 天, 0 = newest)
+ *   site/data/search-index.json - deduplicated tokens for client-side search (近 2 天)
+ *   site/data/quality-stats.json - 精筛成功率统计 (全部 7 天, 时间跨度越长越准确)
  *
  * 搜索索引包含所有类型代币: 精筛/队列/已突破/淘汰/入场淘汰 (淘汰类仅供搜索)
  * Also copies public/index.html to site/index.html with API paths rewritten.
@@ -39,13 +42,39 @@ const scanFiles = fs.readdirSync(DATA_DIR)
   .sort()
   .reverse();
 
+// 分离: 近 2 天的文件用于前端展示, 全部 7 天的文件用于数据分析 (搜索索引 + 精筛成功率)
+const DISPLAY_DAYS = 2;
+const displayCutoff = new Date(Date.now() - DISPLAY_DAYS * 24 * 60 * 60 * 1000);
+
+function parseFileDate(filename) {
+  // 2026-04-10T12-34-56.json → Date
+  try {
+    const stem = filename.replace(".json", "");
+    const parts = stem.split("T");
+    if (parts.length !== 2) return null;
+    const timePart = parts[1].replace(/-/g, ":");
+    return new Date(`${parts[0]}T${timePart}Z`);
+  } catch { return null; }
+}
+
+const displayFiles = scanFiles.filter(f => {
+  const d = parseFileDate(f);
+  return d && d >= displayCutoff;
+});
+const analysisOnlyFiles = scanFiles.filter(f => {
+  const d = parseFileDate(f);
+  return d && d < displayCutoff;
+});
+
+console.log(`[BUILD] Data files: ${scanFiles.length} total, ${displayFiles.length} for display (${DISPLAY_DAYS}d), ${analysisOnlyFiles.length} for analysis only.`);
+
 if (scanFiles.length === 0) {
   console.log("[BUILD] No scan data found, writing empty defaults.");
   const empty = { scanTime: null, totalTokens: 0, filteredTokens: 0, tokens: [] };
   fs.writeFileSync(path.join(SITE_DATA_DIR, "latest.json"), JSON.stringify(empty));
   fs.writeFileSync(path.join(SITE_DATA_DIR, "history.json"), JSON.stringify([]));
 } else {
-  // latest.json = most recent scan
+  // latest.json = most recent scan (始终用最新的, 不受 displayFiles 限制)
   const latestData = JSON.parse(fs.readFileSync(path.join(DATA_DIR, scanFiles[0]), "utf-8"));
   // Sort tokens by created_at descending (newest first)
   if (latestData.tokens) {
@@ -53,9 +82,9 @@ if (scanFiles.length === 0) {
   }
   fs.writeFileSync(path.join(SITE_DATA_DIR, "latest.json"), JSON.stringify(latestData));
 
-  // history.json + individual scan files
+  // history.json + individual scan files (仅近 2 天的数据用于前端展示)
   const history = [];
-  scanFiles.forEach((file, idx) => {
+  displayFiles.forEach((file, idx) => {
     const data = JSON.parse(fs.readFileSync(path.join(DATA_DIR, file), "utf-8"));
     // Sort tokens by created_at descending (newest first)
     if (data.tokens) {
@@ -76,7 +105,7 @@ if (scanFiles.length === 0) {
   });
   fs.writeFileSync(path.join(SITE_DATA_DIR, "history.json"), JSON.stringify(history));
 
-  // search-index.json - 包含所有时间点的代币快照，支持历史时间线查看
+  // search-index.json - 仅近 2 天数据 (前端搜索用, 控制体积)
   // 同一地址在不同扫描时间点保留多条记录，但做采样：同一地址+来源 每30分钟最多保留一条
   // 包含所有五类代币: 精筛结果、队列存活、已突破、本轮淘汰、入场淘汰
   const searchIndex = [];
@@ -127,8 +156,9 @@ if (scanFiles.length === 0) {
   }
 
   // 按时间正序遍历（oldest first），这样采样保留的是最早的记录
-  const scanFilesAsc = [...scanFiles].reverse();
-  scanFilesAsc.forEach((file) => {
+  // 搜索索引仅用近 2 天数据, 控制前端加载体积
+  const displayFilesAsc = [...displayFiles].reverse();
+  displayFilesAsc.forEach((file) => {
     const data = JSON.parse(fs.readFileSync(path.join(DATA_DIR, file), "utf-8"));
     const st = data.scanTime;
     for (const t of (data.tokens || [])) addToIndex(t, 'filtered', st);
@@ -143,14 +173,15 @@ if (scanFiles.length === 0) {
   fs.writeFileSync(path.join(SITE_DATA_DIR, "search-index.json"), JSON.stringify(searchIndex));
   console.log(`[BUILD] Search index: ${searchIndex.length} records, ${uniqueAddrs} unique tokens.`);
 
-  // ===== 精筛成功率统计 =====
+  // ===== 精筛成功率统计 (使用全部 7 天数据, 时间跨度越长越准确) =====
   // 遍历所有扫描结果，收集精筛通过的代币，跟踪后续峰值价格
   // 成功 = 后续峰值价格 ≥ 精筛时价格 × (1 + TP_TRIGGER_PCT/100)
   const qualityMap = {}; // address -> { 首次精筛信息 + 后续最高价 }
   const SUCCESS_THRESHOLD = 1 + TP_TRIGGER_PCT / 100;
 
-  // 正序遍历 (oldest first)
-  scanFilesAsc.forEach((file) => {
+  // 正序遍历 (oldest first, 全部 7 天数据)
+  const allFilesAsc = [...scanFiles].reverse();
+  allFilesAsc.forEach((file) => {
     const data = JSON.parse(fs.readFileSync(path.join(DATA_DIR, file), "utf-8"));
     const st = data.scanTime;
 
@@ -234,8 +265,8 @@ if (scanFiles.length === 0) {
   };
 
   fs.writeFileSync(path.join(SITE_DATA_DIR, "quality-stats.json"), JSON.stringify(qualityStats));
-  console.log(`[BUILD] Quality stats: ${totalQuality} tokens, ${successTokens.length} success (${successRate}%), ${failTokens.length} fail.`);
-  console.log(`[BUILD] Generated data for ${scanFiles.length} scans.`);
+  console.log(`[BUILD] Quality stats: ${totalQuality} tokens, ${successTokens.length} success (${successRate}%), ${failTokens.length} fail. (7-day data)`);
+  console.log(`[BUILD] Generated: ${displayFiles.length} scans for display, ${scanFiles.length} scans for analysis.`);
 }
 
 // Copy and patch index.html

@@ -3229,8 +3229,9 @@ def post_quality_defense(candidates: list[dict], api_key: str) -> list[dict]:
 # ===================================================================
 #  数据文件清理 — 删除 48 小时前的 JSON 文件
 # ===================================================================
-def cleanup_old_data(max_age_days: int = 2):
+def cleanup_old_data(max_age_days: int = 7):
     """删除 data/ 目录下超过 max_age_days 天的 JSON 文件 (排除 queue.json, smart_money.json)
+    保留 7 天数据: 近 2 天供前端展示, 其余 5 天供数据分析优化策略
     通过文件名中的时间戳判断, 而非 mtime (GitHub Actions checkout 后 mtime 为当前时间)
     """
     now = datetime.now(timezone.utc)
@@ -3818,8 +3819,8 @@ def main():
         json.dump(output, f, ensure_ascii=False, indent=2)
     log.info("输出: %s", out_path)
 
-    # 清理过期数据文件
-    cleanup_old_data(2)
+    # 清理过期数据文件 (保留 7 天, 前端只展示近 2 天, 其余供数据分析)
+    cleanup_old_data(7)
 
     # 打印摘要
     log.info("=" * 50)
