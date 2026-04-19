@@ -51,12 +51,12 @@ v6 架构: 极速扫描 (1 分钟一轮)
   - 近 1 轮价格变化 ≥ -20% (没在暴跌)
   - 仿盘数 ≥ 3 (有市场热度, 冷门题材排除)
 
-毕业通道 (刚毕业强势币, 核心思路: 毕业后短窗口期快进快出):
-  仅已毕业币 (progress >= 1.0), 与潜伏型精筛互补
+毕业通道 (刚毕业强势币, 核心思路: 捕捉毕业瞬间, 第一时间介入):
+  仅"刚毕业"币 (上一轮进度<100% → 本轮进度=100%), 与潜伏型精筛互补
   条件 (全部满足, AND):
+  - 刚毕业 (上一轮 progressHistory[-1] < 1.0, 本轮 progress >= 1.0)
   - 持币数 ≥ 100 (毕业后需要更强社区支撑)
   - 流动性 ≥ $10,000 (有真实交易深度)
-  - 币龄 ≤ 24h (毕业后窗口期短)
   - 近 1 轮持币变化 ≥ 0 (持币数不能在减少)
   - 近 1 轮价格变化 ≥ 0% (必须还在涨, 毕业后首轮跌的基本没戏)
   交易策略: 回撤止盈 (中点法) + 止损 -30% (比潜伏型 -60% 更紧)
@@ -201,7 +201,6 @@ MIN_SOCIAL_COUNT = 1                   # 最少关联社交媒体数
 # --- 毕业通道: 刚毕业强势币 (已毕业, 有流动性 + 持币数增长 + 没在崩盘) ---
 GRAD_MIN_HOLDERS = 100                 # 毕业通道: 持币数 ≥ 100 (毕业后需要更强社区支撑)
 GRAD_MIN_LIQUIDITY = 10000             # 毕业通道: 流动性 ≥ $10,000 (有真实交易深度)
-GRAD_MAX_AGE_HOURS = 24                # 毕业通道: 币龄 ≤ 24h (毕业后窗口期短)
 GRAD_MIN_H_DELTA = 0                   # 毕业通道: 近 1 轮持币变化 ≥ 0 (持币数不能在减少)
 GRAD_MIN_PRICE_CHANGE = 0.0            # 毕业通道: 近 1 轮价格变化 ≥ 0% (必须还在涨, 毕业后首轮跌的基本没戏)
 GRAD_STOP_LOSS_PCT = -30               # 毕业通道: 止损 -30% (比潜伏型更紧, 毕业币跌起来快)
@@ -3006,15 +3005,14 @@ def quality_filter(candidates: list[dict], now_ms: int,
 def graduated_quality_filter(candidates: list[dict], now_ms: int) -> list[dict]:
     """
     毕业通道: 从队列存活币中找刚毕业的强势代币
-    核心思路: 毕业后短暂窗口期, 有流动性 + 社区还在 + 没在崩盘时快速介入
+    核心思路: 捕捉毕业瞬间, 第一时间介入
 
-    条件 (全部满足, AND, 仅已毕业币):
-      1. 已毕业 (progress >= 1.0)
+    条件 (全部满足, AND, 仅刚毕业币):
+      1. 刚毕业 (上一轮 progressHistory[-1] < 1.0, 本轮 progress >= 1.0)
       2. 持币数 ≥ 100 (毕业后需要更强社区支撑)
       3. 流动性 ≥ $10,000 (有真实交易深度)
-      4. 币龄 ≤ 24h (毕业后窗口期短)
-      5. 近 1 轮持币变化 ≥ 0 (持币数不能在减少)
-      6. 近 1 轮价格变化 ≥ 0% (必须还在涨, 毕业后首轮跌的基本没戏)
+      4. 近 1 轮持币变化 ≥ 0 (持币数不能在减少)
+      5. 近 1 轮价格变化 ≥ 0% (必须还在涨, 毕业后首轮跌的基本没戏)
     """
     results = []
 
@@ -3029,18 +3027,23 @@ def graduated_quality_filter(candidates: list[dict], now_ms: int) -> list[dict]:
         if progress < 1.0:
             continue
 
+        # 核心: 必须是"刚毕业" — 上一轮进度 < 100%, 本轮才变成 100%
+        prog_hist = t.get("progressHistory", [])
+        if len(prog_hist) < 2:
+            # 历史不足 2 轮, 无法判断是否"刚毕业", 跳过
+            continue
+        # progressHistory 最后一个是本轮 (elimination_check 已 append), 倒数第二个是上一轮
+        prev_progress = prog_hist[-2]
+        if prev_progress >= 1.0:
+            # 上一轮已经毕业了, 不是"刚毕业", 跳过
+            continue
+
         # 持币数门槛
         if holders < GRAD_MIN_HOLDERS:
             continue
 
         # 流动性门槛
         if liquidity < GRAD_MIN_LIQUIDITY:
-            continue
-
-        # 币龄
-        age_ms = now_ms - t.get("createdAt", 0)
-        age_hours = age_ms / 3600000
-        if age_hours > GRAD_MAX_AGE_HOURS:
             continue
 
         # 近 1 轮变化检查 (需要历史数据)
@@ -3064,12 +3067,13 @@ def graduated_quality_filter(candidates: list[dict], now_ms: int) -> list[dict]:
             continue
 
         # 全部通过
+        age_hours = (now_ms - t.get("createdAt", 0)) / 3600000
         t["_quality_h_delta"] = h_delta
         t["_quality_price_change"] = price_change
         t["isGraduated"] = True
         results.append(t)
-        log.info("毕业通道: ✓ %s — 持币=%d(+%d), 流动性=$%.0f, 价格%+.1f%%, 币龄 %.1fh",
-                 name, holders, h_delta, liquidity,
+        log.info("毕业通道: ✓ %s — 刚毕业(上轮%.0f%%→100%%), 持币=%d(+%d), 流动性=$%.0f, 价格%+.1f%%, 币龄 %.1fh",
+                 name, prev_progress * 100, holders, h_delta, liquidity,
                  price_change * 100, age_hours)
 
     return results

@@ -2311,7 +2311,7 @@
           队列淘汰(价格跌90%(价格&lt;1e-7跳过)/持币30→10/持币跌70%(峰≥50)/无社交/流动性1k→100(仅毕业)/进度&lt;1%且币龄&gt;2h/进度&lt;5%且币龄&gt;4h/进度跌50%且币龄&gt;6h(社区币70%)/15min峰值持币&lt;3/1h峰值持币&lt;5/2h峰值持币&lt;8/币龄&gt;48h)
           🚀价格突破(峰值≥0.0001 → 标记已突破, 保留队列继续跟踪, 仅受币龄淘汰)
           → 潜伏型精筛(仅未毕业币: 持币≥50/进度30%~90%/币龄≤10h/近1轮持币变化≥-5/近1轮价格变化≥-20%/仿盘≥3, 全部AND)
-          → 🎓毕业通道(仅已毕业币: 持币≥100/流动性≥$10k/币龄≤24h/近1轮持币变化≥0/近1轮价格变化≥0%, 全部AND)<br>
+          → 🎓毕业通道(仅刚毕业币: 上轮&lt;100%→本轮=100%/持币≥100/流动性≥$10k/近1轮持币变化≥0/近1轮价格变化≥0%, 全部AND)<br>
           数据源: DexScreener 价格 · GeckoTerminal 已毕业持币数 · four.meme / flap.sh Detail API<br>
           🔥仿盘标记(≥3个同名) · 仿盘<3冷门题材精筛排除 · 目标价区间: 0.000001 ~ 0.0001 </p>
       </header>
@@ -2730,7 +2730,7 @@
             <span class="flow-num">5</span>
             <div>
               <div class="flow-title">🎓 毕业通道 (瞬时)</div>
-              <div class="flow-desc">刚毕业强势币(仅已毕业币): 持币≥100/流动性≥$10k/币龄≤24h/近1轮持币变化≥0/近1轮价格变化≥-15%, 全部AND
+              <div class="flow-desc">刚毕业强势币(仅刚毕业币): 上轮&lt;100%→本轮=100%/持币≥100/流动性≥$10k/近1轮持币变化≥0/近1轮价格变化≥0%, 全部AND
               </div>
             </div>
           </div>
@@ -2784,15 +2784,15 @@
       <div class="about-section">
         <h3>🎓 毕业通道（刚毕业强势币）</h3>
         <p style="font-size:11px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;">
-          核心思路：毕业后短暂窗口期，有流动性 + 社区还在 + 没在崩盘时快速介入。仅已毕业币，与潜伏型精筛互补。
+          核心思路：捕捉毕业瞬间，第一时间介入。仅"刚毕业"币（上一轮进度&lt;100%，本轮=100%），与潜伏型精筛互补。
         </p>
         <p style="font-size:11px;color:var(--text-secondary);margin-bottom:6px;line-height:1.5;">
           <strong>条件（全部满足，AND）：</strong>
         </p>
         <ul class="about-list">
+          <li>刚毕业（上一轮进度 &lt; 100%，本轮进度 = 100%，只在毕业那一轮推送）</li>
           <li>持币数 ≥ 100（毕业后需要更强社区支撑）</li>
           <li>流动性 ≥ $10,000（有真实交易深度）</li>
-          <li>币龄 ≤ 24h（毕业后窗口期短）</li>
           <li>近 1 轮持币变化 ≥ 0（持币数不能在减少）</li>
           <li>近 1 轮价格变化 ≥ 0%（必须还在涨，毕业后首轮跌的基本没戏）</li>
         </ul>
@@ -4073,6 +4073,7 @@
           <div class="quality-card-meta" style="margin-top:2px">
             <span>持币:${t.entryHolders || 0}</span>
             <span>${esc(t.entryTime || '')}</span>
+            ${t.entryAgeHours != null ? '<span>龄:' + fmtAge(t.entryAgeHours) + '</span>' : ''}
             ${t.copycatCount > 0 ? '<span style="color:var(--danger-text)">🔥' + t.copycatCount + '仿</span>' : ''}
           </div>
         </div>`;

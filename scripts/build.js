@@ -168,6 +168,7 @@ if (scanFiles.length === 0) {
           entryHolders: t.holders || 0,
           entryProgress: t.progress || 0,
           entryLiquidity: t.liquidity || 0,
+          entryAgeHours: t.age_hours != null ? t.age_hours : null,
           peakPrice: t.peak_price || t.price || 0,
           latestPrice: t.price || 0,
           socialLinks: t.social_links || {},
