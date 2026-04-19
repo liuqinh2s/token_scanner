@@ -12,9 +12,9 @@
 
 v6 架构: 极速扫描 (1 分钟一轮)
   1. 链上发现 (~1s): BSC RPC eth_getLogs → four.meme + flap 合约 TokenCreated 事件 → 新代币地址
-  2. 入场筛 (~数秒): four.meme Detail API (仅 four.meme 代币) / DexScreener (flap 代币) → 淘汰无社交 / 总量≠10亿 / 币龄>5min
+  2. 入场筛 (~数秒): four.meme Detail API + flap.sh 页面 SSR 社交数据 + 链上 totalSupply → 淘汰无社交 / 总量≠10亿 / 币龄>5min
   3. 淘汰检查 (~数秒): DexScreener 批量查价 + GeckoTerminal 持币数 + Detail API → 永久淘汰弃盘币
-  4. 精筛 (瞬时): 增量筛选, 从存活币中找起飞信号
+  4. 精筛 (瞬时): 潜伏型筛选, 从存活币中找蓄势待发信号
   5. 仿盘检测: 本地统计同名代币数量 (零 API 调用), 有大量仿盘(≥3)则标记
 
 砍掉的慢环节 (v5 → v6):
@@ -2467,8 +2467,12 @@ def elimination_check(queue: list[dict], now_ms: int,
     # flap 代币: 通过链上合约读取 bonding curve 进度
     flap_addrs = [t["address"] for t in pre_filtered if t.get("source") == "flap"]
 
-    log.info("淘汰检查: 并行查询 %d 个代币 (DS + detail(%d个) + BSCScan持币数(%d个) + flap进度(%d个))...",
-             len(pre_filtered), len(need_detail), len(bscscan_addrs), len(flap_addrs))
+    # flap 代币社交数据补查: 入场时可能未获取社交信息, 需要补查
+    flap_need_social = [t for t in pre_filtered
+                        if t.get("source") == "flap" and t.get("socialCount", 0) == 0]
+
+    log.info("淘汰检查: 并行查询 %d 个代币 (DS + detail(%d个) + BSCScan持币数(%d个) + flap进度(%d个) + flap社交(%d个))...",
+             len(pre_filtered), len(need_detail), len(bscscan_addrs), len(flap_addrs), len(flap_need_social))
 
     def _fetch_all_details():
         """并发查询 fm_detail, 5 线程, 失败重试 1 次"""
@@ -2487,15 +2491,17 @@ def elimination_check(queue: list[dict], now_ms: int,
                     detail_map[addr] = detail
         return detail_map
 
-    with ThreadPoolExecutor(max_workers=4) as pool:
+    with ThreadPoolExecutor(max_workers=5) as pool:
         ds_future = pool.submit(ds_batch_prices, addrs)
         detail_future = pool.submit(_fetch_all_details)
         grad_future = pool.submit(graduated_holder_counts, bscscan_addrs)
         flap_future = pool.submit(flap_get_token_states, flap_addrs)
+        flap_social_future = pool.submit(flap_batch_details, flap_need_social)
         ds_data = ds_future.result()
         detail_map = detail_future.result()
         grad_holders = grad_future.result()
         flap_states = flap_future.result()
+        flap_social_map = flap_social_future.result()
 
     # 3. 逐个检查淘汰条件
     for t in pre_filtered:
@@ -2584,6 +2590,22 @@ def elimination_check(queue: list[dict], now_ms: int,
             if detail.get("launchTime") and detail["launchTime"] > 0:
                 t["createdAt"] = detail["launchTime"]
                 age_hours = (now_ms - t["createdAt"]) / 3600000
+        # flap 代币社交数据补查: 用 flap_batch_details 结果更新
+        if is_flap and t.get("socialCount", 0) == 0:
+            flap_meta = flap_social_map.get(t["address"])
+            if flap_meta:
+                social_links = {}
+                if flap_meta.get("twitter"):
+                    social_links["twitter"] = flap_meta["twitter"]
+                if flap_meta.get("telegram"):
+                    social_links["telegram"] = flap_meta["telegram"]
+                if flap_meta.get("website"):
+                    social_links["website"] = flap_meta["website"]
+                if social_links:
+                    t["socialCount"] = len(social_links)
+                    t["socialLinks"] = social_links
+                    log.info("  flap社交补查 %s: %d 个链接",
+                             t.get("name") or t["address"][:16], len(social_links))
         if ds:
             t["name"] = ds.get("name") or t.get("name", "")
             t["symbol"] = ds.get("symbol") or t.get("symbol", "")
@@ -2736,7 +2758,11 @@ def breakthrough_flap_refresh(survivors: list[dict], breakthrough: list[dict],
       1. 筛出突破中的 flap 代币
       2. 并行拉取 DexScreener 价格 + flap 链上状态 + BSCScan 持币数
       3. 用新数据覆盖代币字段, 重算 peakPrice
-      4. peakPrice < BREAKTHROUGH_PRICE → 取消突破标记, 回归普通队列代币
+      4. 取消突破标记的条件 (满足任一即取消):
+         a. peakPrice < BREAKTHROUGH_PRICE
+         b. 假稳定币 (symbol 含 USDT/USDC/BUSD/DAI)
+         c. 未毕业 (progress < 1.0), bonding curve 价格不可信
+         d. 无社交且持币数 < 20
 
     返回: 被取消突破标记的代币数量
     """
@@ -2816,13 +2842,35 @@ def breakthrough_flap_refresh(survivors: list[dict], breakthrough: list[dict],
         t["peakProgress"] = max(t.get("progress", 0), t.get("peakProgress", 0))
 
         # --- 重新判断突破条件 ---
+        demote_reason = None
+
+        # 1. 价格不达标
         if t["peakPrice"] < BREAKTHROUGH_PRICE:
-            # 取消突破标记, 回归普通队列代币
+            demote_reason = f"刷新后峰值 {t['peakPrice']:.2e} < {BREAKTHROUGH_PRICE:.2e}"
+
+        # 2. 假稳定币 (symbol 含 USDT/USDC/BUSD/DAI)
+        if not demote_reason:
+            sym_upper = (t.get("symbol") or "").upper()
+            if any(s in sym_upper for s in ("USDT", "USDC", "BUSD", "DAI")):
+                demote_reason = f"假稳定币 ({t.get('symbol')})"
+
+        # 3. 未毕业 flap 代币价格来自 bonding curve, 不可信
+        if not demote_reason:
+            prog = t.get("progress", 0)
+            if prog < 1.0:
+                demote_reason = f"flap 未毕业 (进度{prog * 100:.2f}%), 价格不可信"
+
+        # 4. 无社交且持币数极低 (已毕业但明显是垃圾币)
+        if not demote_reason:
+            if t.get("socialCount", 0) == 0 and t.get("holders", 0) < 20:
+                demote_reason = f"无社交+持币{t.get('holders', 0)}"
+
+        if demote_reason:
             t.pop("isBreakthrough", None)
             t.pop("breakthroughAt", None)
             demoted += 1
-            log.info("  🔄 取消突破 %s — 刷新后峰值 %.2e < %.2e (旧峰值 %.2e)",
-                     name, t["peakPrice"], BREAKTHROUGH_PRICE, old_peak)
+            log.info("  🔄 取消突破 %s — %s (旧峰值 %.2e)",
+                     name, demote_reason, old_peak)
         else:
             log.info("  ✓ 确认突破 %s — 刷新后峰值 %.2e (价格 %.2e→%.2e)",
                      name, t["peakPrice"], old_price, new_price)
@@ -3211,7 +3259,7 @@ def main():
         if cc:
             t["copycat"] = cc
 
-    # 精筛 (增量筛选, 从存活币中找起飞信号)
+    # 精筛 (潜伏型筛选, 从存活币中找蓄势待发信号)
     scan_round = queue_state.get("scanRound", 0) + 1
     quality_results = quality_filter(survivors, now_ms)
     queue_state["scanRound"] = scan_round

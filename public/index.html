@@ -2302,7 +2302,7 @@
       <header>
         <div class="header-title">
           <h1>BSC Token Scanner</h1>
-          <span class="subtitle">链上发现 · 队列淘汰 · 增量精筛 · 极速 15min</span>
+          <span class="subtitle">链上发现 · 队列淘汰 · 潜伏型精筛 · 极速 15min</span>
           <span class="filter-toggle" onclick="toggleFilterDesc()" id="filterToggle">▶ 规则</span>
         </div>
         <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle" title="切换主题">🌙</button>
@@ -2310,7 +2310,7 @@
           链上扫描 four.meme / flap.sh TokenCreated 事件 → 入场筛(社交≥1、总量10亿、币龄&lt;48h) →
           队列淘汰(价格跌90%/持币30→10/持币跌70%(峰≥50)/无社交/流动性1k→100(仅毕业)/进度&lt;1%且币龄&gt;2h/进度&lt;5%且币龄&gt;4h/进度跌50%且币龄&gt;6h/15min峰值持币&lt;3/1h峰值持币&lt;5/币龄&gt;48h)
           🚀价格突破(峰值≥0.0001 → 标记已突破, 保留队列继续跟踪, 仅受币龄淘汰)
-          → 增量精筛(基础门槛: 持币+10/进度+8%或流动性+1%/价格+8%, 三条AND; 单维度优秀: 持币+45/进度+20%或流动性+5%/价格+20%, 任一OR; 近一轮必须上涨)<br>
+          → 潜伏型精筛(仅未毕业币: 持币≥50/进度30%~90%/币龄≤10h/近1轮持币变化≥-5/近1轮价格变化≥-20%, 全部AND)<br>
           数据源: DexScreener 价格 · GeckoTerminal 已毕业持币数 · four.meme / flap.sh Detail API<br>
           🔥仿盘标记(≥3个同名, 仅标记不排除) · 目标价区间: 0.000001 ~ 0.0001
         </p>
@@ -2691,7 +2691,7 @@
     </div>
     <div class="about-content">
       <h2>BSC Token Scanner</h2>
-      <p class="about-subtitle">链上发现 · 队列淘汰 · 增量精筛 · 极速 15min</p>
+      <p class="about-subtitle">链上发现 · 队列淘汰 · 潜伏型精筛 · 极速 15min</p>
 
       <div class="about-section">
         <h3>🔍 扫描流程</h3>
@@ -2707,21 +2707,22 @@
             <span class="flow-num">2</span>
             <div>
               <div class="flow-title">入场筛选 (~数秒)</div>
-              <div class="flow-desc">four.meme / flap.sh Detail API → 淘汰无社交 / 总量≠10亿 / 币龄过大（flap 代币跳过社交和总量检查）</div>
+              <div class="flow-desc">four.meme Detail API + flap.sh 页面 SSR 社交数据 + 链上 totalSupply → 淘汰无社交 / 总量≠10亿 / 币龄过大
+              </div>
             </div>
           </div>
           <div class="flow-step">
             <span class="flow-num">3</span>
             <div>
               <div class="flow-title">队列淘汰 (~数秒)</div>
-              <div class="flow-desc">DexScreener 批量查价 + GeckoTerminal 持币数 + Detail API → 永久淘汰弃盘币（flap 代币跳过无社交淘汰）</div>
+              <div class="flow-desc">DexScreener 批量查价 + GeckoTerminal 持币数 + Detail API → 永久淘汰弃盘币</div>
             </div>
           </div>
           <div class="flow-step">
             <span class="flow-num">4</span>
             <div>
-              <div class="flow-title">增量精筛 (瞬时)</div>
-              <div class="flow-desc">基础门槛(AND): 持币+10/进度+8%或流动性+1%/价格+8%; 单维度优秀(OR): 持币+45/进度+20%或流动性+5%/价格+20%; 近一轮必须上涨
+              <div class="flow-title">潜伏型精筛 (瞬时)</div>
+              <div class="flow-desc">潜伏型筛选(仅未毕业币): 持币≥50/进度30%~90%/币龄≤10h/近1轮持币变化≥-5/近1轮价格变化≥-20%, 全部AND
               </div>
             </div>
           </div>
@@ -2741,7 +2742,7 @@
           <li>价格从峰值跌 90%+</li>
           <li>持币数从 ≥30 跌破 10</li>
           <li>持币数从峰值跌 70%+（峰值≥50，清理僵尸币）</li>
-          <li>无社交媒体（flap 代币跳过此条件）</li>
+          <li>无社交媒体（four.meme 通过 Detail API, flap 通过 flap.sh 页面 SSR 提取, 统一淘汰）</li>
           <li>流动性从 &gt;$1k 跌破 $100（仅已毕业代币）</li>
           <li>进度 &lt; 1% 且币龄 &gt; 2h</li>
           <li>进度 &lt; 5% 且币龄 &gt; 4h</li>
@@ -2754,29 +2755,19 @@
       </div>
 
       <div class="about-section">
-        <h3>✅ 精筛条件（增量筛选）</h3>
+        <h3>✅ 精筛条件（潜伏型筛选）</h3>
         <p style="font-size:11px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;">
-          核心思路：基础门槛 + 单维度优秀 + 买涨不买跌。判断窗口：近 1~3 轮（先查 3 轮差 → 2 轮差 → 1 轮差，任一窗口满足即可）。
+          核心思路：不追涨，在代币有社区基础 + 有资金 + 没在崩盘时潜伏进去。仅未毕业币，已毕业币不走此通道。
         </p>
         <p style="font-size:11px;color:var(--text-secondary);margin-bottom:6px;line-height:1.5;">
-          <strong>近一轮上涨约束（买涨不买跌）：</strong>最近 1 轮持币数、价格、动力指标都必须上涨，不买正在下跌的币。
-        </p>
-        <p style="font-size:11px;color:var(--text-secondary);margin-bottom:6px;line-height:1.5;">
-          <strong>基础门槛（三条全部满足，AND）：</strong>
+          <strong>条件（全部满足，AND）：</strong>
         </p>
         <ul class="about-list">
-          <li>持币增量: 近 1~3 轮持币数增长 ≥ 10</li>
-          <li>动力增量（未毕业）: 近 1~3 轮进度增长 ≥ 8%</li>
-          <li>动力增量（已毕业）: 近 1~3 轮流动性增长 ≥ 1%</li>
-          <li>价格增量: 近 1~3 轮价格涨幅 ≥ 8%</li>
-        </ul>
-        <p style="font-size:11px;color:var(--text-secondary);margin-bottom:6px;line-height:1.5;">
-          <strong>单维度优秀（至少一条满足，OR）：</strong>
-        </p>
-        <ul class="about-list">
-          <li>持币增量 ≥ 45（有大量真实买盘涌入）</li>
-          <li>未毕业进度增长 ≥ 20% / 已毕业流动性增长 ≥ 5%（资金加速涌入）</li>
-          <li>价格涨幅 ≥ 20%（价格正在加速上涨）</li>
+          <li>持币数 ≥ 50（有真实社区）</li>
+          <li>进度 30% ~ 90%（有真金白银，还有上涨空间）</li>
+          <li>币龄 ≤ 10h（还年轻）</li>
+          <li>近 1 轮持币变化 ≥ -5（没在大量流失）</li>
+          <li>近 1 轮价格变化 ≥ -20%（没在暴跌）</li>
           <li>仿盘数: 仅标记, 不排除（仿盘多=热门信号）</li>
         </ul>
       </div>
@@ -2786,6 +2777,7 @@
         <ul class="about-list">
           <li>BSC RPC — 链上 TokenCreated 事件发现（four.meme + flap.sh，均使用 bonding curve）</li>
           <li>four.meme Detail API — 代币详情 / 社交 / 进度 / 未毕业持币数</li>
+          <li>flap.sh 页面 SSR — flap 代币社交媒体 (twitter/telegram/website)</li>
           <li>DexScreener — 批量价格 / 流动性 / 交易量 / 买卖笔数（flap 代币主要数据源）</li>
           <li>GeckoTerminal — 已毕业代币持币数</li>
         </ul>

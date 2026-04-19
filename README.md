@@ -1,6 +1,6 @@
 # BSC Token Scanner
 
-BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme) 和 [Flap](https://flap.sh/bnb) 合约的 `TokenCreated` 事件发现新代币，采用**队列淘汰制**持续跟踪，自动剔除弃盘币，对存活代币执行增量精筛 + 精筛后防线深度检查。
+BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme) 和 [Flap](https://flap.sh/bnb) 合约的 `TokenCreated` 事件发现新代币，采用**队列淘汰制**持续跟踪，自动剔除弃盘币，对存活代币执行潜伏型精筛 + 精筛后防线深度检查。
 
 与姊妹项目 `token_trading` 共用同一套筛选策略，由外部 cron（GitHub Actions）每 15 分钟触发一次，单次执行，输出 JSON 到 `data/` 目录供前端展示。
 
@@ -13,7 +13,7 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
    BSC RPC eth_getLogs → four.meme + flap TokenCreated 事件 → 新代币地址
 
 2. 入场筛 (~数秒)
-   four.meme Detail API (仅 four.meme 代币) / DexScreener (flap 代币)
+   four.meme Detail API + flap.sh 页面 SSR 社交数据 + 链上 totalSupply
    → 淘汰无社交 / 总量≠10亿 / 币龄>48h
 
 3. 淘汰检查 (~数秒)
@@ -21,8 +21,8 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
    → 永久淘汰弃盘币
 
 4. 精筛 (瞬时)
-   增量筛选: 持币增量 + 动力增量(进度/流动性) + 价格增量
-   → 从存活币中找起飞信号
+   潜伏型筛选: 持币≥50 + 进度30%~90% + 币龄≤10h + 没在崩盘
+   → 从存活币中找蓄势待发信号
 
 5. 仿盘检测
    本地统计同名代币数量 (零 API 调用)
@@ -43,6 +43,7 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 |--------|------|------|
 | BSC RPC (publicnode) | 链上 TokenCreated 事件发现 + flap getToken() 进度查询 | 无硬限制 |
 | four.meme Detail API | 社交链接/持币数(bonding curve阶段)/进度/募资额 | ~5 req/s |
+| flap.sh 页面 SSR | flap 代币社交媒体 (twitter/telegram/website) | ~5 req/s |
 | DexScreener API | 批量价格+流动性+交易量+买卖笔数 | ~300 req/min |
 | GeckoTerminal Token Info | 持币地址数 (已毕业代币, 链上索引) | ~30 req/min |
 | 本地队列统计 | 仿盘检测：同名/近似名代币数量 | 无 |
@@ -53,7 +54,7 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 
 峰值价格突破 0.0001 的代币标记为「已突破」，但保留在队列中继续跟踪更新，仅受币龄 >48h 淘汰。已突破代币同时出现在队列存活和已突破 tab 中，可正常参与精筛（毕业通道）。
 
-峰值价格（peakPrice）是代币在队列存活期间记录到的最高价格（每轮用 DexScreener 实时价取 max），用于淘汰判断（价格跌 90% 淘汰）和精筛回撤保护。
+峰值价格（peakPrice）是代币在队列存活期间记录到的最高价格（每轮用 DexScreener 实时价取 max），用于淘汰判断（价格跌 90% 淘汰）。
 
 ### 持币数查询方案
 
@@ -88,7 +89,7 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 | 1 | 价格从峰值跌 90%+ | 暴跌弃盘 |
 | 2 | 持币地址从 ≥30 跌破 10 | 大量抛售 |
 | 3 | 持币数从峰值跌 70%+ (峰值≥50) | 僵尸币清理 |
-| 4 | 无社交媒体 | 无运营意愿 (仅 four.meme, flap 无社交 API) |
+| 4 | 无社交媒体 | 无运营意愿 (four.meme 通过 Detail API, flap 通过 flap.sh 页面 SSR 提取, 统一淘汰) |
 | 5 | 流动性从 >$1k 跌破 $100 (仅已毕业) | 流动性枯竭 |
 | 6 | 进度 < 1% 且币龄 > 2h | bonding curve 上的死币 |
 | 6b | 进度 < 5% 且币龄 > 4h | 进度停滞 |
@@ -99,18 +100,19 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 | 🚀 | 价格突破: 峰值价格 ≥ 0.0001 | 标记为已突破, 保留队列继续跟踪, 仅受币龄淘汰 |
 | 🔄 | 突破 flap 刷新: 每轮强制重新拉取数据 | 重算 peakPrice, 不达标则取消突破标记 |
 
-## 精筛规则（增量筛选）
+## 精筛规则（潜伏型筛选）
 
-从队列存活币中找"正在起飞"的信号，核心思路：近期有真实增长才推。
+从队列存活币中找"蓄势待发"的代币，核心思路：不追涨，在代币有社区基础 + 有资金 + 没在崩盘时潜伏进去。
 
-三条增量条件全部满足即通过（判断窗口：近 1~3 轮，先查 3 轮差 → 2 轮差 → 1 轮差，任一窗口满足即可）：
+仅未毕业币，已毕业币不走此通道（毕业后价格波动大，潜伏逻辑不适用）。条件全部满足（AND）：
 
 | 条件 | 阈值 | 说明 |
 |------|------|------|
-| 持币增量 | 近 1~3 轮增长 ≥ 45 | 有真实买盘涌入 |
-| 动力增量（未毕业） | 近 1~3 轮进度增长 ≥ 20% | 资金持续涌入 bonding curve (four.meme 用 Detail API, flap 用链上 getToken) |
-| 动力增量（已毕业） | 近 1~3 轮流动性增长 ≥ 5% | 毕业后流动性持续增加 |
-| 价格增量 | 近 1~3 轮价格涨幅 ≥ 20% | 价格正在加速上涨 |
+| 持币数 | ≥ 50 | 有真实社区 |
+| 进度 | 30% ~ 90% | 有真金白银，还有上涨空间 |
+| 币龄 | ≤ 10h | 还年轻 |
+| 近 1 轮持币变化 | ≥ -5 | 没在大量流失 |
+| 近 1 轮价格变化 | ≥ -20% | 没在暴跌 |
 | 仿盘数 | 仅标记, 不排除 | 仿盘多=热门信号, 🔥 标签展示, 交给用户判断 |
 
 ## 待启用的数据源（已实现未接入）
@@ -219,14 +221,12 @@ npm run dev                     # 启动开发服务器（live-server）
 |------|--------|------|
 | `MAX_AGE_HOURS` | 48 | 关注窗口（小时） |
 | `SCAN_INTERVAL_MIN` | 15 | 扫描间隔（分钟） |
-| `QUALITY_BASE_HOLDERS_DELTA` | 10 | 精筛基础: 近 1~3 轮持币数增长下限 |
-| `QUALITY_BASE_PROGRESS_DELTA` | 0.08 | 精筛基础: 近 1~3 轮进度增长下限 (8%, 未毕业币) |
-| `QUALITY_BASE_LIQUIDITY_GROWTH` | 0.01 | 精筛基础: 近 1~3 轮流动性增长下限 (1%, 已毕业币) |
-| `QUALITY_BASE_PRICE_GROWTH` | 0.08 | 精筛基础: 近 1~3 轮价格涨幅下限 (8%) |
-| `QUALITY_EXCEL_HOLDERS_DELTA` | 45 | 精筛优秀: 持币数增长优秀线 |
-| `QUALITY_EXCEL_PROGRESS_DELTA` | 0.20 | 精筛优秀: 进度增长优秀线 (20%, 未毕业币) |
-| `QUALITY_EXCEL_LIQUIDITY_GROWTH` | 0.05 | 精筛优秀: 流动性增长优秀线 (5%, 已毕业币) |
-| `QUALITY_EXCEL_PRICE_GROWTH` | 0.20 | 精筛优秀: 价格涨幅优秀线 (20%) |
+| `QUALITY_MIN_HOLDERS` | 50 | 精筛: 持币数 ≥ 50 (有真实社区) |
+| `QUALITY_MIN_PROGRESS` | 0.30 | 精筛: 进度 ≥ 30% (有真金白银) |
+| `QUALITY_MAX_PROGRESS` | 0.90 | 精筛: 进度 < 90% (还有上涨空间) |
+| `QUALITY_MAX_AGE_HOURS` | 10 | 精筛: 币龄 ≤ 10h (还年轻) |
+| `QUALITY_MIN_H_DELTA` | -5 | 精筛: 近 1 轮持币变化 ≥ -5 (没在大量流失) |
+| `QUALITY_MIN_PRICE_CHANGE` | -0.20 | 精筛: 近 1 轮价格变化 ≥ -20% (没在暴跌) |
 | `ELIM_PRICE_DROP_PCT` | 0.90 | 价格跌幅淘汰阈值 |
 | `ELIM_HOLDERS_FLOOR` | 10 | 持币数淘汰下限 |
 | `ELIM_LIQ_FLOOR` | 100 | 流动性淘汰下限（USD） |
