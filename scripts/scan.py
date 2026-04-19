@@ -38,6 +38,7 @@ v6 架构: 极速扫描 (1 分钟一轮)
   - 币龄 > 1h 且最高持币数 < 5
   - 币龄 > 48h
   - 价格突破: 峰值价格 ≥ 0.0001 → 标记为已突破, 保留在队列中继续跟踪, 仅受币龄>48h淘汰
+  - 突破 flap 刷新: 每轮对突破中的 flap 代币强制重新拉取数据, 重算 peakPrice, 不达标则取消突破标记
 
 精筛条件 (增量筛选, 核心思路: 基础门槛 + 单维度优秀 + 买涨不买跌):
   近一轮上涨约束: 最近 1 轮持币数、价格、动力指标都必须上涨 (买涨不买跌)
@@ -211,6 +212,7 @@ ELIM_MID_AGE_HOURS = 1                # 1 小时
 
 # 价格突破阈值 (标记为已突破, 但保留在队列中继续跟踪, 仅受币龄淘汰)
 # 已突破代币可参与精筛 (毕业通道), 前端单独 tab 展示
+# 突破 flap 代币每轮强制刷新数据 + 重新验证突破条件 (flap 价格换算易出偏差)
 BREAKTHROUGH_PRICE = 0.0001           # 峰值价格 ≥ 0.0001 标记为已突破
 
 # flap quote token 分类 (用于价格换算)
@@ -2721,6 +2723,120 @@ def elimination_check(queue: list[dict], now_ms: int,
 
 
 # ===================================================================
+#  Step 3b: 突破 flap 代币数据刷新 + 重新验证
+# ===================================================================
+def breakthrough_flap_refresh(survivors: list[dict], breakthrough: list[dict],
+                              now_ms: int) -> int:
+    """
+    对突破中的 flap 代币强制重新拉取全部数据, 然后重新判断是否真的达到突破条件。
+    flap 代币的价格来自链上 bonding curve (需要 quote_token 换算), 容易出现数据偏差,
+    导致 peakPrice 虚高触发了错误的突破标记。
+
+    流程:
+      1. 筛出突破中的 flap 代币
+      2. 并行拉取 DexScreener 价格 + flap 链上状态 + BSCScan 持币数
+      3. 用新数据覆盖代币字段, 重算 peakPrice
+      4. peakPrice < BREAKTHROUGH_PRICE → 取消突破标记, 回归普通队列代币
+
+    返回: 被取消突破标记的代币数量
+    """
+    flap_bt = [t for t in breakthrough if t.get("source") == "flap"]
+    if not flap_bt:
+        return 0
+
+    addrs = [t["address"] for t in flap_bt]
+    log.info("突破 flap 刷新: 重新拉取 %d 个 flap 代币数据...", len(flap_bt))
+
+    # 并行拉取三个数据源
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        ds_future = pool.submit(ds_batch_prices, addrs)
+        flap_future = pool.submit(flap_get_token_states, addrs)
+        holders_future = pool.submit(graduated_holder_counts, addrs)
+        ds_data = ds_future.result()
+        flap_states = flap_future.result()
+        holder_data = holders_future.result()
+
+    demoted = 0
+    for t in flap_bt:
+        addr = t["address"]
+        name = t.get("name") or addr[:16]
+        ds = ds_data.get(addr, {})
+        flap_state = flap_states.get(addr, {})
+        rh = holder_data.get(addr)
+
+        old_price = t.get("price", 0)
+        old_peak = t.get("peakPrice", 0)
+
+        # --- 价格刷新: DexScreener > flap 链上换算 > 保留旧值 ---
+        new_price = ds.get("price") or 0
+        if not new_price and flap_state.get("price_native", 0) > 0:
+            new_price = flap_price_to_usd(
+                flap_state["price_native"],
+                flap_state.get("quote_token", ZERO_ADDRESS),
+            )
+        if new_price > 0:
+            t["price"] = new_price
+        else:
+            new_price = old_price  # API 全部失败, 保留旧值
+
+        # --- 进度刷新 ---
+        if flap_state:
+            flap_graduated = flap_state.get("graduated", False)
+            t["progress"] = 1.0 if flap_graduated else flap_state.get("progress", t.get("progress", 0))
+            if flap_state.get("reserve", 0) > 0:
+                t["raisedAmount"] = flap_state["reserve"]
+
+        # --- 持币数刷新 ---
+        if rh is not None and rh > 0:
+            old_h = t.get("holders", 0)
+            t["holders"] = rh
+            if rh != old_h:
+                log.info("  flap刷新持币数 %s: %d→%d", name, old_h, rh)
+
+        # --- 流动性/交易量刷新 ---
+        if ds:
+            t["liquidity"] = ds.get("liquidity", 0) or t.get("liquidity", 0)
+            t["name"] = ds.get("name") or t.get("name", "")
+            t["symbol"] = ds.get("symbol") or t.get("symbol", "")
+            t["volume24h"] = ds.get("volume24h", 0)
+            t["volumeH1"] = ds.get("volumeH1", 0)
+            t["buysH1"] = ds.get("buysH1", 0)
+            t["sellsH1"] = ds.get("sellsH1", 0)
+            t["buysH24"] = ds.get("buysH24", 0)
+            t["sellsH24"] = ds.get("sellsH24", 0)
+
+        # --- 重算 peakPrice: 用刷新后的真实价格重建 ---
+        # peakPrice 可能是基于错误数据算出的虚高值, 用当前真实价格重置
+        # 如果当前价格有效, 以当前价格为准 (后续轮次会继续 max 更新)
+        if new_price > 0:
+            t["peakPrice"] = new_price
+        # 同步更新其他峰值
+        t["peakHolders"] = max(t.get("holders", 0), t.get("peakHolders", 0))
+        t["peakLiquidity"] = max(t.get("liquidity", 0), t.get("peakLiquidity", 0))
+        t["peakProgress"] = max(t.get("progress", 0), t.get("peakProgress", 0))
+
+        # --- 重新判断突破条件 ---
+        if t["peakPrice"] < BREAKTHROUGH_PRICE:
+            # 取消突破标记, 回归普通队列代币
+            t.pop("isBreakthrough", None)
+            t.pop("breakthroughAt", None)
+            demoted += 1
+            log.info("  🔄 取消突破 %s — 刷新后峰值 %.2e < %.2e (旧峰值 %.2e)",
+                     name, t["peakPrice"], BREAKTHROUGH_PRICE, old_peak)
+        else:
+            log.info("  ✓ 确认突破 %s — 刷新后峰值 %.2e (价格 %.2e→%.2e)",
+                     name, t["peakPrice"], old_price, new_price)
+
+    # 从 breakthrough 列表中移除被取消的
+    if demoted > 0:
+        breakthrough[:] = [b for b in breakthrough if b.get("isBreakthrough")]
+        log.info("突破 flap 刷新: %d 个取消突破标记, 剩余 %d 个突破",
+                 demoted, len(breakthrough))
+
+    return demoted
+
+
+# ===================================================================
 #  Step 5: 精筛 — 增量筛选
 # ===================================================================
 def quality_filter(candidates: list[dict], now_ms: int,
@@ -3128,6 +3244,12 @@ def main():
                 t["holders"] = t["peakHolders"]
                 log.info("  突破持币数兜底 %s: 0→%d (用 peakHolders)",
                          t.get("name") or t["address"][:16], t["peakHolders"])
+
+    # Step 3b: 突破 flap 代币数据刷新 + 重新验证突破条件
+    flap_bt = [t for t in breakthrough_tokens if t.get("source") == "flap"]
+    if flap_bt:
+        log.info("\n--- Step 3b: 突破 flap 数据刷新 ---")
+        breakthrough_flap_refresh(survivors, breakthrough_tokens, now_ms)
 
     # 入场被拒的代币也记入 eliminated (避免重复入场筛)
     queue_state["eliminated"].extend([{
