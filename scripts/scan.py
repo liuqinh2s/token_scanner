@@ -2827,33 +2827,6 @@ def elimination_check(queue: list[dict], now_ms: int,
     if breakthrough:
         log.info("价格突破: %d 个代币 (保留队列, 仅受币龄淘汰)", len(breakthrough))
 
-    # --- K线峰值修正: 对持币数≥50 的存活代币拉 GT 15min K线 ---
-    # 快照只能捕获采样时刻的价格, 两轮之间的冲高/暴跌完全丢失
-    # 用 K线的 high/low 补充 peakPrice, 并记录 klineHigh/klineLow 供精筛做过山车检测
-    kline_candidates = [t for t in survivors if t.get("holders", 0) >= QUALITY_MIN_HOLDERS]
-    if kline_candidates:
-        log.info("K线修正: 查询 %d 个代币 (持币≥%d)...", len(kline_candidates), QUALITY_MIN_HOLDERS)
-        kline_data = gt_batch_peak_prices(kline_candidates)
-        kline_fixed_count = 0
-        for t in kline_candidates:
-            kd = kline_data.get(t["address"])
-            if kd:
-                kline_high = kd["high"]
-                kline_low = kd["low"]
-                old_peak = t.get("peakPrice", 0)
-                # 用 K线最高价修正 peakPrice
-                if kline_high > old_peak:
-                    t["peakPrice"] = kline_high
-                    kline_fixed_count += 1
-                    log.info("  K线修正 %s: peakPrice %.2e → %.2e (+%.0f%%)",
-                             t.get("name") or t["address"][:16],
-                             old_peak, kline_high,
-                             (kline_high / old_peak - 1) * 100 if old_peak > 0 else 0)
-                # 记录 K线高低点 (供精筛过山车检测)
-                t["klineHigh"] = kline_high
-                t["klineLow"] = kline_low
-                t["klineFixed"] = True  # 标记已查过, 后续轮次只拉最近 4 根
-
     return survivors, eliminated, breakthrough
 
 
@@ -3497,7 +3470,40 @@ def main():
                     log.info("  持币数刷新 %s: %d→%d (BSCScan)",
                              t.get("name") or t["address"][:16], old_h, rh)
 
-    # 精筛再验证: 对精筛结果重新检查淘汰条件
+    # 精筛代币K线修正: 仅对精筛通过的少量代币拉 GT K线
+    # 用 K线 high/low 补充 peakPrice, 并记录 klineHigh/klineLow 供过山车检测
+    if quality_results:
+        log.info("精筛K线修正: 查询 %d 个代币...", len(quality_results))
+        kline_data = gt_batch_peak_prices(quality_results)
+        for t in quality_results:
+            kd = kline_data.get(t["address"])
+            if kd:
+                kline_high = kd["high"]
+                kline_low = kd["low"]
+                old_peak = t.get("peakPrice", 0)
+                if kline_high > old_peak:
+                    t["peakPrice"] = kline_high
+                    # 同步更新队列中的对应代币
+                    for s in survivors:
+                        if s["address"] == t["address"]:
+                            s["peakPrice"] = kline_high
+                            break
+                    log.info("  K线修正 %s: peakPrice %.2e → %.2e (+%.0f%%)",
+                             t.get("name") or t["address"][:16],
+                             old_peak, kline_high,
+                             (kline_high / old_peak - 1) * 100 if old_peak > 0 else 0)
+                t["klineHigh"] = kline_high
+                t["klineLow"] = kline_low
+                t["klineFixed"] = True
+                # 同步 K线数据到队列
+                for s in survivors:
+                    if s["address"] == t["address"]:
+                        s["klineHigh"] = kline_high
+                        s["klineLow"] = kline_low
+                        s["klineFixed"] = True
+                        break
+
+    # 精筛再验证: K线更新后重新检查淘汰条件 + 精筛条件
     # - 不符合队列存活 → 移到本轮淘汰
     # - 符合队列存活但不符合精筛 → 留在队列 (从精筛列表移除)
     revalidated = []
@@ -3563,7 +3569,21 @@ def main():
             log.info("精筛再验证: ✗ %s → 淘汰 (%s)",
                      t.get("name") or t["address"][:16], elim_reason)
         else:
-            revalidated.append(t)
+            # 精筛条件复核: K线更新后重新检查过山车等精筛条件
+            reject_reason = None
+            kline_high = t.get("klineHigh", 0)
+            kline_low = t.get("klineLow", 0)
+            if kline_high > 0 and kline_low > 0:
+                swing_ratio = kline_high / kline_low
+                drawdown = 1 - current_price / kline_high if kline_high > 0 and current_price > 0 else 0
+                if swing_ratio >= QUALITY_MAX_KLINE_SWING and drawdown >= QUALITY_MIN_KLINE_DRAWDOWN:
+                    reject_reason = (f"过山车 (K线振幅 {swing_ratio:.1f}x, "
+                                     f"回撤 {drawdown * 100:.0f}%)")
+            if reject_reason:
+                log.info("精筛再验证: ✗ %s — %s (移出精筛, 留在队列)",
+                         t.get("name") or t["address"][:16], reject_reason)
+            else:
+                revalidated.append(t)
 
     # 再验证后的精筛结果替换原列表
     quality_results = revalidated
