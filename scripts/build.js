@@ -152,6 +152,9 @@ if (scanFiles.length === 0) {
       rsn: t.reason || '',   // 淘汰/拒绝原因
       ph: t.peak_holders || 0,
       pp: t.peak_price || 0,
+      pch1: t.price_change_h1 || 0,
+      pch24: t.price_change_h24 || 0,
+      bst: t.boosts || 0,
     });
   }
 
