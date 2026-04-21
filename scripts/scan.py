@@ -41,15 +41,17 @@ v6 架构: 极速扫描 (1 分钟一轮)
   - 币龄 > 48h
   - 价格突破: 峰值价格 ≥ 0.0001 → 标记为已突破, 跳过常规淘汰条件, 仅受币龄>48h淘汰
 
-精筛条件 (潜伏型筛选, 核心思路: 蓄势待发, 不追涨):
+精筛条件 (潜伏型筛选, 核心思路: 宁缺毋滥, 大幅收紧):
   仅未毕业币, 已毕业币不走此通道
   条件 (全部满足, AND):
-  - 持币数 ≥ 50 (有真实社区)
+  - 持币数 ≥ 80 (数据: ≥80翻倍率34% vs <80仅11%)
   - 进度 30%~90% (有真金白银, 还有上涨空间)
-  - 币龄 ≤ 10h (还年轻)
+  - 币龄 ≤ 48h (数据: 好币可能慢热)
+  - 社交媒体数 ≥ 2 (数据: 5倍+币社交中位数3)
   - 近 1 轮持币变化 ≥ -5 (没在大量流失)
-  - 近 1 轮价格变化 ≥ -20% (没在暴跌)
-  - 仿盘数 ≥ 3 (有市场热度, 冷门题材排除)
+  - 近 1 轮价格变化 ≥ -30% (给波动留空间, 但不能崩)
+  - 仿盘数 ≥ 20 (数据: ≥20翻倍率25%, <20仅8%; 10倍币仿盘中位数407)
+  - 1h卖出笔数 ≤ 200 (数据: 翻倍币翻倍前1h卖出全是0)
   - 没有过山车行情 (K线振幅≥3倍 且 当前价从高点回撤≥50% → 已被炒过一轮)
 
 毕业通道 (毕业后强势币, 核心思路: 捕捉毕业瞬间 + 已毕业持续增长):
@@ -198,17 +200,22 @@ MAX_AGE_HOURS = 48
 SCAN_INTERVAL_MIN = 15                 # GitHub Actions cron 间隔 (分钟)
 TOTAL_SUPPLY = 1_000_000_000           # 10亿
 # --- 精筛: 潜伏型条件 (未毕业币, 有社区基础 + 有资金 + 没在崩盘) ---
-QUALITY_MIN_HOLDERS = 50               # 精筛: 持币数 ≥ 50 (有真实社区)
+# 数据基础: 328轮扫描, 1123个代币, 30个翻倍(2x+), 8个5倍+, 3个10倍+
+# 核心发现: 翻倍币在进度30-60%阶段 → 持币≥80+仿盘≥20+社交≥2 翻倍率57% (最强组合)
+#           10倍币共性: 全部最终毕业, 仿盘数极高(中位数407), 社交中位数3
+QUALITY_MIN_HOLDERS = 80               # 精筛: 持币数 ≥ 80 (数据: ≥80翻倍率34% vs <80仅11%)
 QUALITY_MIN_PROGRESS = 0.30            # 精筛: 进度 ≥ 30% (有真金白银)
 QUALITY_MAX_PROGRESS = 0.90            # 精筛: 进度 < 90% (还有上涨空间)
-QUALITY_MAX_AGE_HOURS = 10             # 精筛: 币龄 ≤ 10h (还年轻)
+QUALITY_MAX_AGE_HOURS = 48             # 精筛: 币龄 ≤ 48h (数据: ASTEROID在40h翻倍, 好币可能慢热)
 QUALITY_MIN_H_DELTA = -5              # 精筛: 近 1 轮持币变化 ≥ -5 (没在大量流失)
-QUALITY_MIN_PRICE_CHANGE = -0.20       # 精筛: 近 1 轮价格变化 ≥ -20% (没在暴跌)
+QUALITY_MIN_PRICE_CHANGE = -0.30       # 精筛: 近 1 轮价格变化 ≥ -30% (给波动留空间, 但不能崩)
 COPYCAT_MARK_MIN = 3                   # 仿盘数 ≥3 标记 (仅标记, 不排除)
-QUALITY_MIN_COPYCAT = 3                # 精筛: 仿盘数 ≥ 3 (有市场热度, 冷门题材排除)
+QUALITY_MIN_COPYCAT = 20               # 精筛: 仿盘数 ≥ 20 (数据: ≥20翻倍率25%, <20仅8%; 10倍币仿盘中位数407)
 QUALITY_MAX_KLINE_SWING = 3.0          # 精筛: K线最高/最低 ≥ 3 倍 (过山车振幅门槛)
 QUALITY_MIN_KLINE_DRAWDOWN = 0.50      # 精筛: 当前价从K线最高回撤 ≥ 50% (确认在下跌途中)
-MIN_SOCIAL_COUNT = 1                   # 最少关联社交媒体数
+QUALITY_MAX_SELLS_H1 = 200             # 精筛: 1h卖出笔数 ≤ 200 (数据: 翻倍币翻倍前1h卖出全是0)
+QUALITY_MIN_SOCIAL = 2                 # 精筛: 社交媒体数 ≥ 2 (数据: 5倍+币社交中位数3, ≥2方向对)
+MIN_SOCIAL_COUNT = 1                   # 入场筛/淘汰: 最少关联社交媒体数 (入场门槛不变)
 
 # --- 毕业通道: 刚毕业强势币 (已毕业, 有流动性 + 持币数增长 + 没在崩盘) ---
 GRAD_MIN_HOLDERS = 100                 # 毕业通道: 持币数 ≥ 100 (毕业后需要更强社区支撑)
@@ -2874,16 +2881,21 @@ def quality_filter(candidates: list[dict], now_ms: int,
                    current_round: int = 0) -> list[dict]:
     """
     精筛: 潜伏型筛选 — 从队列存活币中找"蓄势待发"的代币
-    核心思路: 不追涨, 在代币有社区基础 + 有资金 + 没在崩盘时潜伏进去
+    核心思路: 宁缺毋滥, 大幅收紧条件, 宁可少推也不推垃圾
+
+    数据基础: 328轮扫描, 1123个代币, 30个翻倍(2x+), 8个5倍+, 3个10倍+
+    最强组合: 持币≥80 + 仿盘≥20 + 社交≥2 在进度30-60%阶段翻倍率57%
 
     条件 (全部满足, AND, 仅未毕业币):
-      1. 持币数 ≥ 50 (有真实社区)
+      1. 持币数 ≥ 80 (数据: ≥80翻倍率34% vs <80仅11%)
       2. 进度 30%~90% (有真金白银, 还有上涨空间)
-      3. 币龄 ≤ 10h (还年轻)
-      4. 近 1 轮持币变化 ≥ -5 (没在大量流失)
-      5. 近 1 轮价格变化 ≥ -20% (没在暴跌)
-      6. 仿盘数 ≥ 3 (有市场热度, 冷门题材排除)
-      7. 没有过山车行情 (K线振幅≥3倍 且 当前价从高点回撤≥50% → 已被炒过一轮)
+      3. 币龄 ≤ 48h (数据: 好币可能慢热, ASTEROID在40h翻倍)
+      4. 社交媒体数 ≥ 2 (数据: 5倍+币社交中位数3)
+      5. 近 1 轮持币变化 ≥ -5 (没在大量流失)
+      6. 近 1 轮价格变化 ≥ -30% (给波动留空间, 但不能崩)
+      7. 仿盘数 ≥ 20 (数据: ≥20翻倍率25%, <20仅8%; 10倍币仿盘中位数407)
+      8. 1h卖出笔数 ≤ 200 (数据: 翻倍币翻倍前1h卖出全是0)
+      9. 没有过山车行情 (K线振幅≥3倍 且 当前价从高点回撤≥50% → 已被炒过一轮)
 
     已毕业币不走此通道 (毕业后价格波动大, 潜伏逻辑不适用)
     """
@@ -2913,6 +2925,11 @@ def quality_filter(candidates: list[dict], now_ms: int,
         if age_hours > QUALITY_MAX_AGE_HOURS:
             continue
 
+        # 社交媒体数: 多社交更靠谱 (数据: 社交=1胜率30%, ≥2胜率40%+)
+        social_count = t.get("socialCount", 0)
+        if social_count < QUALITY_MIN_SOCIAL:
+            continue
+
         # 近 1 轮变化检查 (需要历史数据)
         h_hist = t.get("holdersHistory", [])
         price_hist = t.get("priceHistory", [])
@@ -2939,6 +2956,12 @@ def quality_filter(candidates: list[dict], now_ms: int,
         if cc_count < QUALITY_MIN_COPYCAT:
             continue
 
+        # 1h卖出笔数: 排除已被大量交易过的币 (数据: 卖出200+胜率仅27%)
+        sells_h1 = t.get("sellsH1", 0)
+        if sells_h1 > QUALITY_MAX_SELLS_H1:
+            log.info("精筛: ✗ %s — 1h卖出过多 (%d笔, 已被炒过)", name, sells_h1)
+            continue
+
         # 过山车检测: K线最高价/最低价比值过大 = 已被炒过一轮, 现在是下跌途中
         # 例: 涨了 2 倍又跌了 60%, 两个快照价格可能差不多, 但 K线能看到真实振幅
         kline_high = t.get("klineHigh", 0)
@@ -2956,9 +2979,9 @@ def quality_filter(candidates: list[dict], now_ms: int,
         t["_quality_h_delta"] = h_delta
         t["_quality_price_change"] = price_change
         results.append(t)
-        log.info("精筛: ✓ %s — 持币=%d(+%d), 进度=%.1f%%, 价格%+.1f%%, 币龄 %.1fh",
+        log.info("精筛: ✓ %s — 持币=%d(+%d), 进度=%.1f%%, 价格%+.1f%%, 币龄 %.1fh, 社交=%d",
                  name, holders, h_delta, progress * 100,
-                 price_change * 100, age_hours)
+                 price_change * 100, age_hours, social_count)
 
     return results
 
@@ -3207,9 +3230,9 @@ def post_quality_defense(candidates: list[dict], api_key: str) -> list[dict]:
 # ===================================================================
 #  数据文件清理 — 删除 48 小时前的 JSON 文件
 # ===================================================================
-def cleanup_old_data(max_age_days: int = 7):
+def cleanup_old_data(max_age_days: int = 28):
     """删除 data/ 目录下超过 max_age_days 天的 JSON 文件 (排除 queue.json, smart_money.json)
-    保留 7 天数据: 近 2 天供前端展示, 其余 5 天供数据分析优化策略
+    保留 28 天数据: 近 2 天供前端展示, 其余供数据分析优化策略 (需要足够样本量)
     通过文件名中的时间戳判断, 而非 mtime (GitHub Actions checkout 后 mtime 为当前时间)
     """
     now = datetime.now(timezone.utc)
@@ -3802,8 +3825,8 @@ def main():
         json.dump(output, f, ensure_ascii=False, indent=2)
     log.info("输出: %s", out_path)
 
-    # 清理过期数据文件 (保留 7 天, 前端只展示近 2 天, 其余供数据分析)
-    cleanup_old_data(7)
+    # 清理过期数据文件 (保留 28 天, 前端只展示近 2 天, 其余供数据分析)
+    cleanup_old_data(28)
 
     # 打印摘要
     log.info("=" * 50)
