@@ -188,7 +188,8 @@ if (scanFiles.length === 0) {
     const data = JSON.parse(fs.readFileSync(path.join(DATA_DIR, file), "utf-8"));
     const st = data.scanTime;
 
-    // 记录精筛通过的代币 (首次出现时记录入场价)
+    // 记录精筛通过的代币 (首次出现时记录精筛价格)
+    // 注意: peakPrice 从精筛通过时的 price 开始算, 不用 peak_price (那是入队以来的历史最高价, 包含精筛前的涨幅)
     for (const t of (data.tokens || [])) {
       const addr = t.address || '';
       if (!addr) continue;
@@ -203,7 +204,7 @@ if (scanFiles.length === 0) {
           entryProgress: t.progress || 0,
           entryLiquidity: t.liquidity || 0,
           entryAgeHours: t.age_hours != null ? t.age_hours : null,
-          peakPrice: t.peak_price || t.price || 0,
+          peakPrice: t.price || 0,
           latestPrice: t.price || 0,
           socialLinks: t.social_links || {},
           copycatCount: t.copycat_count || 0,
@@ -212,7 +213,7 @@ if (scanFiles.length === 0) {
       }
     }
 
-    // 更新所有已记录代币的峰值价格 (从队列/精筛/突破中获取最新价格)
+    // 更新所有已记录代币的峰值价格 (仅用实时 price, 不用 peak_price — 后者包含精筛前的历史最高价)
     const allTokens = [
       ...(data.tokens || []),
       ...(data.queue || []),
@@ -222,9 +223,7 @@ if (scanFiles.length === 0) {
       const addr = t.address || '';
       if (!addr || !qualityMap[addr]) continue;
       const price = t.price || 0;
-      const peakPrice = t.peak_price || 0;
       if (price > qualityMap[addr].peakPrice) qualityMap[addr].peakPrice = price;
-      if (peakPrice > qualityMap[addr].peakPrice) qualityMap[addr].peakPrice = peakPrice;
       // 更新最新价格
       qualityMap[addr].latestPrice = price;
     }
