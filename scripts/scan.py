@@ -331,10 +331,25 @@ _bnb_usd_price: float = 600.0  # BNB/USD 实时价格, main 中更新
 _gt_session: requests.Session = None  # type: ignore
 _bsc_session: requests.Session = None  # type: ignore
 _bn_session: requests.Session = None  # type: ignore
+_ipfs_session: requests.Session = None  # type: ignore  # IPFS 专用 (无重试, 短超时)
+
+
+def _build_ipfs_session(proxy_cfg: dict | None = None) -> requests.Session:
+    """IPFS 专用 session: 不挂 urllib3 Retry, 函数内部已有多网关容错"""
+    session = requests.Session()
+    adapter = HTTPAdapter(pool_connections=3, pool_maxsize=6)
+    session.mount("https://", adapter)
+    session.mount("http://", adapter)
+    if proxy_cfg and proxy_cfg.get("enabled"):
+        session.proxies = {
+            "http": proxy_cfg.get("http", ""),
+            "https": proxy_cfg.get("https", ""),
+        }
+    return session
 
 
 def _ensure_sessions():
-    global _fm_session, _gt_session, _bsc_session, _bn_session
+    global _fm_session, _gt_session, _bsc_session, _bn_session, _ipfs_session
     if _fm_session is None:
         try:
             cfg = load_config()
@@ -345,6 +360,7 @@ def _ensure_sessions():
         _gt_session = _build_session(proxy, GT_HEADERS)
         _bsc_session = _build_session(proxy, DS_HEADERS)
         _bn_session = _build_session(proxy, BINANCE_HEADERS)
+        _ipfs_session = _build_ipfs_session(proxy)
 
 
 # ===================================================================
@@ -579,15 +595,16 @@ def flap_ipfs_meta(cid: str) -> dict | None:
     if not cid or not cid.startswith("baf"):
         return None
     _ensure_sessions()
-    # 多网关容错
+    # 多网关容错 (已有 3 个网关, 无需 urllib3 Retry; 用 _ipfs_session 避免重试放大超时)
+    # 优先用 CID 子域名格式 (4everland 推荐), 回退到路径格式
     gateways = [
+        f"https://{cid}.ipfs.4everland.io/",
         f"https://ipfs.io/ipfs/{cid}",
         f"https://gateway.pinata.cloud/ipfs/{cid}",
-        f"https://4everland.io/ipfs/{cid}",
     ]
     for gw_url in gateways:
         try:
-            r = _gt_session.get(gw_url, timeout=8)
+            r = _ipfs_session.get(gw_url, timeout=4)
             if r.status_code != 200:
                 continue
             meta = r.json()
