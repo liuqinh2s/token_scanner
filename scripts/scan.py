@@ -2444,28 +2444,33 @@ def admission_filter(new_tokens: list[dict],
                 )
             # 社交媒体: 从 flap.sh 页面 SSR 数据提取
             flap_meta = flap_social.get(t["address"])
-            if flap_meta is None:
-                # flap.sh 页面抓取失败, 无法判断社交状态, 淘汰
-                rejected.append({"token": t, "detail": None, "reason": "flap.sh 页面抓取失败"})
-                continue
-            social_links = {}
-            if flap_meta.get("twitter"):
-                social_links["twitter"] = flap_meta["twitter"]
-            if flap_meta.get("telegram"):
-                social_links["telegram"] = flap_meta["telegram"]
-            if flap_meta.get("website"):
-                social_links["website"] = flap_meta["website"]
-            # 入场条件: 社交 ≥ 1 (与 four.meme 统一)
-            if len(social_links) < MIN_SOCIAL_COUNT:
-                rejected.append({"token": t, "detail": None, "reason": "无社交媒体"})
-                continue
+            if flap_meta is not None:
+                social_links = {}
+                if flap_meta.get("twitter"):
+                    social_links["twitter"] = flap_meta["twitter"]
+                if flap_meta.get("telegram"):
+                    social_links["telegram"] = flap_meta["telegram"]
+                if flap_meta.get("website"):
+                    social_links["website"] = flap_meta["website"]
+                # 入场条件: 社交 ≥ 1 (与 four.meme 统一)
+                if len(social_links) < MIN_SOCIAL_COUNT:
+                    rejected.append({"token": t, "detail": None, "reason": "无社交媒体"})
+                    continue
+                social_count = len(social_links)
+                social_desc = flap_meta.get("description", "")
+            else:
+                # flap.sh 页面抓取失败, 容错: 假设社交存在, 先进队列, 后续淘汰检查再补查
+                log.warning("flap 社交抓取失败, 容错放行: %s", t["address"][:16])
+                social_links = {}
+                social_count = 1  # 假设有社交, 避免因临时网络问题永久错过好币
+                social_desc = ""
             flap_detail = {
                 "holders": 0,
                 "price": flap_price,
                 "totalSupply": real_supply,
-                "socialCount": len(social_links),
+                "socialCount": social_count,
                 "socialLinks": social_links,
-                "descr": flap_meta.get("description", ""),
+                "descr": social_desc,
                 "name": ds.get("name") or t.get("name", ""),
                 "shortName": ds.get("symbol") or t.get("symbol", ""),
                 "progress": 1.0 if flap_graduated else flap_progress,
