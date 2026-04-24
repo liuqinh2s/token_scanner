@@ -261,12 +261,29 @@ npm run dev                     # 启动开发服务器（live-server）
 
 ## 配置
 
-`config.local.json`（已 gitignore）：
+首次使用时，复制配置模板并填入自己的 API Key：
+
+```bash
+cp config.example.json config.local.json
+```
+
+`config.example.json`（配置模板，已入库）：
 
 ```json
 {
   "proxy": { "enabled": true, "host": "127.0.0.1", "port": 7890 },
-  "bscscanApiKey": "YOUR_BSCSCAN_API_KEY"
+  "bscscanApiKey": "YOUR_BSCSCAN_API_KEY",
+  "gmgn_api_key": "YOUR_GMGN_API_KEY"
+}
+```
+
+`config.local.json`（实际运行配置，已 gitignore，填入真实值）：
+
+```json
+{
+  "proxy": { "enabled": true, "host": "127.0.0.1", "port": 7890 },
+  "bscscanApiKey": "你的 BSCScan API Key",
+  "gmgn_api_key": "你的 GMGN API Key"
 }
 ```
 
@@ -324,7 +341,8 @@ npm run dev                     # 启动开发服务器（live-server）
 ├── site/                     # 构建产物（GitHub Pages）
 │   ├── index.html
 │   └── data/
-├── config.local.json         # 本地配置（已 gitignore）
+├── config.example.json        # 配置模板（已入库，含字段说明）
+├── config.local.json         # 本地配置（已 gitignore，填入真实值）
 └── package.json
 ```
 
