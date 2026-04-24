@@ -24,7 +24,7 @@ const SCANS_DIR = path.join(SITE_DATA_DIR, "scans");
 const PUBLIC_DIR = path.join(__dirname, "..", "public");
 
 // 止盈触发点 (%), 精筛成功率以此为判定标准 — 改这里即可全局生效
-const TP_TRIGGER_PCT = 50;
+const TP_TRIGGER_PCT = 15;
 
 // Ensure output dirs
 for (const d of [SITE_DIR, SITE_DATA_DIR, SCANS_DIR]) {
