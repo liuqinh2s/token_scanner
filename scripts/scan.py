@@ -3751,6 +3751,7 @@ def main():
         "breakthroughCount": len(breakthrough_tokens),
         "filteredTokens": len(quality_results),
         "queueSize": len(survivors),
+        "marketSentiment": market_sentiment,
         "tokens": out_tokens,
         "queue": out_queue,
         "breakthroughTokens": out_breakthrough,
