@@ -2411,7 +2411,7 @@
           链上扫描 four.meme / flap.sh TokenCreated 事件 → 入场筛(社交≥1、总量10亿、币龄&lt;48h) →
           队列淘汰(价格跌90%(价格&lt;1e-7跳过)/持币30→10/持币跌70%(峰≥50)/无社交/流动性1k→100(仅毕业)/进度&lt;1%且币龄&gt;2h/进度&lt;5%且币龄&gt;4h/进度跌20pp且币龄&gt;6h(社区币30pp)/15min峰值持币&lt;3/1h峰值持币&lt;5/2h峰值持币&lt;8/币龄&gt;48h)
           🚀价格突破(峰值≥0.0001 → 标记已突破, 保留队列继续跟踪, 仅受币龄淘汰)
-          → 标签制精筛(基础标签AND: 持币≥30/进度≥15%(未毕业)或流动性≥$10k(已毕业)/仿盘≥5/未崩盘(近三期跌幅&lt;35%)/社交≥1/动能(持币增速≥5或进度增长≥5%)/大盘向上)
+          → 标签制精筛(基础标签AND: 持币≥30/进度≥15%(未毕业)或流动性≥$10k(已毕业)/仿盘≥5/未崩盘(近三期跌幅&lt;35%)/社交≥1/动能(持币增速≥5或进度增长≥5%)/大盘向上(Gas趋势))
           + 加分项至少1个: Boost/仿盘≥100/持币增长≥20/社交≥3/已毕业强势(3轮增长≥50且≥2轮增长)/进度增长≥10%/加速增长<br>
           数据源: DexScreener 价格/涨跌幅/Boost · GeckoTerminal 已毕业持币数 · four.meme / flap.sh Detail API<br>
           🔥仿盘标记(≥3个同名) · 🚀Boost标记(DexScreener付费推广) · 仿盘&lt;5精筛排除 </p>
@@ -2833,7 +2833,8 @@
             <span class="flow-num">4</span>
             <div>
               <div class="flow-title">标签制精筛 (瞬时)</div>
-              <div class="flow-desc">统一通道，未毕业币和已毕业币走同一套标签制。基础标签全部满足(持币≥30/进度≥15%或流动性≥$10k/仿盘≥5/未崩盘/社交≥1/有动能/大盘向上) +
+              <div class="flow-desc">统一通道，未毕业币和已毕业币走同一套标签制。基础标签全部满足(持币≥30/进度≥15%或流动性≥$10k/仿盘≥5/未崩盘/社交≥1/有动能/大盘向上(Gas趋势))
+                +
                 加分项至少1个(Boost/仿盘≥100/持币增长≥20/社交≥3/已毕业强势/进度增长≥10%/加速增长)</div>
             </div>
           </div>
@@ -2883,7 +2884,7 @@
         <li>未崩盘（近三期最高点跌幅 &lt; 35%）</li>
         <li>社交 ≥ 1</li>
         <li>动能：近1轮持币增速 ≥ 5 或 进度增长 ≥ 5%（过滤静态达标的僵尸币）</li>
-        <li>大盘向上（持币≥100占比 + 近12h存活率，两者高于历史中位数）</li>
+        <li>大盘向上（Gas大盘指数近12h趋势上升：ETH/BSC Gas使用率 + SOL TPS 加权）</li>
       </ul>
       <p style="font-size:11px;color:var(--text-secondary);margin-bottom:6px;margin-top:10px;line-height:1.5;">
         <strong>加分项（至少满足 1 个）：</strong>
@@ -3358,11 +3359,13 @@
       const arrow = isBullish ? '↑' : '↓';
       const label = isBullish ? '向上' : '向下';
       const cls = isBullish ? 'bullish' : 'bearish';
-      const hr = (ms.holder_ratio * 100).toFixed(1);
-      const sr = (ms.survival_rate * 100).toFixed(1);
-      const mhr = (ms.median_holder_ratio * 100).toFixed(1);
-      const msr = (ms.median_survival_rate * 100).toFixed(1);
-      const detailText = `持币≥100: ${hr}%/${mhr}% · 存活率: ${sr}%/${msr}%`;
+      const gi = (ms.gas_index * 100).toFixed(1);
+      const gd = ms.gas_detail || {};
+      const ethStr = gd.eth_gas_ratio != null ? (gd.eth_gas_ratio * 100).toFixed(0) + '%' : 'N/A';
+      const bscStr = gd.bsc_gas_ratio != null ? (gd.bsc_gas_ratio * 100).toFixed(0) + '%' : 'N/A';
+      const solStr = gd.sol_tps != null ? Math.round(gd.sol_tps) + 'tps' : 'N/A';
+      const ago = ms.gas_12h_ago != null ? (ms.gas_12h_ago * 100).toFixed(1) + '%' : '无数据';
+      const detailText = `Gas ${gi}% (ETH:${ethStr} BSC:${bscStr} SOL:${solStr}) · 12h前:${ago}`;
 
       // 桌面端渲染
       if (valEl) {
