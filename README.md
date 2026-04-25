@@ -293,28 +293,25 @@ cp config.example.json config.local.json
 |------|--------|------|
 | `MAX_AGE_HOURS` | 48 | 关注窗口（小时） |
 | `SCAN_INTERVAL_MIN` | 15 | 扫描间隔（分钟） |
-| `QUALITY_MIN_HOLDERS` | 120 | 精筛: 持币数 ≥ 120 |
-| `QUALITY_MIN_PROGRESS` | 0.20 | 精筛: 进度 ≥ 20% |
-| `QUALITY_MAX_PROGRESS` | 0.70 | 精筛: 进度 < 70% |
-| `QUALITY_MAX_AGE_HOURS` | 48 | 精筛: 币龄 ≤ 48h |
-| `QUALITY_MIN_H_DELTA` | -5 | 精筛: 近 1 轮持币变化 ≥ -5 |
-| `QUALITY_MIN_PRICE_CHANGE` | -0.30 | 精筛: 近 1 轮价格变化 ≥ -30% |
-| `QUALITY_MIN_COPYCAT` | 10 | 精筛: 仿盘数 ≥ 10 |
-| `QUALITY_MAX_KLINE_SWING` | 3.0 | 精筛: K线振幅 ≥ 3 倍视为过山车 |
-| `QUALITY_MIN_KLINE_DRAWDOWN` | 0.50 | 精筛: 回撤 ≥ 50% 确认在下跌途中 |
-| `QUALITY_MAX_SELLS_H1` | 200 | 精筛: 1h卖出笔数 ≤ 200 |
-| `QUALITY_MIN_SOCIAL` | 2 | 精筛: 社交媒体数 ≥ 2 |
-| `GRAD_MIN_HOLDERS` | 100 | 毕业通道A: 持币数 ≥ 100 |
-| `GRAD_MIN_LIQUIDITY` | 10000 | 毕业通道A: 流动性 ≥ $10,000 |
-| `GRAD_MIN_H_DELTA` | 0 | 毕业通道A: 近 1 轮持币变化 ≥ 0 |
-| `GRAD_MIN_PRICE_CHANGE` | 0.0 | 毕业通道A: 近 1 轮价格变化 ≥ 0% |
-| `GRAD_STOP_LOSS_PCT` | -20 | 毕业通道: 止损 -20% (与潜伏型统一) |
-| `GRAD_STRONG_MIN_HOLDERS` | 200 | 毕业通道B: 持币数 ≥ 200 |
-| `GRAD_STRONG_MIN_LIQUIDITY` | 15000 | 毕业通道B: 流动性 ≥ $15,000 |
-| `GRAD_STRONG_MAX_AGE_HOURS` | 24 | 毕业通道B: 币龄 ≤ 24h |
-| `GRAD_STRONG_MIN_H_GROWTH` | 50 | 毕业通道B: 近 3 轮持币累计增长 ≥ 50 |
-| `GRAD_STRONG_MIN_CONSEC_GROWTH` | 2 | 毕业通道B: 近 3 轮中至少 2 轮增长 |
-| `GRAD_STRONG_MIN_PRICE_CHANGE` | -0.10 | 毕业通道B: 近 1 轮价格变化 ≥ -10% |
+| **基础标签** | | |
+| `TAG_BASE_MIN_HOLDERS` | 30 | 基础: 持币数 ≥ 30 |
+| `TAG_BASE_MIN_PROGRESS` | 0.15 | 基础: 进度 ≥ 15%（仅未毕业币） |
+| `TAG_BASE_MIN_LIQUIDITY` | 10000 | 基础: 流动性 ≥ $10k（仅已毕业币） |
+| `TAG_BASE_MIN_COPYCAT` | 5 | 基础: 仿盘数 ≥ 5 |
+| `TAG_BASE_MAX_CRASH_PCT` | 0.35 | 基础: 近三期最高点跌幅 < 35% |
+| `TAG_BASE_MIN_SOCIAL` | 1 | 基础: 社交 ≥ 1 |
+| `TAG_BASE_MIN_H_MOMENTUM` | 5 | 基础(动能): 近1轮持币增速 ≥ 5 |
+| `TAG_BASE_MIN_P_MOMENTUM` | 0.05 | 基础(动能): 进度增长 ≥ 5%（与持币增速二选一） |
+| **加分项** | | |
+| `TAG_BONUS_MIN_COPYCAT` | 100 | 加分: 仿盘 ≥ 100 |
+| `TAG_BONUS_MIN_H_DELTA` | 20 | 加分: 近1轮持币增长 ≥ 20 |
+| `TAG_BONUS_MIN_SOCIAL` | 3 | 加分: 社交 ≥ 3 |
+| `TAG_BONUS_GRAD_MIN_H_GROWTH` | 50 | 加分(已毕业强势): 近3轮持币累计增长 ≥ 50 |
+| `TAG_BONUS_GRAD_MIN_CONSEC` | 2 | 加分(已毕业强势): 至少2轮在增长 |
+| `TAG_BONUS_MIN_P_GROWTH` | 0.10 | 加分: 进度增长 ≥ 10% |
+| — | — | 加分: 加速增长（2→3轮增速 > 1→2轮增速, 且都在涨） |
+| — | — | 加分: 有 Boost（项目方付费推广） |
+| **淘汰阈值** | | |
 | `ELIM_PRICE_DROP_PCT` | 0.90 | 价格跌幅淘汰阈值 |
 | `ELIM_HOLDERS_FLOOR` | 10 | 持币数淘汰下限 |
 | `ELIM_LIQ_FLOOR` | 100 | 流动性淘汰下限（USD） |
