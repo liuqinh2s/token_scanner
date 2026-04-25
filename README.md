@@ -56,6 +56,8 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
 | DexScreener API | 批量价格+流动性+交易量+买卖笔数+涨跌幅+Boost | ~300 req/min |
 | GeckoTerminal Token Info | 持币地址数 (已毕业代币, 链上索引) | ~30 req/min |
 | GeckoTerminal OHLCV | 15min K线 (持币≥50 代币的峰值修正+过山车检测) | ~30 req/min (串行, 每个 2s) |
+| Ethereum RPC (publicnode) | ETH Gas 大盘指数 (eth_feeHistory gasUsedRatio) | 无硬限制 |
+| Solana RPC (mainnet-beta) | SOL TPS 大盘指数 (getRecentPerformanceSamples) | 无硬限制 |
 | 本地队列统计 | 仿盘检测：同名/近似名代币数量 | 无 |
 
 ### 目标价区间
@@ -100,6 +102,7 @@ K线同时记录 klineHigh/klineLow，用于精筛的过山车检测（振幅过
 
 | # | 条件 | 说明 |
 |---|------|------|
+| 0 | 蹭名币 (symbol/name 命中黑名单) | USDT/BTC/ETH 等知名币种同名, 100% 假币 |
 | 1 | 价格从峰值跌 90%+ | 暴跌弃盘 (当前价格<1e-7 视为 API 异常, 跳过) |
 | 2 | 持币地址从 ≥30 跌破 10 | 大量抛售 |
 | 3 | 持币数从峰值跌 70%+ (峰值≥50) | 僵尸币清理 |
@@ -302,6 +305,11 @@ cp config.example.json config.local.json
 | `TAG_BASE_MIN_SOCIAL` | 1 | 基础: 社交 ≥ 1 |
 | `TAG_BASE_MIN_H_MOMENTUM` | 5 | 基础(动能): 近1轮持币增速 ≥ 5 |
 | `TAG_BASE_MIN_P_MOMENTUM` | 0.05 | 基础(动能): 进度增长 ≥ 5%（与持币增速二选一） |
+| **大盘情绪 (Gas趋势)** | | |
+| `GAS_INDEX_ETH_WEIGHT` | 0.4 | Gas指数: ETH权重 |
+| `GAS_INDEX_BSC_WEIGHT` | 0.4 | Gas指数: BSC权重 |
+| `GAS_INDEX_SOL_WEIGHT` | 0.2 | Gas指数: SOL TPS权重 |
+| `SOL_TPS_NORMALIZE_BASE` | 4000 | SOL TPS归一化基准 |
 | **加分项** | | |
 | `TAG_BONUS_MIN_COPYCAT` | 100 | 加分: 仿盘 ≥ 100 |
 | `TAG_BONUS_MIN_H_DELTA` | 20 | 加分: 近1轮持币增长 ≥ 20 |

@@ -27,6 +27,7 @@ v6 架构: 极速扫描 (1 分钟一轮)
   - RPC Transfer 日志持币数 (bonding curve 阶段不产生标准 Transfer, 不准确)
 
 淘汰条件 (永久剔除):
+  - 蹭名币 (symbol/name 命中主流币种黑名单, 如 USDT/BTC/ETH 等)
   - 价格从峰值跌 90%+ (保护: 当前价格<1e-7 视为 API 异常, 跳过)
   - 持币地址从 ≥30 跌破 10
   - 持币数从峰值跌 70%+ (峰值≥50, 清理僵尸币)
@@ -50,7 +51,7 @@ v6 架构: 极速扫描 (1 分钟一轮)
   - 未崩盘 (近三期最高点跌幅 < 35%)
   - 社交 ≥ 1
   - 动能: 近1轮持币增速≥5 或 进度增长≥5% (必须有增长动能, 过滤静态达标的僵尸币)
-  - 大盘向上 (持币≥100占比 + 近12h存活率, 两者高于历史中位数)
+  - 大盘向上 (Gas大盘指数近12h趋势: 升温=向上, 降温=向下)
   加分项 (至少满足 1 个):
   - 有 Boost (项目方付费推广)
   - 仿盘 ≥ 100 (市场高度关注)
@@ -199,7 +200,7 @@ TOTAL_SUPPLY = 1_000_000_000           # 10亿
 #   4. 未崩盘 (近三期最高点跌幅 < 35%)
 #   5. 社交 ≥ 1
 #   6. 动能: 近1轮持币增速≥5 或 进度增长≥5% (数据: 无动能币75%涨幅<50%)
-#   7. 大盘向上 (持币≥100占比 + 近12h存活率, 两者高于历史中位数)
+#   7. 大盘向上 (Gas大盘指数近12h趋势: 升温=向上, 降温=向下)
 #
 # 加分项 (至少满足 1 个):
 #   - 有 Boost (项目方付费推广, 真金白银)
@@ -225,10 +226,31 @@ TAG_BONUS_MIN_SOCIAL = 3              # 加分: 社交 ≥ 3
 TAG_BONUS_GRAD_MIN_H_GROWTH = 50      # 加分(已毕业强势): 近 3 轮持币累计增长 ≥ 50
 TAG_BONUS_GRAD_MIN_CONSEC = 2         # 加分(已毕业强势): 近 N 轮中至少 2 轮持币在增长
 TAG_BONUS_MIN_P_GROWTH = 0.10         # 加分: 进度增长 ≥ 10% (资金持续流入)
-# 大盘情绪阈值 (持币≥100占比 + 近12h存活率, 两者高于中位数视为大盘向上)
-MARKET_SENTIMENT_HOLDER_MEDIAN = 0.05  # 持币≥100占比历史中位数 (初始值, 运行后自动更新)
-MARKET_SENTIMENT_SURVIVAL_MEDIAN = 0.10  # 近12h存活率历史中位数 (初始值, 运行后自动更新)
+# 大盘情绪: 纯 Gas 趋势判定 (当前 Gas 指数 vs 近12h均值)
+# Gas 大盘指数: ETH/BSC gasUsedRatio + SOL TPS, 反映多链整体活跃度
+# gasUsedRatio: 0~1, 越高=区块越满=链上越活跃; SOL TPS 归一化到 0~1
+GAS_INDEX_ETH_WEIGHT = 0.4             # ETH Gas 权重 (主链, 风向标)
+GAS_INDEX_BSC_WEIGHT = 0.4             # BSC Gas 权重 (本项目主战场)
+GAS_INDEX_SOL_WEIGHT = 0.2             # SOL TPS 权重 (辅助参考)
+# Solana TPS 归一化参数: 历史 TPS 范围约 2000~5000, 用 4000 作为满载基准
+SOL_TPS_NORMALIZE_BASE = 4000.0
+# Solana 公共 RPC (免费, 无需 API key)
+SOL_RPC = "https://api.mainnet-beta.solana.com"
+# Ethereum 公共 RPC (用于 eth_feeHistory, 免费)
+ETH_RPC = "https://ethereum-rpc.publicnode.com"
 MIN_SOCIAL_COUNT = 1                   # 入场筛/淘汰: 最少关联社交媒体数 (入场门槛不变)
+
+# 蹭名币黑名单: symbol 或 name 命中即拒绝入场 (小写匹配)
+# 这些是知名主流币种的名称/符号, 在 meme 平台上发行的同名代币 100% 是蹭热度的假币
+FAKE_NAME_BLACKLIST = {
+    "usdt", "usdc", "busd", "dai", "tusd", "usdp", "frax", "lusd", "gusd",  # 稳定币
+    "btc", "bitcoin", "eth", "ethereum", "bnb", "sol", "solana",             # 主流公链币
+    "xrp", "ripple", "ada", "cardano", "doge", "dogecoin", "shib",           # 主流山寨币
+    "dot", "polkadot", "avax", "avalanche", "matic", "polygon", "link",      # 主流山寨币
+    "uni", "uniswap", "aave", "cake", "pancakeswap",                         # 主流 DeFi
+    "wbnb", "weth", "wbtc",                                                   # 包装代币
+    "tether", "tether usd", "binance coin", "binance-peg",                   # 全名匹配
+}
 
 # 精筛后防线阈值
 QUALITY_MAX_TOP10_CONCENTRATION = 0.85 # 精筛后防线: Top10 持仓占比 > 85% 排除 (庄家控盘)
@@ -2407,6 +2429,14 @@ def admission_filter(new_tokens: list[dict],
 
     # 逐个判断入场条件
     for t in fresh:
+        # 入场条件: 蹭名币黑名单 (symbol 或 name 精确匹配知名币种, 直接拒绝)
+        t_symbol = (t.get("symbol") or "").strip().lower()
+        t_name = (t.get("name") or "").strip().lower()
+        if t_symbol in FAKE_NAME_BLACKLIST or t_name in FAKE_NAME_BLACKLIST:
+            rejected.append({"token": t, "detail": None,
+                             "reason": f"蹭名币 ({t.get('symbol', '')})"})
+            continue
+
         is_flap = t.get("source") == "flap"
 
         if is_flap:
@@ -2557,8 +2587,13 @@ def elimination_check(queue: list[dict], now_ms: int,
         elim_reason = None
         peak_h = t.get("peakHolders", 0)
 
+        # 蹭名币: symbol 或 name 命中黑名单, 直接淘汰 (清理历史遗留)
+        t_symbol = (t.get("symbol") or "").strip().lower()
+        t_name = (t.get("name") or "").strip().lower()
+        if t_symbol in FAKE_NAME_BLACKLIST or t_name in FAKE_NAME_BLACKLIST:
+            elim_reason = f"蹭名币 ({t.get('symbol', '')})"
         # 进度>0 说明有资金进入, 但 holders==0 是 API 数据不准, 跳过让后续 API 更新
-        if peak_h == 0 and t.get("peakProgress", 0) > 0:
+        elif peak_h == 0 and t.get("peakProgress", 0) > 0:
             pass
         elif age_hours > ELIM_EARLY_AGE_MIN and peak_h < ELIM_EARLY_PEAK_HOLDERS:
             elim_reason = f"币龄{age_hours:.1f}h 最高持币仅{peak_h}"
@@ -2896,50 +2931,210 @@ def elimination_check(queue: list[dict], now_ms: int,
 # ===================================================================
 #  Step 5: 精筛 — 潜伏型筛选
 # ===================================================================
+
+
+# ===================================================================
+#  Gas 大盘指数 — 多链 Gas 消耗反映整体市场活跃度
+# ===================================================================
+def _fetch_eth_gas_used_ratio() -> float | None:
+    """
+    通过 Ethereum RPC eth_feeHistory 获取最近 300 个区块的 gasUsedRatio。
+    ETH ~12s/块, 300 块 ≈ 1 小时。eth_feeHistory 上限 1024 块, 一次搞定。
+    返回平均值, 失败返回 None。
+    """
+    _ensure_sessions()
+    try:
+        r = _bsc_session.post(ETH_RPC, json={
+            "jsonrpc": "2.0", "method": "eth_feeHistory",
+            "params": ["0x12c", "latest", []],  # 0x12c = 300 块 ≈ 1h
+            "id": 1,
+        }, timeout=15, headers={"Content-Type": "application/json"})
+        r.raise_for_status()
+        data = r.json()
+        ratios = data.get("result", {}).get("gasUsedRatio", [])
+        if ratios:
+            return sum(ratios) / len(ratios)
+    except Exception as e:
+        log.debug("ETH Gas 查询失败: %s", e)
+    return None
+
+
+def _fetch_bsc_gas_used_ratio() -> float | None:
+    """
+    通过 BSC RPC eth_feeHistory 获取最近 1200 个区块的 gasUsedRatio。
+    BSC ~3s/块, 1200 块 ≈ 1 小时。eth_feeHistory 上限 1024 块, 需分两次。
+    返回平均值, 失败返回 None。
+    """
+    _ensure_sessions()
+    all_ratios = []
+    try:
+        # 第一次: 最近 1024 块
+        r = _bsc_session.post(BSC_RPC, json={
+            "jsonrpc": "2.0", "method": "eth_feeHistory",
+            "params": ["0x400", "latest", []],  # 0x400 = 1024 块
+            "id": 1,
+        }, timeout=15, headers={"Content-Type": "application/json"})
+        r.raise_for_status()
+        data = r.json()
+        result = data.get("result", {})
+        ratios = result.get("gasUsedRatio", [])
+        all_ratios.extend(ratios)
+
+        # 第二次: 再往前 176 块 (1200 - 1024), 从第一次返回的最老区块开始
+        oldest = result.get("oldestBlock")
+        if oldest and len(ratios) >= 1024:
+            oldest_num = int(oldest, 16) if isinstance(oldest, str) else oldest
+            r2 = _bsc_session.post(BSC_RPC, json={
+                "jsonrpc": "2.0", "method": "eth_feeHistory",
+                "params": ["0xb0", hex(oldest_num - 1), []],  # 0xb0 = 176 块
+                "id": 2,
+            }, timeout=15, headers={"Content-Type": "application/json"})
+            r2.raise_for_status()
+            data2 = r2.json()
+            ratios2 = data2.get("result", {}).get("gasUsedRatio", [])
+            all_ratios = ratios2 + all_ratios  # 旧的在前, 新的在后
+
+        if all_ratios:
+            return sum(all_ratios) / len(all_ratios)
+    except Exception as e:
+        log.debug("BSC Gas 查询失败: %s", e)
+        # 如果第二次失败但第一次有数据, 用第一次的
+        if all_ratios:
+            return sum(all_ratios) / len(all_ratios)
+    return None
+
+
+def _fetch_sol_tps() -> float | None:
+    """
+    通过 Solana RPC getRecentPerformanceSamples 获取最近 60 个采样的 TPS。
+    每个采样 60 秒, 60 个 ≈ 1 小时。
+    返回平均 TPS, 失败返回 None。
+    """
+    _ensure_sessions()
+    try:
+        r = _bsc_session.post(SOL_RPC, json={
+            "jsonrpc": "2.0", "method": "getRecentPerformanceSamples",
+            "params": [60],  # 最近 60 个采样 ≈ 1 小时
+            "id": 1,
+        }, timeout=15, headers={"Content-Type": "application/json"})
+        r.raise_for_status()
+        data = r.json()
+        samples = data.get("result", [])
+        if samples:
+            total_tx = sum(s.get("numTransactions", 0) for s in samples)
+            total_sec = sum(s.get("samplePeriodSecs", 60) for s in samples)
+            if total_sec > 0:
+                return total_tx / total_sec
+    except Exception as e:
+        log.debug("SOL TPS 查询失败: %s", e)
+    return None
+
+
+def fetch_gas_index() -> dict:
+    """
+    并行查询 ETH/BSC Gas 使用率 + SOL TPS, 计算加权 Gas 大盘指数。
+
+    指标:
+      - ETH gasUsedRatio (0~1): 以太坊区块 Gas 填充率
+      - BSC gasUsedRatio (0~1): BSC 区块 Gas 填充率
+      - SOL TPS 归一化 (0~1): Solana 交易吞吐量 / 基准 TPS
+
+    加权公式: gas_index = ETH*0.4 + BSC*0.4 + SOL*0.2
+    某条链查询失败时, 权重重新分配给成功的链。
+
+    返回: {
+        "eth_gas_ratio": float|None,
+        "bsc_gas_ratio": float|None,
+        "sol_tps": float|None,
+        "sol_tps_normalized": float|None,
+        "gas_index": float (0~1, 加权综合指数),
+        "chains_ok": int (成功查询的链数),
+    }
+    """
+    results = {"eth_gas_ratio": None, "bsc_gas_ratio": None,
+               "sol_tps": None, "sol_tps_normalized": None,
+               "gas_index": 0.0, "chains_ok": 0}
+
+    # 并行查询三条链
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        f_eth = pool.submit(_fetch_eth_gas_used_ratio)
+        f_bsc = pool.submit(_fetch_bsc_gas_used_ratio)
+        f_sol = pool.submit(_fetch_sol_tps)
+
+        eth_ratio = f_eth.result()
+        bsc_ratio = f_bsc.result()
+        sol_tps = f_sol.result()
+
+    results["eth_gas_ratio"] = round(eth_ratio, 4) if eth_ratio is not None else None
+    results["bsc_gas_ratio"] = round(bsc_ratio, 4) if bsc_ratio is not None else None
+    results["sol_tps"] = round(sol_tps, 1) if sol_tps is not None else None
+
+    # SOL TPS 归一化: TPS / 基准, 上限 1.0
+    sol_normalized = None
+    if sol_tps is not None:
+        sol_normalized = min(sol_tps / SOL_TPS_NORMALIZE_BASE, 1.0)
+        results["sol_tps_normalized"] = round(sol_normalized, 4)
+
+    # 加权计算 Gas 指数 (某链失败时权重重新分配)
+    weights = []
+    values = []
+    if eth_ratio is not None:
+        weights.append(GAS_INDEX_ETH_WEIGHT)
+        values.append(eth_ratio)
+    if bsc_ratio is not None:
+        weights.append(GAS_INDEX_BSC_WEIGHT)
+        values.append(bsc_ratio)
+    if sol_normalized is not None:
+        weights.append(GAS_INDEX_SOL_WEIGHT)
+        values.append(sol_normalized)
+
+    results["chains_ok"] = len(weights)
+
+    if weights:
+        total_weight = sum(weights)
+        gas_index = sum(w * v for w, v in zip(weights, values)) / total_weight
+        results["gas_index"] = round(gas_index, 4)
+
+    # 日志
+    parts = []
+    if eth_ratio is not None:
+        parts.append(f"ETH={eth_ratio:.1%}")
+    else:
+        parts.append("ETH=N/A")
+    if bsc_ratio is not None:
+        parts.append(f"BSC={bsc_ratio:.1%}")
+    else:
+        parts.append("BSC=N/A")
+    if sol_tps is not None:
+        parts.append(f"SOL={sol_tps:.0f}tps({sol_normalized:.1%})")
+    else:
+        parts.append("SOL=N/A")
+    log.info("Gas 大盘指数: %.1f%% (%s, %d/3链成功)",
+             results["gas_index"] * 100, ", ".join(parts), results["chains_ok"])
+
+    return results
 def calc_market_sentiment(queue: list[dict], queue_state: dict,
                           scan_interval_min: int = 15) -> dict:
     """
     计算大盘情绪指标, 用于标签制精筛的基础标签
 
-    指标:
-      1. holder_ratio: 队列中持币≥100的代币占比 (反映市场整体活跃度)
-      2. survival_rate: 近12h入队代币的存活率 (新发多但存活少 = 市场冷)
-
-    判定: 两个指标都高于历史中位数 → 大盘向上
-    历史中位数在 queue.json 的 marketSentimentHistory 中维护, 每轮更新
+    判定逻辑: 纯 Gas 趋势
+      - 查询 ETH/BSC/SOL 三链近 1 小时 Gas 指数 (加权综合值)
+      - 对比 12h 前那一轮记录的 Gas 指数
+      - 当前 Gas 指数 > 12h 前 → 大盘向上 (链上活跃度在升温)
+      - 当前 Gas 指数 ≤ 12h 前 → 大盘向下 (链上活跃度在降温)
+      - 找不到 12h 前的记录时默认大盘向上, 不阻挡精筛
     """
     now_ms = int(time.time() * 1000)
-    total = len(queue)
 
-    # 指标 1: 持币≥100占比
-    high_holders = sum(1 for t in queue if t.get("holders", 0) >= 100)
-    holder_ratio = high_holders / total if total > 0 else 0
+    # 查询多链 Gas 指数 (近 1 小时平均)
+    gas_data = fetch_gas_index()
+    gas_index = gas_data.get("gas_index", 0.0)
 
-    # 指标 2: 近12h入队代币存活率
-    # 近12h = 近48轮 (15分钟一轮)
-    hours_12_ms = 12 * 3600 * 1000
-    cutoff_ms = now_ms - hours_12_ms
-    recent_admitted = 0
-    recent_survived = 0
-    for t in queue:
-        added_at = t.get("addedAt", t.get("createdAt", 0))
-        if added_at >= cutoff_ms:
-            recent_admitted += 1
-            recent_survived += 1
-    # 也统计近12h被淘汰的代币 (它们曾入队但已不在队列中)
-    for e in queue_state.get("eliminated", []):
-        elim_at = e.get("eliminatedAt", 0)
-        created_at = e.get("createdAt", 0)
-        # 近12h内创建且已被淘汰的
-        if created_at >= cutoff_ms:
-            recent_admitted += 1
-    survival_rate = recent_survived / recent_admitted if recent_admitted > 0 else 0
-
-    # 更新历史记录 (用于计算中位数)
+    # 更新历史记录
     history = queue_state.get("marketSentimentHistory", [])
     history.append({
-        "holder_ratio": round(holder_ratio, 4),
-        "survival_rate": round(survival_rate, 4),
+        "gas_index": round(gas_index, 4),
         "ts": now_ms,
     })
     # 只保留最近 200 轮 (~50h)
@@ -2947,32 +3142,47 @@ def calc_market_sentiment(queue: list[dict], queue_state: dict,
         history = history[-200:]
     queue_state["marketSentimentHistory"] = history
 
-    # 计算历史中位数
-    if len(history) >= 10:
-        sorted_hr = sorted(h["holder_ratio"] for h in history)
-        sorted_sr = sorted(h["survival_rate"] for h in history)
-        median_hr = sorted_hr[len(sorted_hr) // 2]
-        median_sr = sorted_sr[len(sorted_sr) // 2]
-    else:
-        # 历史数据不足, 使用初始中位数 (宽松, 不阻挡精筛)
-        median_hr = MARKET_SENTIMENT_HOLDER_MEDIAN
-        median_sr = MARKET_SENTIMENT_SURVIVAL_MEDIAN
+    # 找 12h 前最近的那一轮记录
+    hours_12_ms = 12 * 3600 * 1000
+    target_ts = now_ms - hours_12_ms
+    gas_12h_ago = None
+    best_diff = float("inf")
+    for h in history:
+        if "gas_index" not in h:
+            continue
+        diff = abs(h["ts"] - target_ts)
+        if diff < best_diff:
+            best_diff = diff
+            gas_12h_ago = h["gas_index"]
 
-    is_bullish = holder_ratio >= median_hr and survival_rate >= median_sr
+    # 判定: 当前 Gas > 12h 前 → 向上
+    if gas_12h_ago is not None and best_diff < 2 * 3600 * 1000:
+        # 找到的记录在 12h±2h 范围内才算有效
+        is_bullish = gas_index > gas_12h_ago
+    else:
+        # 没有 12h 前的记录, 默认向上 (不阻挡精筛)
+        gas_12h_ago = None
+        is_bullish = True
+
+    gas_trend = (gas_index - gas_12h_ago) if gas_12h_ago is not None else 0.0
 
     result = {
-        "holder_ratio": round(holder_ratio, 4),
-        "survival_rate": round(survival_rate, 4),
-        "median_holder_ratio": round(median_hr, 4),
-        "median_survival_rate": round(median_sr, 4),
+        "gas_index": round(gas_index, 4),
+        "gas_detail": gas_data,
+        "gas_12h_ago": round(gas_12h_ago, 4) if gas_12h_ago is not None else None,
+        "gas_trend": round(gas_trend, 4),
         "is_bullish": is_bullish,
         "history_count": len(history),
     }
 
     direction = "↑ 向上" if is_bullish else "↓ 向下"
-    log.info("大盘情绪: %s (持币≥100占比=%.1f%% vs 中位%.1f%%, 12h存活率=%.1f%% vs 中位%.1f%%, 历史%d轮)",
-             direction, holder_ratio * 100, median_hr * 100,
-             survival_rate * 100, median_sr * 100, len(history))
+    if gas_12h_ago is not None:
+        trend_str = f"+{gas_trend:.1%}" if gas_trend >= 0 else f"{gas_trend:.1%}"
+        log.info("大盘情绪: %s (Gas指数=%.1f%%, 12h前=%.1f%%, 趋势%s)",
+                 direction, gas_index * 100, gas_12h_ago * 100, trend_str)
+    else:
+        log.info("大盘情绪: %s (Gas指数=%.1f%%, 12h前=无数据, 默认向上)",
+                 direction, gas_index * 100)
 
     return result
 
@@ -2989,7 +3199,7 @@ def tag_filter(candidates: list[dict], now_ms: int,
       4. 未崩盘 (近三期最高点跌幅 < 35%)
       5. 社交 ≥ 1
       6. 动能: 近1轮持币增速≥5 或 进度增长≥5%
-      7. 大盘向上
+      7. 大盘向上 (Gas大盘指数近12h趋势上升)
 
     加分项 (至少满足 1 个):
       - 有 Boost (项目方付费推广)
