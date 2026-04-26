@@ -51,7 +51,7 @@ v6 架构: 极速扫描 (1 分钟一轮)
   - 未崩盘 (近三期最高点跌幅 < 35%)
   - 社交 ≥ 1
   - 动能: 近1轮持币增速≥5 或 进度增长≥5% (必须有增长动能, 过滤静态达标的僵尸币)
-  - 大盘向上 (Gas大盘指数: 当前 vs 12h前快照, 升温=向上, 降温=向下)
+    首轮豁免: 首轮入队无历史数据时, 持币≥100 + 进度≥50%(未毕业)/流动性≥$15k(已毕业) 视为有动能
   加分项 (至少满足 1 个):
   - 有 Boost (项目方付费推广)
   - 仿盘 ≥ 100 (市场高度关注)
@@ -60,6 +60,7 @@ v6 架构: 极速扫描 (1 分钟一轮)
   - 已毕业强势 (近3轮持币累计增长≥50 + 至少2轮在增长)
   - 进度增长 ≥ 10% (资金持续流入)
   - 加速增长 (2→3轮增速 > 1→2轮增速, 且都在涨)
+  - 首轮强势 (首轮入队且满足豁免条件, 自带加分)
 """
 from __future__ import annotations
 
@@ -200,7 +201,9 @@ TOTAL_SUPPLY = 1_000_000_000           # 10亿
 #   4. 未崩盘 (近三期最高点跌幅 < 35%)
 #   5. 社交 ≥ 1
 #   6. 动能: 近1轮持币增速≥5 或 进度增长≥5% (数据: 无动能币75%涨幅<50%)
-#   7. 大盘向上 (Gas大盘指数: 当前 vs 12h前快照, 升温=向上, 降温=向下)
+#      首轮豁免: 首轮入队无历史数据时, 持币≥100 + 进度≥50%/流动性≥$15k 视为有动能
+#      (数据: 653轮, 首轮达标56个, 5.4%命中4x+, 26.8%命中2x+)
+#   (大盘情绪: Gas指数仍计算并记录, 仅用于数据分析, 不作为精筛条件)
 #
 # 加分项 (至少满足 1 个):
 #   - 有 Boost (项目方付费推广, 真金白银)
@@ -210,6 +213,7 @@ TOTAL_SUPPLY = 1_000_000_000           # 10亿
 #   - 已毕业强势 (近3轮持币累计增长≥50 + 至少2轮在增长, 数据: 37.5%命中3x+)
 #   - 进度增长 ≥ 10% (资金持续流入)
 #   - 加速增长 (2→3轮增速 > 1→2轮增速, 且都在涨, 数据: 25%命中3x+)
+#   - 首轮强势 (首轮入队且满足豁免条件, 自带加分)
 TAG_BASE_MIN_HOLDERS = 30              # 基础: 持币数 ≥ 30 (从50降低, 更早发现)
 TAG_BASE_MIN_PROGRESS = 0.15           # 基础: 进度 ≥ 15% (仅未毕业币, 从20%降低)
 TAG_BASE_MIN_LIQUIDITY = 10000         # 基础: 流动性 ≥ $10k (仅已毕业币)
@@ -218,6 +222,11 @@ TAG_BASE_MAX_CRASH_PCT = 0.35         # 基础: 近三期最高点跌幅 < 35%
 TAG_BASE_MIN_SOCIAL = 1               # 基础: 社交 ≥ 1
 TAG_BASE_MIN_H_MOMENTUM = 5           # 基础(动能): 近1轮持币增速 ≥ 5
 TAG_BASE_MIN_P_MOMENTUM = 0.05        # 基础(动能): 进度增长 ≥ 5% (与持币增速二选一)
+# 首轮豁免: 首轮入队无历史数据算不出动能, 但自身数据足够强时豁免动能要求
+# 数据基础: 653轮扫描, 43616个代币, 首轮达标56个(持币≥100+进度≥50%), 5.4%命中4x+, 26.8%命中2x+
+TAG_FIRST_ROUND_MIN_HOLDERS = 100     # 首轮豁免: 持币数 ≥ 100
+TAG_FIRST_ROUND_MIN_PROGRESS = 0.50   # 首轮豁免: 进度 ≥ 50% (未毕业)
+TAG_FIRST_ROUND_MIN_LIQUIDITY = 15000 # 首轮豁免: 流动性 ≥ $15k (已毕业)
 COPYCAT_MARK_MIN = 3                   # 仿盘数 ≥3 标记 (仅标记, 不排除)
 # 加分项阈值
 TAG_BONUS_MIN_COPYCAT = 100           # 加分: 仿盘 ≥ 100
@@ -3116,7 +3125,7 @@ def fetch_gas_index() -> dict:
 def calc_market_sentiment(queue: list[dict], queue_state: dict,
                           scan_interval_min: int = 15) -> dict:
     """
-    计算大盘情绪指标, 用于标签制精筛的基础标签
+    计算大盘情绪指标, Gas指数仍计算并记录用于数据分析, 不再作为精筛阻断条件
 
     判定逻辑: 纯 Gas 趋势
       - 查询 ETH/BSC/SOL 三链近 1 小时 Gas 指数 (加权综合值)
@@ -3199,7 +3208,8 @@ def tag_filter(candidates: list[dict], now_ms: int,
       4. 未崩盘 (近三期最高点跌幅 < 35%)
       5. 社交 ≥ 1
       6. 动能: 近1轮持币增速≥5 或 进度增长≥5%
-      7. 大盘向上 (Gas大盘指数: 当前 vs 12h前快照)
+         首轮豁免: 首轮入队无历史数据时, 持币≥100 + 进度≥50%/流动性≥$15k 视为有动能
+      (大盘情绪: Gas指数仍计算并记录, 仅用于数据分析, 不作为精筛条件)
 
     加分项 (至少满足 1 个):
       - 有 Boost (项目方付费推广)
@@ -3209,13 +3219,9 @@ def tag_filter(candidates: list[dict], now_ms: int,
       - 已毕业强势 (近3轮持币累计增长≥50 + 至少2轮在增长)
       - 进度增长 ≥ 10% (资金持续流入)
       - 加速增长 (2→3轮增速 > 1→2轮增速, 且都在涨)
+      - 首轮强势 (首轮入队且满足豁免条件, 自带加分)
     """
     results = []
-
-    # 大盘检查: 大盘向下时不推任何币
-    if market_sentiment and not market_sentiment.get("is_bullish", True):
-        log.info("标签精筛: 大盘向下, 本轮不推荐任何代币")
-        return results
 
     for t in candidates:
         current_price = t.get("price", 0)
@@ -3269,6 +3275,18 @@ def tag_filter(candidates: list[dict], now_ms: int,
         prog_hist = t.get("progressHistory", [])
         p_delta = progress - prog_hist[-1] if prog_hist else 0
         has_momentum = h_delta >= TAG_BASE_MIN_H_MOMENTUM or p_delta >= TAG_BASE_MIN_P_MOMENTUM
+        # 首轮豁免: 首轮入队无历史数据, 但自身数据足够强时视为有动能
+        is_first_round = not h_hist and not prog_hist
+        first_round_strong = False
+        if is_first_round:
+            if is_graduated:
+                first_round_strong = (holders >= TAG_FIRST_ROUND_MIN_HOLDERS
+                                      and liquidity >= TAG_FIRST_ROUND_MIN_LIQUIDITY)
+            else:
+                first_round_strong = (holders >= TAG_FIRST_ROUND_MIN_HOLDERS
+                                      and progress >= TAG_FIRST_ROUND_MIN_PROGRESS)
+            if first_round_strong:
+                has_momentum = True
         if not has_momentum:
             log.info("标签精筛: ✗ %s — 无动能 (持币增速=%+d, 进度增长=%+.1f%%)",
                      name, h_delta, p_delta * 100)
@@ -3313,6 +3331,11 @@ def tag_filter(candidates: list[dict], now_ms: int,
             prev_delta = h_hist[-1] - h_hist[-2]
             if prev_delta > 0 and h_delta > prev_delta:
                 bonus_tags.append(f"加速增长({prev_delta}→{h_delta})")
+
+        # 加分项: 首轮强势 (首轮入队且自身数据足够强, 视为自带加分)
+        if is_first_round and first_round_strong:
+            grad_info = f"流动性${liquidity:.0f}" if is_graduated else f"进度{progress * 100:.0f}%"
+            bonus_tags.append(f"首轮强势(持币{holders},{grad_info})")
 
         # 必须至少有 1 个加分项
         if not bonus_tags:
@@ -3770,6 +3793,34 @@ def main():
 
     log.info("精筛通过: %d/%d", len(quality_results), len(survivors))
 
+    # 去重: 过滤掉已推送过的代币 (一个币只推送一次, 保留最早那次)
+    pushed_set = set(queue_state.get("pushed", []))
+    new_quality = []
+    repeat_count = 0
+    for t in quality_results:
+        addr = t.get("address", "")
+        if addr in pushed_set:
+            repeat_count += 1
+            log.info("精筛去重: 跳过 %s (已推送过)", t.get("name") or addr[:16])
+        else:
+            new_quality.append(t)
+    if repeat_count > 0:
+        log.info("精筛去重: 过滤 %d 个重复代币, 剩余 %d 个新代币",
+                 repeat_count, len(new_quality))
+    quality_results = new_quality
+
+    # 记录本轮精筛通过的代币到 pushed 集合
+    pushed_list = queue_state.get("pushed", [])
+    for t in quality_results:
+        addr = t.get("address", "")
+        if addr and addr not in pushed_set:
+            pushed_list.append(addr)
+            pushed_set.add(addr)
+    # pushed 列表上限: 保留最近 500 个 (避免无限增长)
+    if len(pushed_list) > 500:
+        pushed_list = pushed_list[-500:]
+    queue_state["pushed"] = pushed_list
+
     # 更新队列状态 (精筛再验证可能修改了 survivors)
     queue_state["tokens"] = survivors
     queue_state["lastBlock"] = latest_block
@@ -3937,10 +3988,23 @@ def main():
             "source": _detect_source(t),
         })
 
-    # 统计近48小时淘汰的唯一代币数 (从历史扫描数据文件汇总, 避免 queue.json 1000 条截断)
+    # 统计近48小时淘汰的唯一代币数 (从历史扫描数据文件汇总, 仅统计48小时内的文件)
     elim_48h_addrs = set()
+    cutoff_48h = datetime.now(timezone.utc) - timedelta(hours=48)
     for hist_file in DATA_DIR.glob("*.json"):
         if hist_file.name in ("queue.json", "smart_money.json"):
+            continue
+        # 从文件名解析时间, 格式: 2026-04-10T12-34-56.json
+        try:
+            stem = hist_file.stem  # 去掉 .json
+            parts = stem.split("T")
+            if len(parts) != 2:
+                continue
+            time_part = parts[1].replace("-", ":")
+            file_dt = datetime.fromisoformat(f"{parts[0]}T{time_part}+00:00")
+            if file_dt < cutoff_48h:
+                continue
+        except (ValueError, IndexError):
             continue
         try:
             hist_data = json.loads(hist_file.read_text(encoding="utf-8"))
