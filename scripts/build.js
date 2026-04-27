@@ -26,6 +26,21 @@ const PUBLIC_DIR = path.join(__dirname, "..", "public");
 // 止盈触发点 (%), 精筛成功率以此为判定标准 — 改这里即可全局生效
 const TP_TRIGGER_PCT = 15;
 
+// 漏掉的好币判定阈值: 峰值涨幅 ≥ 此百分比视为"好币"
+const MISSED_THRESHOLD_PCT = 100;
+
+// 蹭名币黑名单 (与 scanner.py FAKE_NAME_BLACKLIST 同步)
+// symbol 或 name 精确匹配即排除, 小写比较
+const FAKE_NAME_BLACKLIST = new Set([
+  "usdt", "usdc", "busd", "dai", "tusd", "usdp", "frax", "lusd", "gusd",
+  "btc", "bitcoin", "eth", "ethereum", "bnb", "sol", "solana",
+  "xrp", "ripple", "ada", "cardano", "doge", "dogecoin", "shib",
+  "dot", "polkadot", "avax", "avalanche", "matic", "polygon", "link",
+  "uni", "uniswap", "aave", "cake", "pancakeswap",
+  "wbnb", "weth", "wbtc",
+  "tether", "tether usd", "binance coin", "binance-peg",
+]);
+
 // Ensure output dirs
 for (const d of [SITE_DIR, SITE_DATA_DIR, SCANS_DIR]) {
   if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
@@ -182,6 +197,11 @@ if (scanFiles.length === 0) {
   const qualityMap = {}; // address -> { 首次精筛信息 + 后续最高价 }
   const SUCCESS_THRESHOLD = 1 + TP_TRIGGER_PCT / 100;
 
+  // 漏掉的好币: 进过队列但未通过精筛, 峰值涨幅 ≥ MISSED_THRESHOLD_PCT
+  const missedMap = {};  // address -> { 首次入队信息 + 后续最高价 }
+  const filteredAddrs = new Set(); // 精筛通过过的地址
+  const MISSED_THRESHOLD = 1 + MISSED_THRESHOLD_PCT / 100;
+
   // 正序遍历 (oldest first, 全部 7 天数据)
   const allFilesAsc = [...scanFiles].reverse();
   allFilesAsc.forEach((file) => {
@@ -193,6 +213,7 @@ if (scanFiles.length === 0) {
     for (const t of (data.tokens || [])) {
       const addr = t.address || '';
       if (!addr) continue;
+      filteredAddrs.add(addr);
       if (!qualityMap[addr]) {
         qualityMap[addr] = {
           address: addr,
@@ -213,6 +234,67 @@ if (scanFiles.length === 0) {
       }
     }
 
+    // 记录队列/淘汰/突破代币到 missedMap (首次出现时记录入队价格)
+    // 跳过价格异常小的记录 (< 1e-7), 这些是 DexScreener 还没数据时的链上原始价格
+    const MIN_VALID_PRICE = 1e-7;
+    // 价格跳变阈值: 单步涨幅超过此倍数视为内盘→外盘切换, 需重置基准价
+    const PRICE_JUMP_RATIO = 50;
+    const queueTokens = [
+      ...(data.queue || []),
+      ...(data.eliminatedThisRound || []),
+      ...(data.breakthroughTokens || []),
+    ];
+    for (const t of queueTokens) {
+      const addr = t.address || '';
+      if (!addr) continue;
+      const price = t.price || 0;
+      if (!missedMap[addr]) {
+        // 首次出现: 价格太小则先占位但标记 entryPrice=0, 等后续正常价格覆盖
+        missedMap[addr] = {
+          address: addr,
+          name: t.name || '',
+          symbol: t.symbol || '',
+          entryPrice: price >= MIN_VALID_PRICE ? price : 0,
+          entryTime: st,
+          entryHolders: t.holders || 0,
+          entryProgress: t.progress || 0,
+          entryLiquidity: t.liquidity || 0,
+          entryAgeHours: t.age_hours != null ? t.age_hours : null,
+          peakPrice: price >= MIN_VALID_PRICE ? price : 0,
+          latestPrice: price >= MIN_VALID_PRICE ? price : 0,
+          peakHolders: t.holders || 0,
+          socialLinks: t.social_links || {},
+          copycatCount: t.copycat_count || 0,
+          isCopycat: t.is_copycat || false,
+          elimReason: t.reason || '',
+        };
+      } else {
+        const m = missedMap[addr];
+        // 更新最高持币数
+        if ((t.holders || 0) > m.peakHolders) m.peakHolders = t.holders || 0;
+        // 之前占位的记录 (entryPrice=0), 现在有了正常价格, 更新为真实入队价格
+        if (m.entryPrice === 0 && price >= MIN_VALID_PRICE) {
+          m.entryPrice = price;
+          m.entryTime = st;
+          m.entryHolders = t.holders || 0;
+          m.entryProgress = t.progress || 0;
+          m.entryLiquidity = t.liquidity || 0;
+          m.entryAgeHours = t.age_hours != null ? t.age_hours : null;
+          m.peakPrice = price;
+          m.latestPrice = price;
+          if (t.reason) m.elimReason = t.reason;
+        }
+        // 检测内盘→外盘价格跳变: 当前价格比已知最高价高 50 倍以上, 重置基准价
+        if (price >= MIN_VALID_PRICE && m.entryPrice > 0 && m.peakPrice > 0 && price > m.peakPrice * PRICE_JUMP_RATIO) {
+          m.entryPrice = price;
+          m.entryTime = st;
+          m.entryHolders = t.holders || 0;
+          m.peakPrice = price;
+          m.latestPrice = price;
+        }
+      }
+    }
+
     // 更新所有已记录代币的峰值价格 (仅用实时 price, 不用 peak_price — 后者包含精筛前的历史最高价)
     const allTokens = [
       ...(data.tokens || []),
@@ -221,11 +303,28 @@ if (scanFiles.length === 0) {
     ];
     for (const t of allTokens) {
       const addr = t.address || '';
-      if (!addr || !qualityMap[addr]) continue;
+      if (!addr) continue;
       const price = t.price || 0;
-      if (price > qualityMap[addr].peakPrice) qualityMap[addr].peakPrice = price;
-      // 更新最新价格
-      qualityMap[addr].latestPrice = price;
+      // 更新 qualityMap
+      if (qualityMap[addr]) {
+        if (price > qualityMap[addr].peakPrice) qualityMap[addr].peakPrice = price;
+        qualityMap[addr].latestPrice = price;
+      }
+      // 更新 missedMap (含跳变检测)
+      if (missedMap[addr] && price >= MIN_VALID_PRICE) {
+        const m = missedMap[addr];
+        if ((t.holders || 0) > m.peakHolders) m.peakHolders = t.holders || 0;
+        // 检测价格跳变: 重置基准价
+        if (m.entryPrice > 0 && m.peakPrice > 0 && price > m.peakPrice * PRICE_JUMP_RATIO) {
+          m.entryPrice = price;
+          m.entryTime = st;
+          m.entryHolders = t.holders || 0;
+          m.peakPrice = price;
+        } else if (price > m.peakPrice) {
+          m.peakPrice = price;
+        }
+        m.latestPrice = price;
+      }
     }
   });
 
@@ -253,21 +352,47 @@ if (scanFiles.length === 0) {
   successTokens.sort((a, b) => b.peakGrowth - a.peakGrowth);
   failTokens.sort((a, b) => b.peakGrowth - a.peakGrowth);
 
+  // 漏掉的好币: 进过队列但从未通过精筛, 且峰值涨幅 ≥ MISSED_THRESHOLD_PCT
+  // 额外要求: 队列期间最高持币数 ≥ 10 (排除无人关注的垃圾币)
+  // 排除蹭名币 (symbol/name 命中主流币种黑名单)
+  const MISSED_MIN_PEAK_HOLDERS = 10;
+  const missedTokens = [];
+  for (const [addr, info] of Object.entries(missedMap)) {
+    if (filteredAddrs.has(addr)) continue;
+    if (info.entryPrice <= 0) continue;
+    if (info.peakHolders < MISSED_MIN_PEAK_HOLDERS) continue;
+    const sym = (info.symbol || '').trim().toLowerCase();
+    const nm = (info.name || '').trim().toLowerCase();
+    if (FAKE_NAME_BLACKLIST.has(sym) || FAKE_NAME_BLACKLIST.has(nm)) continue;
+    const peakGrowth = (info.peakPrice - info.entryPrice) / info.entryPrice;
+    const latestGrowth = (info.latestPrice - info.entryPrice) / info.entryPrice;
+    if (info.peakPrice < info.entryPrice * MISSED_THRESHOLD) continue;
+    missedTokens.push({
+      ...info,
+      peakGrowth: Math.round(peakGrowth * 10000) / 100,
+      latestGrowth: Math.round(latestGrowth * 10000) / 100,
+    });
+  }
+  missedTokens.sort((a, b) => b.peakGrowth - a.peakGrowth);
+
   const totalQuality = successTokens.length + failTokens.length;
   const successRate = totalQuality > 0 ? Math.round(successTokens.length / totalQuality * 10000) / 100 : 0;
 
   const qualityStats = {
     tpTriggerPct: TP_TRIGGER_PCT,
+    missedThresholdPct: MISSED_THRESHOLD_PCT,
     totalCount: totalQuality,
     successCount: successTokens.length,
     failCount: failTokens.length,
+    missedCount: missedTokens.length,
     successRate: successRate,
     successTokens: successTokens,
     failTokens: failTokens,
+    missedTokens: missedTokens,
   };
 
   fs.writeFileSync(path.join(SITE_DATA_DIR, "quality-stats.json"), JSON.stringify(qualityStats));
-  console.log(`[BUILD] Quality stats: ${totalQuality} tokens, ${successTokens.length} success (${successRate}%), ${failTokens.length} fail. (7-day data)`);
+  console.log(`[BUILD] Quality stats: ${totalQuality} tokens, ${successTokens.length} success (${successRate}%), ${failTokens.length} fail, ${missedTokens.length} missed (≥${MISSED_THRESHOLD_PCT}%). (7-day data)`);
   console.log(`[BUILD] Generated: ${displayFiles.length} scans for display, ${scanFiles.length} scans for analysis.`);
 }
 

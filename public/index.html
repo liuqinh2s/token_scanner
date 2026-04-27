@@ -2050,37 +2050,20 @@
         font-weight: 800;
       }
 
-      .quality-page-header .quality-stats-row {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 10px;
-      }
-
-      .quality-page-header .quality-stat-item {
-        flex: 1;
-        text-align: center;
-        padding: 8px 4px;
-        border-radius: 10px;
-        background: var(--bg-card);
-        border: 1px solid var(--border-primary);
-      }
-
-      .quality-page-header .quality-stat-item .qs-val {
-        font-size: 20px;
-      }
-
       .quality-page-header .quality-tab-bar {
         display: flex;
-        gap: 0;
-        border-radius: 10px;
-        overflow: hidden;
+        gap: 8px;
         margin-bottom: 0;
       }
 
       .quality-page-header .quality-tab-btn {
         flex: 1;
-        padding: 8px 8px;
+        padding: 10px 4px;
         font-size: 13px;
+      }
+
+      .quality-page-header .quality-tab-btn .qtab-count {
+        font-size: 24px;
       }
 
       .quality-page-list {
@@ -2138,7 +2121,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
 
     .quality-panel-title h3 {
@@ -2158,90 +2141,77 @@
       border: 1px solid var(--accent-border);
     }
 
-    .quality-stats-row {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
-
-    .quality-stat-item {
-      flex: 1;
-      text-align: center;
-      padding: 6px 4px;
-      border-radius: 8px;
-      background: var(--bg-secondary);
-      border: 1px solid var(--border-primary);
-    }
-
-    .quality-stat-item .qs-val {
-      display: block;
-      font-size: 16px;
-      font-weight: 800;
-      line-height: 1.2;
-    }
-
-    .quality-stat-item .qs-label {
-      display: block;
-      font-size: 9px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-      margin-top: 2px;
-    }
-
-    .quality-stat-item.qs-success .qs-val {
-      color: var(--link-green);
-    }
-
-    .quality-stat-item.qs-fail .qs-val {
-      color: var(--danger-text);
-    }
-
     .quality-tab-bar {
       display: flex;
-      gap: 0;
-      border-radius: 8px;
-      overflow: hidden;
+      gap: 6px;
       margin-bottom: 0;
     }
 
     .quality-tab-btn {
       flex: 1;
-      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
       background: var(--bg-secondary);
       color: var(--text-secondary);
       border: 1px solid var(--border-primary);
-      border-radius: 0;
-      padding: 6px 8px;
+      border-radius: 10px;
+      padding: 8px 4px;
       cursor: pointer;
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 500;
       transition: all .2s;
-      border-right: none;
-    }
-
-    .quality-tab-btn:last-child {
-      border-right: 1px solid var(--border-primary);
-    }
-
-    .quality-tab-btn:first-child {
-      border-radius: 8px 0 0 8px;
-    }
-
-    .quality-tab-btn:last-child {
-      border-radius: 0 8px 8px 0;
     }
 
     .quality-tab-btn.active {
-      background: var(--accent);
-      color: var(--bg-primary);
-      border-color: var(--accent);
       font-weight: 700;
+      box-shadow: var(--shadow-md);
+    }
+
+    .quality-tab-btn.active[data-qtab="success"],
+    .quality-tab-btn.active[data-mqtab="success"] {
+      background: rgba(26, 127, 55, 0.12);
+      border-color: rgba(26, 127, 55, 0.4);
+      color: #4caf50;
+    }
+
+    .quality-tab-btn.active[data-qtab="fail"],
+    .quality-tab-btn.active[data-mqtab="fail"] {
+      background: var(--danger-bg);
+      border-color: var(--danger-border);
+      color: var(--danger-text);
+    }
+
+    .quality-tab-btn.active[data-qtab="missed"],
+    .quality-tab-btn.active[data-mqtab="missed"] {
+      background: rgba(230, 126, 34, 0.12);
+      border-color: rgba(230, 126, 34, 0.4);
+      color: #e67e22;
     }
 
     .quality-tab-btn:hover:not(.active) {
       background: var(--bg-hover);
+      border-color: var(--border-hover);
       color: var(--text-primary);
+    }
+
+    .qtab-icon {
+      font-size: 12px;
+      line-height: 1;
+    }
+
+    .qtab-count {
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .qtab-label {
+      font-size: 9px;
+      opacity: 0.7;
+      white-space: nowrap;
     }
 
     .quality-list {
@@ -2313,6 +2283,17 @@
 
     .quality-card-meta span {
       white-space: nowrap;
+    }
+
+    .quality-card-elim {
+      display: inline-block;
+      background: var(--danger-bg);
+      color: var(--danger-text);
+      font-size: 9px;
+      padding: 1px 6px;
+      border-radius: 3px;
+      border: 1px solid var(--danger-border);
+      font-weight: 500;
     }
 
     .quality-card-addr {
@@ -2621,24 +2602,27 @@
             <h3>📊 精筛成功率</h3>
             <span class="quality-rate-badge" id="qualityRateBadge">--</span>
           </div>
-          <div class="quality-stats-row">
-            <div class="quality-stat-item qs-success">
-              <span class="qs-val" id="qualitySuccessCount">0</span>
-              <span class="qs-label" id="qualitySuccessLabel">成功</span>
-            </div>
-            <div class="quality-stat-item qs-fail">
-              <span class="qs-val" id="qualityFailCount">0</span>
-              <span class="qs-label" id="qualityFailLabel">失败</span>
-            </div>
-          </div>
           <div class="quality-tab-bar">
-            <button class="quality-tab-btn active" data-qtab="success" onclick="switchQualityTab('success')">✅
-              成功</button>
-            <button class="quality-tab-btn" data-qtab="fail" onclick="switchQualityTab('fail')">❌ 失败</button>
+            <button class="quality-tab-btn active" data-qtab="success" onclick="switchQualityTab('success')">
+              <span class="qtab-icon">✅</span>
+              <span class="qtab-count" id="qualitySuccessCount">0</span>
+              <span class="qtab-label" id="qualitySuccessLabel">成功</span>
+            </button>
+            <button class="quality-tab-btn" data-qtab="fail" onclick="switchQualityTab('fail')">
+              <span class="qtab-icon">❌</span>
+              <span class="qtab-count" id="qualityFailCount">0</span>
+              <span class="qtab-label" id="qualityFailLabel">失败</span>
+            </button>
+            <button class="quality-tab-btn" data-qtab="missed" onclick="switchQualityTab('missed')">
+              <span class="qtab-icon">🔥</span>
+              <span class="qtab-count" id="qualityMissedCount">0</span>
+              <span class="qtab-label" id="qualityMissedLabel">漏掉</span>
+            </button>
           </div>
         </div>
         <div class="quality-list" id="qualitySuccessList"></div>
         <div class="quality-list hidden" id="qualityFailList"></div>
+        <div class="quality-list hidden" id="qualityMissedList"></div>
       </div>
     </div>
   </div>
@@ -2736,24 +2720,27 @@
         <h2>📊 精筛成功率</h2>
         <span class="quality-rate-badge" id="mobileQualityRateBadge">--</span>
       </div>
-      <div class="quality-stats-row">
-        <div class="quality-stat-item qs-success">
-          <span class="qs-val" id="mobileQualitySuccessCount">0</span>
-          <span class="qs-label" id="mobileQualitySuccessLabel">成功</span>
-        </div>
-        <div class="quality-stat-item qs-fail">
-          <span class="qs-val" id="mobileQualityFailCount">0</span>
-          <span class="qs-label" id="mobileQualityFailLabel">失败</span>
-        </div>
-      </div>
       <div class="quality-tab-bar">
-        <button class="quality-tab-btn active" data-mqtab="success" onclick="switchMobileQualityTab('success')">✅
-          成功</button>
-        <button class="quality-tab-btn" data-mqtab="fail" onclick="switchMobileQualityTab('fail')">❌ 失败</button>
+        <button class="quality-tab-btn active" data-mqtab="success" onclick="switchMobileQualityTab('success')">
+          <span class="qtab-icon">✅</span>
+          <span class="qtab-count" id="mobileQualitySuccessCount">0</span>
+          <span class="qtab-label" id="mobileQualitySuccessLabel">成功</span>
+        </button>
+        <button class="quality-tab-btn" data-mqtab="fail" onclick="switchMobileQualityTab('fail')">
+          <span class="qtab-icon">❌</span>
+          <span class="qtab-count" id="mobileQualityFailCount">0</span>
+          <span class="qtab-label" id="mobileQualityFailLabel">失败</span>
+        </button>
+        <button class="quality-tab-btn" data-mqtab="missed" onclick="switchMobileQualityTab('missed')">
+          <span class="qtab-icon">🔥</span>
+          <span class="qtab-count" id="mobileQualityMissedCount">0</span>
+          <span class="qtab-label" id="mobileQualityMissedLabel">漏掉</span>
+        </button>
       </div>
     </div>
     <div class="quality-page-list" id="mobileQualitySuccessList"></div>
     <div class="quality-page-list hidden" id="mobileQualityFailList"></div>
+    <div class="quality-page-list hidden" id="mobileQualityMissedList"></div>
   </div>
 
   <!-- 设置页面（手机端） -->
@@ -4196,6 +4183,7 @@
       if (!qualityStatsData) return;
       const d = qualityStatsData;
       const tp = d.tpTriggerPct || 50;
+      const mp = d.missedThresholdPct || 100;
 
       // 更新统计数字
       const badge = document.getElementById('qualityRateBadge');
@@ -4204,17 +4192,22 @@
       if (sc) sc.textContent = d.successCount;
       const fc = document.getElementById('qualityFailCount');
       if (fc) fc.textContent = d.failCount;
+      const mc = document.getElementById('qualityMissedCount');
+      if (mc) mc.textContent = d.missedCount || 0;
       const sl = document.getElementById('qualitySuccessLabel');
       if (sl) sl.textContent = '成功 (涨≥' + tp + '%)';
       const fl = document.getElementById('qualityFailLabel');
       if (fl) fl.textContent = '失败 (<' + tp + '%)';
+      const ml = document.getElementById('qualityMissedLabel');
+      if (ml) ml.textContent = '漏掉 (涨≥' + mp + '%)';
 
       // 渲染列表
       renderQualityList('qualitySuccessList', d.successTokens || []);
       renderQualityList('qualityFailList', d.failTokens || []);
+      renderQualityList('qualityMissedList', d.missedTokens || [], true);
     }
 
-    function renderQualityList(containerId, tokens) {
+    function renderQualityList(containerId, tokens, showElimReason) {
       const el = document.getElementById(containerId);
       if (!el) return;
       if (tokens.length === 0) {
@@ -4228,6 +4221,7 @@
         const peakGrowthSign = t.peakGrowth >= 0 ? '+' : '';
         const latestGrowthCls = t.latestGrowth >= 0 ? 'positive' : 'negative';
         const latestGrowthSign = t.latestGrowth >= 0 ? '+' : '';
+        const elimReasonHtml = showElimReason && t.elimReason ? `<span class="quality-card-elim">${esc(t.elimReason)}</span>` : '';
         return `<div class="quality-card">
           <div class="quality-card-top">
             <span class="quality-card-name" onclick="copySymbol('${esc(t.symbol || '--')}')" title="${esc(t.name || '')}">${esc(t.symbol || '--')}</span>
@@ -4240,10 +4234,11 @@
             <span class="${latestGrowthCls}">现 ${latestGrowthSign}${t.latestGrowth}%</span>
           </div>
           <div class="quality-card-meta" style="margin-top:2px">
-            <span>持币:${t.entryHolders || 0}</span>
+            <span>持币:${t.entryHolders || 0}${t.peakHolders > 0 && t.peakHolders !== t.entryHolders ? ' (峰' + t.peakHolders + ')' : ''}</span>
             <span>${esc(t.entryTime || '')}</span>
             ${t.entryAgeHours != null ? '<span>龄:' + fmtAge(t.entryAgeHours) + '</span>' : ''}
             ${t.copycatCount > 0 ? '<span style="color:var(--danger-text)">🔥' + t.copycatCount + '仿</span>' : ''}
+            ${elimReasonHtml}
           </div>
         </div>`;
       }).join('');
@@ -4254,6 +4249,7 @@
       document.querySelectorAll('#qualityPanel .quality-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.qtab === tab));
       document.getElementById('qualitySuccessList').classList.toggle('hidden', tab !== 'success');
       document.getElementById('qualityFailList').classList.toggle('hidden', tab !== 'fail');
+      document.getElementById('qualityMissedList').classList.toggle('hidden', tab !== 'missed');
     }
 
     /* ===== 手机端精筛成功率 ===== */
@@ -4263,6 +4259,7 @@
       if (!qualityStatsData) return;
       const d = qualityStatsData;
       const tp = d.tpTriggerPct || 50;
+      const mp = d.missedThresholdPct || 100;
 
       const badge = document.getElementById('mobileQualityRateBadge');
       if (badge) badge.textContent = d.successRate + '%';
@@ -4270,13 +4267,18 @@
       if (sc) sc.textContent = d.successCount;
       const fc = document.getElementById('mobileQualityFailCount');
       if (fc) fc.textContent = d.failCount;
+      const mc = document.getElementById('mobileQualityMissedCount');
+      if (mc) mc.textContent = d.missedCount || 0;
       const sl = document.getElementById('mobileQualitySuccessLabel');
       if (sl) sl.textContent = '成功 (涨≥' + tp + '%)';
       const fl = document.getElementById('mobileQualityFailLabel');
       if (fl) fl.textContent = '失败 (<' + tp + '%)';
+      const ml = document.getElementById('mobileQualityMissedLabel');
+      if (ml) ml.textContent = '漏掉 (涨≥' + mp + '%)';
 
       renderQualityList('mobileQualitySuccessList', d.successTokens || []);
       renderQualityList('mobileQualityFailList', d.failTokens || []);
+      renderQualityList('mobileQualityMissedList', d.missedTokens || [], true);
     }
 
     function switchMobileQualityTab(tab) {
@@ -4284,6 +4286,7 @@
       document.querySelectorAll('#qualityPage .quality-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.mqtab === tab));
       document.getElementById('mobileQualitySuccessList').classList.toggle('hidden', tab !== 'success');
       document.getElementById('mobileQualityFailList').classList.toggle('hidden', tab !== 'fail');
+      document.getElementById('mobileQualityMissedList').classList.toggle('hidden', tab !== 'missed');
     }
 
     loadLatest();
