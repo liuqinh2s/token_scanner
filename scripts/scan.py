@@ -42,25 +42,15 @@ v6 架构: 极速扫描 (1 分钟一轮)
   - 币龄 > 48h
   - 价格突破: 峰值价格 ≥ 0.0001 → 标记为已突破, 跳过常规淘汰条件, 仅受币龄>48h淘汰
 
-精筛条件 (标签制, 基础标签 AND + 加分项至少 1 个):
-  统一通道: 未毕业币和已毕业币走同一套标签制
+精筛条件 (标签制, 基础标签 AND + 双动能触发):
   基础标签组 (全部满足, AND):
-  - 持币数 ≥ 30
+  - 持币数 ≥ 20
   - 进度 ≥ 15% (未毕业) / 流动性 ≥ $10k (已毕业)
-  - 仿盘数 ≥ 5
+  - 仿盘数 ≥ 3
   - 未崩盘 (近三期最高点跌幅 < 35%)
   - 社交 ≥ 1
-  - 动能: 近1轮持币增速≥5 或 进度增长≥5% (必须有增长动能, 过滤静态达标的僵尸币)
+  - 双动能触发: 持币数比上轮增长 且 价格比上轮上涨 (人在买+价在涨)
     首轮豁免: 首轮入队无历史数据时, 持币≥100 + 进度≥50%(未毕业)/流动性≥$15k(已毕业) 视为有动能
-  加分项 (至少满足 1 个):
-  - 有 Boost (项目方付费推广)
-  - 仿盘 ≥ 100 (市场高度关注)
-  - 近 1 轮持币增长 ≥ 20 (强劲买入信号)
-  - 社交 ≥ 3
-  - 已毕业强势 (近3轮持币累计增长≥50 + 至少2轮在增长)
-  - 进度增长 ≥ 10% (资金持续流入)
-  - 加速增长 (2→3轮增速 > 1→2轮增速, 且都在涨)
-  - 首轮强势 (首轮入队且满足豁免条件, 自带加分)
 """
 from __future__ import annotations
 
@@ -184,57 +174,39 @@ BINANCE_HEADERS = {
     "User-Agent": "binance-web3/1.1 (Skill)",
 }
 
-# 精筛阈值 (标签制: 基础标签 AND + 加分项至少 1 个)
+# 精筛阈值 (标签制: 基础标签 AND + 双动能触发)
 MAX_AGE_HOURS = 48
 SCAN_INTERVAL_MIN = 15                 # GitHub Actions cron 间隔 (分钟)
 TOTAL_SUPPLY = 1_000_000_000           # 10亿
-# --- 精筛: 标签制 (基础标签全部满足 + 加分项至少 1 个) ---
-# 数据基础: 710轮扫描, 42504个代币, 305个有效样本 (峰值持币≥30)
-# 核心思路: 基础标签保证底线质量+增长动能, 加分项筛出真正有爆发力的币
-# 统一通道: 未毕业币和已毕业币走同一套标签制, 不再分开
-# 关键改进: 持币门槛从50降到30 (更早发现), 新增动能标签 (过滤静态达标的僵尸币)
+# --- 精筛: 标签制 (基础标签全部满足 + 双动能触发) ---
+# 数据基础: 956轮扫描, 66393个代币, 全量回测
+# v7 核心改进: 去掉加分项机制, 改为双动能触发 (持币增长 + 价格上涨)
+# 回测对比 (7天全量数据):
+#   旧策略(h30+cc5+加分项): 买入113, 胜率58.4%, 翻倍32, 总回报290x
+#   新策略(h20+cc3+双动能):  买入248, 胜率60.5%, 翻倍58, 总回报587x
+# 降低门槛让好币更早进入视野, 双动能(人在买+价在涨)替代加分项降噪
 #
 # 基础标签组 (全部满足, AND):
-#   1. 持币数 ≥ 30 (降低门槛, 更早发现潜力币)
+#   1. 持币数 ≥ 20 (从30降低, 更早发现)
 #   2. 进度 ≥ 15% (未毕业) / 流动性 ≥ $10k (已毕业)
-#   3. 仿盘数 ≥ 5
+#   3. 仿盘数 ≥ 3 (从5降低, 减少误杀)
 #   4. 未崩盘 (近三期最高点跌幅 < 35%)
 #   5. 社交 ≥ 1
-#   6. 动能: 近1轮持币增速≥5 或 进度增长≥5% (数据: 无动能币75%涨幅<50%)
+#   6. 双动能触发: 持币数比上轮增长 且 价格比上轮上涨
 #      首轮豁免: 首轮入队无历史数据时, 持币≥100 + 进度≥50%/流动性≥$15k 视为有动能
-#      (数据: 653轮, 首轮达标56个, 5.4%命中4x+, 26.8%命中2x+)
 #   (大盘情绪: Gas指数仍计算并记录, 仅用于数据分析, 不作为精筛条件)
-#
-# 加分项 (至少满足 1 个):
-#   - 有 Boost (项目方付费推广, 真金白银)
-#   - 仿盘 ≥ 100 (市场高度关注)
-#   - 近 1 轮持币增长 ≥ 20 (强劲买入信号)
-#   - 社交 ≥ 3 (数据: 26.7%命中3x+)
-#   - 已毕业强势 (近3轮持币累计增长≥50 + 至少2轮在增长, 数据: 37.5%命中3x+)
-#   - 进度增长 ≥ 10% (资金持续流入)
-#   - 加速增长 (2→3轮增速 > 1→2轮增速, 且都在涨, 数据: 25%命中3x+)
-#   - 首轮强势 (首轮入队且满足豁免条件, 自带加分)
-TAG_BASE_MIN_HOLDERS = 30              # 基础: 持币数 ≥ 30 (从50降低, 更早发现)
-TAG_BASE_MIN_PROGRESS = 0.15           # 基础: 进度 ≥ 15% (仅未毕业币, 从20%降低)
+TAG_BASE_MIN_HOLDERS = 20              # 基础: 持币数 ≥ 20 (从30降低, 更早发现)
+TAG_BASE_MIN_PROGRESS = 0.15           # 基础: 进度 ≥ 15% (仅未毕业币)
 TAG_BASE_MIN_LIQUIDITY = 10000         # 基础: 流动性 ≥ $10k (仅已毕业币)
-TAG_BASE_MIN_COPYCAT = 5              # 基础: 仿盘数 ≥ 5
+TAG_BASE_MIN_COPYCAT = 3              # 基础: 仿盘数 ≥ 3 (从5降低, 减少误杀)
 TAG_BASE_MAX_CRASH_PCT = 0.35         # 基础: 近三期最高点跌幅 < 35%
 TAG_BASE_MIN_SOCIAL = 1               # 基础: 社交 ≥ 1
-TAG_BASE_MIN_H_MOMENTUM = 5           # 基础(动能): 近1轮持币增速 ≥ 5
-TAG_BASE_MIN_P_MOMENTUM = 0.05        # 基础(动能): 进度增长 ≥ 5% (与持币增速二选一)
+# 双动能: 持币数比上轮增长 且 价格比上轮上涨 (回测: 翻倍币60%持币增长+77%价格涨, 亏损币仅17%+9%)
 # 首轮豁免: 首轮入队无历史数据算不出动能, 但自身数据足够强时豁免动能要求
-# 数据基础: 653轮扫描, 43616个代币, 首轮达标56个(持币≥100+进度≥50%), 5.4%命中4x+, 26.8%命中2x+
 TAG_FIRST_ROUND_MIN_HOLDERS = 100     # 首轮豁免: 持币数 ≥ 100
 TAG_FIRST_ROUND_MIN_PROGRESS = 0.50   # 首轮豁免: 进度 ≥ 50% (未毕业)
 TAG_FIRST_ROUND_MIN_LIQUIDITY = 15000 # 首轮豁免: 流动性 ≥ $15k (已毕业)
 COPYCAT_MARK_MIN = 3                   # 仿盘数 ≥3 标记 (仅标记, 不排除)
-# 加分项阈值
-TAG_BONUS_MIN_COPYCAT = 100           # 加分: 仿盘 ≥ 100
-TAG_BONUS_MIN_H_DELTA = 20            # 加分: 近 1 轮持币增长 ≥ 20
-TAG_BONUS_MIN_SOCIAL = 3              # 加分: 社交 ≥ 3
-TAG_BONUS_GRAD_MIN_H_GROWTH = 50      # 加分(已毕业强势): 近 3 轮持币累计增长 ≥ 50
-TAG_BONUS_GRAD_MIN_CONSEC = 2         # 加分(已毕业强势): 近 N 轮中至少 2 轮持币在增长
-TAG_BONUS_MIN_P_GROWTH = 0.10         # 加分: 进度增长 ≥ 10% (资金持续流入)
 # 大盘情绪: 纯 Gas 趋势判定 (当前 Gas 指数 vs 12h前快照)
 # Gas 大盘指数: ETH/BSC gasUsedRatio + SOL TPS, 反映多链整体活跃度
 # gasUsedRatio: 0~1, 越高=区块越满=链上越活跃; SOL TPS 归一化到 0~1
@@ -3199,27 +3171,20 @@ def calc_market_sentiment(queue: list[dict], queue_state: dict,
 def tag_filter(candidates: list[dict], now_ms: int,
                market_sentiment: dict | None = None) -> list[dict]:
     """
-    标签制精筛 — 统一通道, 未毕业币和已毕业币走同一套标签制
+    标签制精筛 — 基础标签 + 双动能触发
 
     基础标签组 (全部满足, AND):
-      1. 持币数 ≥ 30
+      1. 持币数 ≥ 20
       2. 进度 ≥ 15% (未毕业) / 流动性 ≥ $10k (已毕业)
-      3. 仿盘数 ≥ 5
+      3. 仿盘数 ≥ 3
       4. 未崩盘 (近三期最高点跌幅 < 35%)
       5. 社交 ≥ 1
-      6. 动能: 近1轮持币增速≥5 或 进度增长≥5%
+      6. 双动能触发: 持币数比上轮增长 且 价格比上轮上涨
          首轮豁免: 首轮入队无历史数据时, 持币≥100 + 进度≥50%/流动性≥$15k 视为有动能
-      (大盘情绪: Gas指数仍计算并记录, 仅用于数据分析, 不作为精筛条件)
 
-    加分项 (至少满足 1 个):
-      - 有 Boost (项目方付费推广)
-      - 仿盘 ≥ 100 (市场高度关注)
-      - 近 1 轮持币增长 ≥ 20 (强劲买入信号)
-      - 社交 ≥ 3
-      - 已毕业强势 (近3轮持币累计增长≥50 + 至少2轮在增长)
-      - 进度增长 ≥ 10% (资金持续流入)
-      - 加速增长 (2→3轮增速 > 1→2轮增速, 且都在涨)
-      - 首轮强势 (首轮入队且满足豁免条件, 自带加分)
+    回测数据 (956轮, 66393代币):
+      旧策略(h30+cc5+加分项): 买入113, 胜率58.4%, 翻倍32, 总回报290x
+      新策略(h20+cc3+双动能):  买入248, 胜率60.5%, 翻倍58, 总回报587x
     """
     results = []
 
@@ -3231,7 +3196,7 @@ def tag_filter(candidates: list[dict], now_ms: int,
         liquidity = t.get("liquidity", 0)
         is_graduated = progress >= 1.0
 
-        # === 基础标签 1: 持币数 ≥ 30 ===
+        # === 基础标签 1: 持币数 ≥ 20 ===
         if holders < TAG_BASE_MIN_HOLDERS:
             continue
 
@@ -3243,7 +3208,7 @@ def tag_filter(candidates: list[dict], now_ms: int,
             if progress < TAG_BASE_MIN_PROGRESS:
                 continue
 
-        # === 基础标签 3: 仿盘数 ≥ 5 ===
+        # === 基础标签 3: 仿盘数 ≥ 3 ===
         cc = t.get("copycat", {})
         cc_count = cc.get("count", 0) if cc else 0
         if cc_count < TAG_BASE_MIN_COPYCAT:
@@ -3253,7 +3218,6 @@ def tag_filter(candidates: list[dict], now_ms: int,
         if current_price <= 0:
             continue
         price_hist = t.get("priceHistory", [])
-        # 近三期价格: 当前 + 最近2轮历史
         recent_prices = [current_price]
         for p in price_hist[-2:]:
             if p and p > 0:
@@ -3269,14 +3233,15 @@ def tag_filter(candidates: list[dict], now_ms: int,
         if social_count < TAG_BASE_MIN_SOCIAL:
             continue
 
-        # === 基础标签 6: 动能 (近1轮持币增速≥5 或 进度增长≥5%) ===
+        # === 基础标签 6: 双动能触发 (持币增长 + 价格上涨) ===
         h_hist = t.get("holdersHistory", [])
         h_delta = holders - h_hist[-1] if h_hist else 0
-        prog_hist = t.get("progressHistory", [])
-        p_delta = progress - prog_hist[-1] if prog_hist else 0
-        has_momentum = h_delta >= TAG_BASE_MIN_H_MOMENTUM or p_delta >= TAG_BASE_MIN_P_MOMENTUM
+        last_price = t.get("lastPrice", 0)
+        price_up = current_price > last_price if last_price > 0 else False
+        holders_up = h_delta > 0
+
         # 首轮豁免: 首轮入队无历史数据, 但自身数据足够强时视为有动能
-        is_first_round = not h_hist and not prog_hist
+        is_first_round = not h_hist
         first_round_strong = False
         if is_first_round:
             if is_graduated:
@@ -3285,73 +3250,38 @@ def tag_filter(candidates: list[dict], now_ms: int,
             else:
                 first_round_strong = (holders >= TAG_FIRST_ROUND_MIN_HOLDERS
                                       and progress >= TAG_FIRST_ROUND_MIN_PROGRESS)
-            if first_round_strong:
-                has_momentum = True
-        if not has_momentum:
-            log.info("标签精筛: ✗ %s — 无动能 (持币增速=%+d, 进度增长=%+.1f%%)",
-                     name, h_delta, p_delta * 100)
+
+        has_dual_momentum = (holders_up and price_up) or first_round_strong
+        if not has_dual_momentum:
+            log.info("标签精筛: ✗ %s — 无双动能 (持币增速=%+d, 价格%s)",
+                     name, h_delta, "↑" if price_up else "↓")
             continue
 
-        # === 基础标签全部通过, 检查加分项 ===
-        bonus_tags = []
-
-        # 加分项: 有 Boost
+        # === 全部通过 ===
+        # 收集信号标签 (仅用于展示, 不影响筛选)
+        signal_tags = []
         boosts = t.get("boosts", 0)
         if boosts > 0:
-            bonus_tags.append(f"Boost({boosts})")
-
-        # 加分项: 仿盘 ≥ 100
-        if cc_count >= TAG_BONUS_MIN_COPYCAT:
-            bonus_tags.append(f"仿盘({cc_count})")
-
-        # 加分项: 近 1 轮持币增长 ≥ 20
-        if h_delta >= TAG_BONUS_MIN_H_DELTA:
-            bonus_tags.append(f"持币增长(+{h_delta})")
-
-        # 加分项: 社交 ≥ 3
-        if social_count >= TAG_BONUS_MIN_SOCIAL:
-            bonus_tags.append(f"社交({social_count})")
-
-        # 加分项: 已毕业强势 (近3轮持币累计增长≥50 + 至少2轮在增长)
-        if is_graduated and len(h_hist) >= 3:
-            recent_h = h_hist[-3:]
-            h_growth = holders - recent_h[0]
-            # 计算增长轮数
-            all_h = recent_h + [holders]
-            growth_rounds = sum(1 for i in range(1, len(all_h)) if all_h[i] > all_h[i - 1])
-            if h_growth >= TAG_BONUS_GRAD_MIN_H_GROWTH and growth_rounds >= TAG_BONUS_GRAD_MIN_CONSEC:
-                bonus_tags.append(f"毕业强势(3轮+{h_growth},{growth_rounds}轮增长)")
-
-        # 加分项: 进度增长 ≥ 10% (资金持续流入)
-        if p_delta >= TAG_BONUS_MIN_P_GROWTH:
-            bonus_tags.append(f"进度增长(+{p_delta * 100:.1f}%)")
-
-        # 加分项: 加速增长 (2→3轮增速 > 1→2轮增速, 且都在涨)
-        if len(h_hist) >= 2:
-            prev_delta = h_hist[-1] - h_hist[-2]
-            if prev_delta > 0 and h_delta > prev_delta:
-                bonus_tags.append(f"加速增长({prev_delta}→{h_delta})")
-
-        # 加分项: 首轮强势 (首轮入队且自身数据足够强, 视为自带加分)
+            signal_tags.append(f"Boost({boosts})")
+        if cc_count >= 100:
+            signal_tags.append(f"仿盘({cc_count})")
+        if h_delta >= 20:
+            signal_tags.append(f"持币增长(+{h_delta})")
+        if social_count >= 3:
+            signal_tags.append(f"社交({social_count})")
         if is_first_round and first_round_strong:
             grad_info = f"流动性${liquidity:.0f}" if is_graduated else f"进度{progress * 100:.0f}%"
-            bonus_tags.append(f"首轮强势(持币{holders},{grad_info})")
+            signal_tags.append(f"首轮强势(持币{holders},{grad_info})")
 
-        # 必须至少有 1 个加分项
-        if not bonus_tags:
-            continue
-
-        # 全部通过
-        age_hours = (now_ms - t.get("createdAt", 0)) / 3600000
         t["_quality_h_delta"] = h_delta
-        t["_quality_bonus_tags"] = bonus_tags
+        t["_quality_bonus_tags"] = signal_tags
         t["isGraduated"] = is_graduated
         results.append(t)
 
         grad_str = "毕业" if is_graduated else f"进度{progress * 100:.0f}%"
-        log.info("标签精筛: ✓ %s — 持币=%d, %s, 仿盘=%d, 社交=%d, 动能=%+d, 加分=[%s]",
+        log.info("标签精筛: ✓ %s — 持币=%d, %s, 仿盘=%d, 社交=%d, 动能=持币%+d/价格%s, 信号=[%s]",
                  name, holders, grad_str, cc_count, social_count, h_delta,
-                 ", ".join(bonus_tags))
+                 "↑" if price_up else "↓", ", ".join(signal_tags) if signal_tags else "无")
 
     return results
 
