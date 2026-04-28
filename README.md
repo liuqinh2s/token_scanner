@@ -25,7 +25,7 @@ BSC 链上新代币扫描器。直接扫描链上 [Four.meme](https://four.meme)
    → 修正 peakPrice + 记录 klineHigh/klineLow (过山车检测)
 
 4. 精筛 (瞬时)
-   标签制精筛: 统一通道, 基础标签全部满足(持币≥20/进度≥15%或流动性≥$10k/仿盘≥3/未崩盘/社交≥1)
+   标签制精筛: 统一通道, 基础标签全部满足(持币≥20/进度≥15%或流动性≥$10k/仿盘≥3/未崩盘/社交≥1, flap豁免: 持币≥50+进度≥30%时跳过社交)
    + 单动能触发(持币增长或价格上涨, 任一即可)
    → 从存活币中找蓄势待发信号
 
@@ -268,7 +268,9 @@ cp config.example.json config.local.json
 | `TAG_BASE_MIN_LIQUIDITY` | 10000 | 基础: 流动性 ≥ $10k（仅已毕业币） |
 | `TAG_BASE_MIN_COPYCAT` | 3 | 基础: 仿盘数 ≥ 3 |
 | `TAG_BASE_MAX_CRASH_PCT` | 0.35 | 基础: 近三期最高点跌幅 < 35% |
-| `TAG_BASE_MIN_SOCIAL` | 1 | 基础: 社交 ≥ 1 |
+| `TAG_BASE_MIN_SOCIAL` | 1 | 基础: 社交 ≥ 1（flap 豁免: 持币≥50 且 进度≥30%/已毕业） |
+| `TAG_FLAP_SOCIAL_EXEMPT_HOLDERS` | 50 | flap 社交豁免: 持币数 ≥ 50 |
+| `TAG_FLAP_SOCIAL_EXEMPT_PROGRESS` | 0.30 | flap 社交豁免: 进度 ≥ 30%（未毕业） |
 | `TAG_FIRST_ROUND_MIN_HOLDERS` | 100 | 首轮豁免: 持币数 ≥ 100 |
 | `TAG_FIRST_ROUND_MIN_PROGRESS` | 0.50 | 首轮豁免: 进度 ≥ 50%（未毕业） |
 | `TAG_FIRST_ROUND_MIN_LIQUIDITY` | 15000 | 首轮豁免: 流动性 ≥ $15k（已毕业） |
